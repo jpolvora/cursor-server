@@ -1,0 +1,29 @@
+{
+  "name": "cursor-server",
+  "version": "0.1.0",
+  "description": "API server for delegating Cursor agent tasks against local repository workspaces",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cursor/sdk": "^1.0.23",
+    "@hono/node-server": "^1.14.4",
+    "hono": "^4.7.10",
+    "node-cron": "^3.0.3",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "@types/node-cron": "^3.0.11",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
