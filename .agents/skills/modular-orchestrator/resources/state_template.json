@@ -1,0 +1,34 @@
+{
+  "workflowId": "",
+  "slug": "",
+  "status": "active",
+  "currentStep": 0,
+  "completedSteps": [0],
+  "baselineCommit": "",
+  "stepLlms": {
+    "1": "gemini-3.5-thinking",
+    "2": "gemini-3.5-thinking",
+    "3": "gemini-3.5-flash",
+    "4": "gemini-3.5-coder",
+    "5": "gemini-3.5-thinking",
+    "6": "gemini-3.5-coder"
+  },
+  "stepHistory": [],
+  "context": {
+    "specFile": "",
+    "planningFile": "",
+    "refinementFile": "",
+    "delegationFile": "",
+    "filesTouched": {
+      "modified": [],
+      "created": [],
+      "deleted": []
+    },
+    "verificationScore": 0,
+    "commits": []
+  },
+  "localMemory": {
+    "trapsAndPitfalls": []
+  },
+  "checkpoints": []
+}

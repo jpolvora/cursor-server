@@ -142,3 +142,141 @@ For task endpoints, a real `CURSOR_API_KEY` and a clone under `repos/` are requi
 - Do not switch to cloud runtime without an explicit requirement (this server is local-first / homelab-first).
 - Do not add large frameworks or ORMs for the initial API surface.
 - Do not implement roadmap items (Docker, spec editor, Hermes) without explicit owner go-ahead — but **do** keep README/AGENTS roadmap sections updated when vision changes.
+
+---
+
+## Skills index (progressive disclosure)
+
+**How to use:** Read this hub first. Load a linked skill **only** when the task matches its trigger — never paste skill bodies into AGENTS.md. User instructions override skills; skills override default agent behavior.
+
+```text
+AGENTS.md (hub)
+  ├── Layer 0 — every response (unless user opts out)
+  ├── Layer 1 — task-triggered
+  ├── Layer 2 — on-demand / explicit invoke
+  ├── Agents — orchestrators (.agents/*.md)
+  └── Project docs — README, MEMORY, CHANGELOG
+```
+
+### Layer 0 — Auto-load
+
+| Skill | Path | When |
+|-------|------|------|
+| **using-superpowers** | [`.agents/skills/using-superpowers/SKILL.md`](.agents/skills/using-superpowers/SKILL.md) | Start of session — how to find and invoke skills |
+| **senior-developer** | [`.agents/skills/senior-developer/SKILL.md`](.agents/skills/senior-developer/SKILL.md) | Every implementation task (TypeScript/Hono/SDK guardrails) |
+| **gabarito** | [`.agents/skills/gabarito/SKILL.md`](.agents/skills/gabarito/SKILL.md) | Operational discipline (accountability, clarification) |
+| **karpathy-guidelines** | [`.agents/skills/karpathy-guidelines/SKILL.md`](.agents/skills/karpathy-guidelines/SKILL.md) | Surgical diffs, avoid over-engineering |
+| **caveman** | [`.agents/skills/caveman/SKILL.md`](.agents/skills/caveman/SKILL.md) | Compressed responses unless user says `normal mode` |
+
+Opt-out in-thread: `skip senior-developer`, `stop caveman`, etc.
+
+### Layer 1 — Task-triggered
+
+| Task | Skill | Path |
+|------|-------|------|
+| Library / SDK docs | **context7-mcp** | [`.agents/skills/context7-mcp/SKILL.md`](.agents/skills/context7-mcp/SKILL.md) |
+| Task complete — changelog | **changelog** | [`.agents/skills/changelog/SKILL.md`](.agents/skills/changelog/SKILL.md) |
+| Task complete — learnings | **learning** | [`.agents/skills/learning/SKILL.md`](.agents/skills/learning/SKILL.md) → `MEMORY.md` |
+| Create/review spec file | **spec-format** | [`.agents/skills/spec-format/SKILL.md`](.agents/skills/spec-format/SKILL.md) |
+| Write qualified spec | **write-spec** | [`.agents/skills/write-spec/SKILL.md`](.agents/skills/write-spec/SKILL.md) |
+| Challenge plan + update docs | **grill-with-docs** | [`.agents/skills/grill-with-docs/SKILL.md`](.agents/skills/grill-with-docs/SKILL.md) |
+
+### Layer 2 — On-demand (explicit invoke)
+
+| Intent | Skill | Path |
+|--------|-------|------|
+| Branch / PR review | **code-review** | [`.agents/skills/code-review/SKILL.md`](.agents/skills/code-review/SKILL.md) |
+| Fix open PR review threads | **solve-pr** | [`.agents/skills/solve-pr/SKILL.md`](.agents/skills/solve-pr/SKILL.md) |
+| Ship: verify → commit → PR → merge loop | **ship-pr** | [`.agents/skills/ship-pr/SKILL.md`](.agents/skills/ship-pr/SKILL.md) |
+| Goal-driven PR convergence | **goal-fix-pr** | [`.agents/skills/09-goal-fix-pr/SKILL.md`](.agents/skills/09-goal-fix-pr/SKILL.md) |
+| OWASP / security audit | **security-review** | [`.agents/skills/security-review/SKILL.md`](.agents/skills/security-review/SKILL.md) |
+| TS route/service security | **typescript-security-review** | [`.agents/skills/typescript-security-review/SKILL.md`](.agents/skills/typescript-security-review/SKILL.md) |
+| Layer / architecture audit | **tdd-sdd-ddd-reviewer** | [`.agents/skills/tdd-sdd-ddd-reviewer/SKILL.md`](.agents/skills/tdd-sdd-ddd-reviewer/SKILL.md) |
+| Module-area audit (`routes`, `services`, …) | **domain-review** | [`.agents/skills/domain-review/SKILL.md`](.agents/skills/domain-review/SKILL.md) |
+| Rotate all modules | **multi-domain-review** | [`.agents/skills/multi-domain-review/SKILL.md`](.agents/skills/multi-domain-review/SKILL.md) |
+| Grade plan execution | **verify-plan** | [`.agents/skills/verify-plan/SKILL.md`](.agents/skills/verify-plan/SKILL.md) |
+| Session handoff | **handoff** | [`.agents/skills/handoff/SKILL.md`](.agents/skills/handoff/SKILL.md) |
+| Multi-step FSM orchestration | **modular-orchestrator** | [`.agents/skills/modular-orchestrator/SKILL.md`](.agents/skills/modular-orchestrator/SKILL.md) |
+| Author a new skill | **write-a-skill** | [`.agents/skills/write-a-skill/SKILL.md`](.agents/skills/write-a-skill/SKILL.md) |
+| Audit harness links/routing | **check-harness** | [`.agents/check-harness.md`](.agents/check-harness.md) |
+
+### US workflow skills (Steps 1–11)
+
+Consumed by [`.agents/us-workflow/us-workflow.md`](.agents/us-workflow/us-workflow.md). Stack commands: [`.agents/us-workflow/stack.md`](.agents/us-workflow/stack.md).
+
+| Step | Skill `name:` | Path |
+|------|---------------|------|
+| 1 Plan | `plan-us` | [`.agents/skills/01-plan-us/SKILL.md`](.agents/skills/01-plan-us/SKILL.md) |
+| 2 Refine | `refine` | [`.agents/skills/02-refine/SKILL.md`](.agents/skills/02-refine/SKILL.md) |
+| 3 DAG | `plan-exec-dag` | [`.agents/skills/03-plan-exec-dag/SKILL.md`](.agents/skills/03-plan-exec-dag/SKILL.md) |
+| 5/10 Implement | `implement-plan` | [`.agents/skills/04-implement-plan/SKILL.md`](.agents/skills/04-implement-plan/SKILL.md) |
+| 6 Verify vs plan | `verify-sync-plan-us` | [`.agents/skills/05-verify-sync-plan-us/SKILL.md`](.agents/skills/05-verify-sync-plan-us/SKILL.md) |
+| 9 Review | `us-code-review` | [`.agents/skills/06-code-review/SKILL.md`](.agents/skills/06-code-review/SKILL.md) |
+| 11 Integration | `integration-validation` | [`.agents/skills/07-integration-validation/SKILL.md`](.agents/skills/07-integration-validation/SKILL.md) |
+
+Invoke orchestrator: `/us-workflow` or `@us-workflow` → [`.agents/us-workflow/us-workflow.md`](.agents/us-workflow/us-workflow.md). Human docs: [`.agents/us-workflow/README.md`](.agents/us-workflow/README.md).
+
+### Agents (orchestrators)
+
+| Agent | Path | Role |
+|-------|------|------|
+| **us-workflow** | [`.agents/us-workflow/us-workflow.md`](.agents/us-workflow/us-workflow.md) | End-to-end US delivery FSM |
+| **check-harness** | [`.agents/check-harness.md`](.agents/check-harness.md) | Harness audit (links, routing, redundancy) |
+
+### Project docs (Layer 3)
+
+| Doc | Path | Use |
+|-----|------|-----|
+| README | [`README.md`](README.md) | API, setup, env vars |
+| Memory | [`MEMORY.md`](MEMORY.md) | Cross-session learnings (when present) |
+| Changelog | [`CHANGELOG.md`](CHANGELOG.md) | Historical record of shipped work |
+
+### Not routed (deprecated / other stack)
+
+| Skill | Path | Note |
+|-------|------|------|
+| matrix-view-patterns | [`.agents/skills/matrix-view-patterns/SKILL.md`](.agents/skills/matrix-view-patterns/SKILL.md) | No frontend in this repo |
+| dotnet-security-performance-review | [`.agents/skills/dotnet-security-performance-review/SKILL.md`](.agents/skills/dotnet-security-performance-review/SKILL.md) | Use **typescript-security-review** |
+| fix-pr-azure (08-fix-pr) | [`.agents/skills/08-fix-pr/SKILL.md`](.agents/skills/08-fix-pr/SKILL.md) | Use **solve-pr** (GitHub) |
+| supabase / postgres-best-practices | `.agents/skills/supabase*/` | Reference only — not cursor-server stack |
+
+Future UI (spec editor): optional [`.agents/skills/mobile-first-design/SKILL.md`](.agents/skills/mobile-first-design/SKILL.md), [`.agents/skills/taste-skill/SKILL.md`](.agents/skills/taste-skill/SKILL.md).
+
+---
+
+## Task router
+
+| User intent | Load first | Then |
+|-------------|------------|------|
+| Implement feature / fix bug | senior-developer + karpathy | code-review before done |
+| Plan a GitHub issue / spec | spec-format → plan-us | refine → plan-exec-dag |
+| Full US delivery | us-workflow | skills per step (table above) |
+| Review my branch | code-review | security-review if auth/API touched |
+| Fix PR comments | solve-pr | code-review loop |
+| Ship to main | ship-pr | goal-fix-pr |
+| Audit harness | check-harness | (approval gate before edits) |
+| Cursor SDK question | context7-mcp or Cursor SDK skill | AGENTS.md § SDK patterns |
+
+---
+
+## Verification
+
+Before claiming done on code changes:
+
+```bash
+npm run typecheck
+npm run build
+curl http://localhost:3000/health   # when server running
+```
+
+Task endpoint smoke requires `CURSOR_API_KEY` and a clone under `repos/`. Cite command output in senior-developer **code review proof**.
+
+---
+
+## Precedence
+
+1. User explicit instructions (this file, direct requests)
+2. Invoked skills
+3. Default agent behavior
+
+Karpathy wins on diff size; senior-developer wins on architecture.
