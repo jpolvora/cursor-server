@@ -176,6 +176,7 @@ Opt-out in-thread: `skip senior-developer`, `stop caveman`, etc.
 |------|-------|------|
 | Library / SDK docs | **context7-mcp** | [`.agents/skills/context7-mcp/SKILL.md`](.agents/skills/context7-mcp/SKILL.md) |
 | Task complete — changelog | **changelog** | [`.agents/skills/changelog/SKILL.md`](.agents/skills/changelog/SKILL.md) |
+| Before commit (secrets scan) | **pre-commit-secrets** | [`.agents/skills/pre-commit-secrets/SKILL.md`](.agents/skills/pre-commit-secrets/SKILL.md) |
 | Task complete — learnings | **learning** | [`.agents/skills/learning/SKILL.md`](.agents/skills/learning/SKILL.md) → `MEMORY.md` |
 | Create/review spec file | **spec-format** | [`.agents/skills/spec-format/SKILL.md`](.agents/skills/spec-format/SKILL.md) |
 | Write qualified spec | **write-spec** | [`.agents/skills/write-spec/SKILL.md`](.agents/skills/write-spec/SKILL.md) |
@@ -248,7 +249,7 @@ Future UI (spec editor): optional [`.agents/skills/mobile-first-design/SKILL.md`
 
 | User intent | Load first | Then |
 |-------------|------------|------|
-| Implement feature / fix bug | senior-developer + karpathy | code-review before done |
+| Implement feature / fix bug | senior-developer + karpathy | pre-commit-secrets → code-review before done |
 | Plan a GitHub issue / spec | spec-format → plan-us | refine → plan-exec-dag |
 | Full US delivery | us-workflow | skills per step (table above) |
 | Review my branch | code-review | security-review if auth/API touched |
@@ -266,6 +267,7 @@ Before claiming done on code changes:
 ```bash
 npm run typecheck
 npm run build
+npm run scan-secrets   # before commit; husky runs this on git commit
 curl http://localhost:3000/health   # when server running
 ```
 
