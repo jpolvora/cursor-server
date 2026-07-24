@@ -1,0 +1,79 @@
+{
+  "execMode": "parallel",
+  "reason": "6 implementable steps, 7 expected files, 2 packaging/docs layers — exceeds dagThresholds (maxImplementationSteps: 3, maxExpectedFiles: 6, maxLayers: 2)",
+  "planPath": ".agents/plans/docker-compose/step-01-docker-compose.plan.md",
+  "metrics": {
+    "implementationSteps": 6,
+    "expectedFiles": 7,
+    "layers": 2,
+    "thresholds": {
+      "maxImplementationSteps": 3,
+      "maxExpectedFiles": 6,
+      "maxLayers": 2
+    }
+  },
+  "targetModel": "coder",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Build context hygiene (.dockerignore)",
+      "parallelGroup": "L0",
+      "dependsOn": [],
+      "files": [".dockerignore"],
+      "acceptance": "Root .dockerignore exists and excludes node_modules, dist, .env, .env.* (without blocking .env.example if needed), repos/, .git, coverage, logs; build context cannot ship host secrets or clones (AC4).",
+      "coderPrompt": "Create root `.dockerignore` for cursor-server Docker builds. Exclude: node_modules, dist, .env, .env.* (allow .env.example if ignore syntax requires an exception), repos/, .git, coverage, *.log, and optional .agents/plans noise. Do not edit src/. Do not commit. Maps plan Step 1 / AC4."
+    },
+    {
+      "id": "T2",
+      "title": "Env sample Compose path notes",
+      "parallelGroup": "L0",
+      "dependsOn": [],
+      "files": [".env.example"],
+      "acceptance": ".env.example documents bare-metal REPOS_ROOT=./repos vs Compose REPOS_ROOT=/data/repos via compose environment; placeholders only (no real keys); .env remains gitignored (AC2, AC4, AC6).",
+      "coderPrompt": "Update `.env.example` comments only: clarify host default REPOS_ROOT=./repos and that Compose sets REPOS_ROOT=/data/repos via docker-compose environment (do not put real CURSOR_API_KEY values). Keep existing placeholders. Do not edit src/. Do not commit. Maps plan Step 4 / AC2, AC4, AC6."
+    },
+    {
+      "id": "T3",
+      "title": "Production multi-stage Dockerfile",
+      "parallelGroup": "L1",
+      "dependsOn": ["T1"],
+      "files": ["Dockerfile"],
+      "acceptance": "Multi-stage Dockerfile: builder node:20-bookworm runs npm ci + npm run build; runtime installs prod deps, copies dist/, EXPOSE 3000, CMD [\"node\",\"dist/index.js\"]; prefer non-root USER with volume caveat documented later; no COPY of .env (AC1, AC4).",
+      "coderPrompt": "Add root multi-stage `Dockerfile`. Builder: node:20-bookworm, npm ci, npm run build. Runtime: prod npm ci --omit=dev (or equivalent), copy package.json/lock + dist/, WORKDIR, EXPOSE 3000, CMD [\"node\",\"dist/index.js\"]. Prefer non-root USER; if volume writes may fail, leave a short comment for docs (do not invent Cursor SDK binary packaging). Never COPY .env. Prefer bookworm over alpine. Do not edit src/. Do not commit. Maps plan Step 2 / AC1, AC4. Depends on T1 (.dockerignore present)."
+    },
+    {
+      "id": "T4",
+      "title": "Compose stack service + volume",
+      "parallelGroup": "L2",
+      "dependsOn": ["T3"],
+      "files": ["docker-compose.yml"],
+      "acceptance": "Compose v3-compatible docker-compose.yml with service cursor-server, build: ., ports ${PORT:-3000}:3000, env_file .env and/or env for CURSOR_API_KEY, environment HOST=0.0.0.0 and REPOS_ROOT=/data/repos, named volume repos_data:/data/repos, restart unless-stopped; docker compose config validates when Docker available (AC2, AC3, AC6).",
+      "coderPrompt": "Add root `docker-compose.yml` (Compose v3-compatible). Service name `cursor-server`: build ., ports [\"${PORT:-3000}:3000\"], env_file: .env, environment HOST=0.0.0.0 and REPOS_ROOT=/data/repos (and PORT=3000 inside container unless docs sync both), named volume repos_data:/data/repos, restart: unless-stopped. No secrets hardcoded. Do not edit src/. Do not commit. Maps plan Step 3 / AC2, AC3, AC6. Depends on T3 (Dockerfile)."
+    },
+    {
+      "id": "T5",
+      "title": "Operator docs + README Deployment link",
+      "parallelGroup": "L3",
+      "dependsOn": ["T2", "T4"],
+      "files": ["docs/docker.md", "README.md"],
+      "acceptance": "docs/docker.md covers prerequisites, .env copy, docker compose up -d --build, named volume vs bind mount ./repos:/data/repos, Umbrel standard-Compose notes, Tailscale at host/network, SDK/CURSOR_API_KEY requirement, curl /health smoke. README Deployment links docs/docker.md and removes unshipped Compose claim; Tailscale stays one-liner (AC5, AC6, AC8).",
+      "coderPrompt": "Add `docs/docker.md` and update README Deployment section. Docs must include: prerequisites (Docker Engine + Compose v2), copy .env from .env.example, docker compose up -d --build, where clones live (named volume repos_data inspect + bind-mount alternative ./repos:/data/repos), Umbrel custom-app notes (standard Compose, clear env, persistent volumes), Tailscale reachability at host/network (no public exposure assumed), CURSOR_API_KEY still required, smoke curl http://localhost:3000/health expecting {\"status\":\"ok\"}, non-root/volume permission caveats if Dockerfile uses non-root. README: link Deployment to docs/docker.md; remove “manifest … not shipped yet”; keep Tailscale one-liner only. Do not edit src/. Do not commit. Maps plan Step 5 / AC5, AC6, AC8. Depends on T4 + T2."
+    },
+    {
+      "id": "T6",
+      "title": "Index hygiene + host verify + optional Docker smoke",
+      "parallelGroup": "L4",
+      "dependsOn": ["T4", "T5"],
+      "files": [".agents/specs/index.PRD"],
+      "acceptance": "Host npm run typecheck and npm run build pass (AC7); package.json dev/start intent unchanged. If Docker available: docker compose up -d --build and GET /health → {\"status\":\"ok\"} observed, or skip recorded with reason (AC8). index.PRD Phase 1 Docker Compose checkboxes updated to landed. Optional local-only config.json composeCommand; do not commit config.json or .agents/plans/ (AC3 manual note, AC7, AC8).",
+      "coderPrompt": "After packaging+docs exist: (1) run npm run typecheck and npm run build on host; confirm package.json dev/start scripts unchanged in intent (AC7). (2) If Docker available: docker compose config, docker compose up -d --build, curl /health → {\"status\":\"ok\"}; briefly note volume persistence; if Docker unavailable, record skip with reason (do not fake pass) (AC8). (3) Update `.agents/specs/index.PRD` Phase 1 Docker Compose checkboxes to reflect packaging landed. Optionally set local gitignored config.json stack.orchestration.composeCommand=docker compose — do NOT commit config.json. Do not edit src/. Do not stage .agents/plans/. Do not commit. Maps plan Steps 6–7 / AC3, AC7, AC8. Depends on T4 + T5."
+    }
+  ],
+  "levels": [
+    ["T1", "T2"],
+    ["T3"],
+    ["T4"],
+    ["T5"],
+    ["T6"]
+  ]
+}
