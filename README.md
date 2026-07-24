@@ -128,6 +128,32 @@ Run a prompt against a repo by name (relative to `REPOS_ROOT`).
 | `npm start` | Run compiled output |
 | `npm run typecheck` | Type-check without emit |
 
+## CI — Agentic Code Review
+
+This repo consumes [jpolvora/agentic-code-reviewers](https://github.com/jpolvora/agentic-code-reviewers) via the portable `release/run.sh` runner (no submodule required).
+
+| Workflow | File | Role |
+|----------|------|------|
+| **Agentic Code Review** | [`.github/workflows/code-review.yml`](.github/workflows/code-review.yml) | On PR: review with **opencode** / `opencode-go/deepseek-v4-flash`; fail if open bot threads remain |
+
+**Auto-fix is disabled** (no `auto-fix.yml`).
+
+**GitHub Actions secrets** (repo Settings → Secrets):
+
+| Secret | Required for | Notes |
+|--------|--------------|-------|
+| `OPENCODE_API_KEY` | review | OpenCode Go; `run.sh` installs CLI + writes `auth.json` in CI |
+| `AGENTIC_CODE_REVIEWERS_GITHUB_TOKEN` | optional | PAT with `repo` / PR write; `github.token` alone often cannot resolve threads |
+
+Thread helpers live under [`.agents/skills/solve-pr/`](.agents/skills/solve-pr/) (vendored from the reviewer repo). Upstream docs: [workflows.md](https://github.com/jpolvora/agentic-code-reviewers/blob/main/docs/workflows.md).
+
+Local dry-run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jpolvora/agentic-code-reviewers/release/run.sh | bash -s -- \
+  --dry-run --gh --engine opencode --model opencode-go/deepseek-v4-flash
+```
+
 ## License
 
 Private — see repository owner.
