@@ -5,7 +5,7 @@ Living index of vision, features, roadmap, backlog, and done work.
 
 | Field | Value |
 |-------|-------|
-| Updated | 2026-07-24 (Docker Compose packaging landed) |
+| Updated | 2026-07-24 (Tailscale bind/client access docs landed) |
 | Priority order | Homelab-ready first (Compose → Tailscale/docs → auth → repo validation → API depth → harness) |
 | Spec folder | `.agents/specs/` |
 
@@ -106,6 +106,7 @@ Status: **partial** (usable sync API; not production-hardened).
   - [ ] Review / triage / hygiene job implementations — see Phase 2
 - [x] Agent / workflow harness docs (AGENTS.md, workflow-skills, secrets scan)
 - [x] Homelab packaging (Compose) — see Phase 1 Docker Compose
+- [x] Tailscale bind / client access docs — see Phase 1 Tailscale
 - [ ] Client authentication — see Phase 1
 
 `Verified:` — (fill when health + task smoke succeed on the host)
@@ -114,7 +115,7 @@ Status: **partial** (usable sync API; not production-hardened).
 
 ### Phase 1 — Homelab-ready (next priority)
 
-Status: **partial** (Compose packaging landed; Tailscale deep-dive, auth, repo validation still open). Goal: run reliably on Umbrel/Compose over Tailscale with basic client auth and safe repo resolution.
+Status: **partial** (Compose + Tailscale docs landed; auth, repo validation still open). Goal: run reliably on Umbrel/Compose over Tailscale with basic client auth and safe repo resolution.
 
 - [x] Docker Compose stack
   - [x] Service definition (Node 20+, port, env)
@@ -123,10 +124,11 @@ Status: **partial** (Compose packaging landed; Tailscale deep-dive, auth, repo v
   - **spec:** `docker-compose.spec.md` (mirror) · canonical `.agents/plans/docker-compose/step-00-docker-compose.spec.md`
   - **plan:** `.agents/plans/docker-compose/step-01-docker-compose.plan.md`
   - **docs:** `docs/docker.md` · `Dockerfile` · `docker-compose.yml`
-- [ ] Tailscale-oriented defaults and docs
-  - [ ] Bind / HOST guidance for tailnet access
-  - [ ] Client reachability notes (no public exposure assumed)
-  - **spec:** `tailscale-homelab-docs.spec.md`
+- [x] Tailscale-oriented defaults and docs
+  - [x] Bind / HOST guidance for tailnet access
+  - [x] Client reachability notes (no public exposure assumed)
+  - **spec:** `tailscale-homelab-docs.spec.md` (mirror) · canonical `.agents/plans/tailscale-homelab-docs/step-00-tailscale-homelab-docs.spec.md`
+  - **docs:** README Network access · `docs/docker.md` Network/Tailscale · `.env.example` HOST comment · AGENTS Deployment
 - [ ] Client authentication
   - [ ] API key (or equivalent) for callers
   - [ ] Reject unauthenticated task (and mutating) routes
@@ -197,7 +199,7 @@ Write / implement in this order unless a dependency forces a skip. Update status
 | # | Status | Spec file | One-line scope |
 |---|--------|-----------|----------------|
 | 1 | `[x]` | `docker-compose.spec.md` | Compose stack, env, `repos/` volume, Umbrel-friendly notes — **packaging landed** |
-| 2 | `[ ]` | `tailscale-homelab-docs.spec.md` | Tailnet bind/defaults and client access docs |
+| 2 | `[x]` | `tailscale-homelab-docs.spec.md` | Tailnet bind/defaults and client access docs — **docs landed** |
 | 3 | `[ ]` | `client-auth.spec.md` | API key (or equivalent) gate for client calls |
 | 4 | `[ ]` | `repo-validation.spec.md` | Exist + git-repo checks; safe errors before agent start |
 | 5 | `[ ]` | `async-task-queue.spec.md` | Accept/poll/(webhook) async task lifecycle |
@@ -214,7 +216,7 @@ Write / implement in this order unless a dependency forces a skip. Update status
 | 16 | `[ ]` | `runner-opencode.spec.md` | OpenCode adapter |
 | 17 | `[ ]` | `multi-tenant-isolation.spec.md` | Isolation if shared host |
 
-**Suggested immediate next step:** `tailscale-homelab-docs.spec.md` or `client-auth.spec.md`.
+**Suggested immediate next step:** `client-auth.spec.md` or `repo-validation.spec.md`.
 
 ---
 
@@ -236,6 +238,7 @@ Coarse record of what already counts as landed; detail stays in git history / ch
 | scaffold | Scheduler registration API (no jobs) | See Phase 0 |
 | 2026-07 | workflow-skills full package + shared config | Harness docs, not product API |
 | 2026-07-24 | Docker Compose packaging | `Dockerfile`, `docker-compose.yml`, `docs/docker.md` — Phase 1 |
+| 2026-07-24 | Tailscale bind / client access docs | `.env.example`, README, `docs/docker.md`, AGENTS — Phase 1 |
 
 ---
 

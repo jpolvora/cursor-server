@@ -25,14 +25,20 @@ Designed for a **home lab** host — not cloud-first. Typical targets:
 | **Umbrel** | Install as a custom app or Compose stack on an Umbrel home server (standard Compose; see docs) |
 | **Bare metal / VM** | `npm run dev` or `npm start` on any Linux box with Node 20+ |
 
-**Network access** via [Tailscale](https://tailscale.com): the server binds on the homelab LAN; home and company laptops reach it over the tailnet (VPN) without exposing ports to the public internet. No special client setup beyond Tailscale + the server URL.
+**Network access** via [Tailscale](https://tailscale.com): recommend `HOST=0.0.0.0` (bare-metal and Compose) so the published port is reachable on all interfaces. From a laptop on the same tailnet, call:
+
+```text
+http://<host-tailscale-ip-or-MagicDNS>:<PORT>
+```
+
+Example health check: `curl http://100.x.y.z:3000/health` (or your MagicDNS name). Public internet exposure is not assumed or required — Tailscale VPN is enough. No special client setup beyond Tailscale + that URL. Details: [docs/docker.md](./docs/docker.md#network--tailscale).
 
 ## Roadmap
 
 | Phase | Focus |
 |-------|--------|
-| **Now** | Local task API, scheduler hook, SDK integration, Docker Compose packaging |
-| **Next** | Tailscale-friendly defaults, client auth |
+| **Now** | Local task API, scheduler hook, SDK integration, Docker Compose packaging, Tailscale bind/client access docs |
+| **Next** | Client auth, repo validation |
 | **Hermes** | Integration with [Hermes Agent](https://github.com/NousResearch/hermes-agent) (Nous Research) for orchestration, scheduling, and delegation to specialized coding agents |
 | **Spec harness** | Hosted spec editor + qualified spec format; pipeline stages: **implement → build → test → deploy → review** |
 | **Pluggable runners** | Harness abstraction so OpenCode, Hermes Agent, or Cursor SDK can execute the same spec pipeline |

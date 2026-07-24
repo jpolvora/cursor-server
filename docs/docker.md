@@ -65,7 +65,28 @@ Create `./repos` on the host first. Keep `REPOS_ROOT=/data/repos` in Compose env
 
 ## Network / Tailscale
 
-Reachability is a **host/network** concern: clients use the homelab host’s Tailscale IP (or LAN IP) plus the published port. The container binds `HOST=0.0.0.0`; Compose publishes `${PORT:-3000}:3000`. No public exposure is assumed.
+Reachability is a **host/network** concern. Install and run [Tailscale](https://tailscale.com) on the **homelab host** (not inside the cursor-server container in this packaging). The app/Compose stack only needs to bind and publish a port.
+
+| Layer | Responsibility |
+|-------|----------------|
+| **Host** | Tailscale (or LAN routing) so remote clients can reach the host IP |
+| **App** | `HOST=0.0.0.0` so the process listens on all interfaces (default in Compose and `.env.example`) |
+| **Compose** | Publishes `${PORT:-3000}:3000` to the host |
+
+Client URL shape (same for bare-metal and Compose):
+
+```text
+http://<host-tailscale-ip-or-MagicDNS>:<PORT>
+```
+
+From another device on the same tailnet:
+
+```bash
+curl http://100.x.y.z:3000/health
+# Expect: {"status":"ok"}
+```
+
+Replace `100.x.y.z` with the host’s Tailscale IP (or MagicDNS name) and `3000` with your published `PORT`. Public internet exposure is not assumed or required. Tailscale Serve/Funnel and ACL policy authoring are out of scope for this slice — direct tailnet IP + published port is the documented path.
 
 ## SDK / runtime notes
 

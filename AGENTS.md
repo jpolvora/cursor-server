@@ -19,9 +19,10 @@ Requirements and endpoint design are not finalized. Prefer small, reviewable inc
 ## Deployment context
 
 - **Host**: home lab server (Umbrel, Docker Compose stack, or bare Node).
-- **Access**: Tailscale tailnet — clients on home/company laptops reach the API over VPN; avoid assuming public-internet exposure.
+- **Access**: Tailscale tailnet — clients on home/company laptops reach the API over VPN; avoid assuming public-internet exposure. Client URL: `http://<host-tailscale-ip-or-MagicDNS>:<PORT>` (see [docs/docker.md](./docs/docker.md#network--tailscale)).
+- **Bind**: recommended `HOST=0.0.0.0` (app default and Compose) so Tailscale/LAN clients can reach the published port; `127.0.0.1` is localhost-only.
 - **Data**: repo clones live under `REPOS_ROOT` (volume-mounted in container deployments).
-- **Packaging**: Docker Compose is the production path (`Dockerfile`, `docker-compose.yml`, [docs/docker.md](./docs/docker.md)).
+- **Packaging**: Docker Compose is the production path (`Dockerfile`, `docker-compose.yml`, [docs/docker.md](./docs/docker.md)). Tailscale bind/client-access docs landed with packaging (docs-first; no Serve/Funnel required).
 
 When adding deployment artifacts, favor Compose over bespoke scripts; keep Umbrel compatibility (standard Compose, clear env vars, persistent volumes).
 
@@ -114,7 +115,6 @@ New runners plug in behind the same spec → stage → outcome contract.
 
 Treat these as design placeholders — confirm with the owner before building:
 
-- Tailscale-oriented bind/config defaults and docs
 - Authentication / API keys for clients calling this server
 - Async job queue (fire-and-forget tasks, status polling, webhooks)
 - Run history and persistence
