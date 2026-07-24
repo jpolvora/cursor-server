@@ -1,0 +1,260 @@
+# cursor-server — Product Index (PRD)
+
+Living index of vision, features, roadmap, backlog, and done work.
+**Progressive disclosure:** this file holds status + short scope; full detail lives in linked `*.spec.md` files in this folder.
+
+| Field | Value |
+|-------|-------|
+| Updated | 2026-07-24 |
+| Priority order | Homelab-ready first (Compose → Tailscale/docs → auth → repo validation → API depth → harness) |
+| Spec folder | `.agents/specs/` |
+
+---
+
+## How to use this file
+
+1. **Resume development** — read Goal, Problems, then the phase you are in.
+2. **Pick next work** — use [Next specs (ordered)](#next-specs-ordered); write or open the linked `*.spec.md`.
+3. **Capture ideas** — append under [Inbox](#inbox-unscheduled-ideas) anytime (`todo`); promote into a phase when ready.
+4. **After each implementation (or periodically)** — update parent + children status; add `Verified:` only after host smoke.
+
+### Status legend
+
+| Mark | Meaning |
+|------|---------|
+| `[ ]` **todo** | Not started |
+| `[~]` **partial** | Started, scaffold only, or incomplete subfeatures |
+| `[x]` **done** | Landed in the repo (code/packaging/docs as scoped) |
+| `Verified: …` | Optional; smoke-tested on the homelab host |
+
+### Spec link convention
+
+- Under each feature, `spec: name.spec.md` is the **planned or existing** filename in this folder.
+- Until that file exists on disk, the row is index-only (create the `*.spec.md` when starting work).
+- When the file exists, treat the link as the source of truth for acceptance criteria and scope.
+- Specs use the project `*.spec.md` format (`spec-format` skill) when authored for delivery.
+
+---
+
+## Goal
+
+**cursor-server** is the execution layer for remote IDE clients: an HTTP API on a home-lab host that runs agent tasks against local git checkouts under `REPOS_ROOT`. Clients (home or company laptops on Tailscale) send prompts or qualified specs; this server is where the work runs.
+
+Long-term flagship: a hosted, machine-actionable spec environment and pluggable harness (`implement → build → test → deploy → review`) with Cursor SDK, Hermes Agent, OpenCode, or future runners behind one contract.
+
+## Problems this project solves
+
+- Agents and heavy tooling should not have to run on thin client laptops; execution belongs on a always-on homelab machine with local repo clones.
+- Recurring work (reviews, triage, hygiene) needs scheduling on the host, not ad-hoc local runs.
+- Vague prompts do not scale; fully qualified specs should drive observable, resumable pipeline stages.
+- One harness should not be hard-wired to a single agent product.
+
+## Primary use cases
+
+1. **Remote task execution** — client sends prompt + repo name; server runs a local Cursor SDK agent in that working tree.
+2. **Scheduled automation** — cron jobs for recurring agent work.
+3. **Continuous review loops** — deliver / deploy / exec review workflows so remotes stay aligned with repo state.
+4. **Spec-driven pipeline** — qualified specs drive implement → build → test → deploy → review.
+5. **Pluggable harnesses** — same pipeline contract for Cursor SDK, Hermes, OpenCode, etc.
+
+## Constraints and non-goals
+
+- **Local-first / homelab-first** — Tailscale access; do not assume public internet exposure.
+- **Local Cursor SDK runtime** by default (`cwd` = repo path, `settingSources: []`); no cloud runtime without an explicit requirement.
+- Prefer **Docker Compose** (Umbrel-friendly) over bespoke deploy scripts.
+- Thin Hono routes; business logic in `services/`; Zod for env and requests; no heavy ORMs/frameworks for the early API.
+- Confirm major roadmap items with the owner before building; prefer small reviewable increments.
+- Do not commit secrets (`.env`, API keys).
+
+## Current architecture (snapshot)
+
+```text
+src/
+  index.ts              # Hono entry, routes + scheduler
+  config.ts             # Zod env
+  routes/health.ts      # GET /health
+  routes/tasks.ts       # POST /tasks (sync wait)
+  services/agent-runner.ts  # Agent.create + send + wait + dispose
+  jobs/scheduler.ts     # node-cron hook (no default jobs)
+```
+
+Repos resolve as `{REPOS_ROOT}/{repo}` (default `./repos`).
+
+---
+
+## Feature map by phase
+
+### Phase 0 — Scaffold (foundation)
+
+Status: **partial** (usable sync API; not production-hardened).
+
+- [x] HTTP server (Hono) + listen bind (`HOST` / `PORT`)
+  - [x] `GET /health` → `{ status: "ok" }`
+  - [x] Env validation via Zod (`CURSOR_API_KEY`, `PORT`, `HOST`, `REPOS_ROOT`, `CURSOR_MODEL`)
+  - [x] `.env.example` / setup docs in README
+- [x] Sync task API
+  - [x] `POST /tasks` with `prompt`, `repo`, optional `model`
+  - [x] Resolve repo under `REPOS_ROOT`
+  - [x] Local SDK `Agent.create` + `send` + `wait`
+  - [x] Always dispose agent (`asyncDispose`)
+  - [x] Distinguish startup failure (`CursorAgentError`) from run failure
+  - [ ] Validate repo path exists / is a git repo before run — see Phase 1
+  - [ ] Async / non-blocking task lifecycle — see Phase 2
+- [~] Job scheduler
+  - [x] `node-cron` registration helper (`startScheduler`)
+  - [ ] Default / sample jobs registered
+  - [ ] Review / triage / hygiene job implementations — see Phase 2
+- [x] Agent / workflow harness docs (AGENTS.md, workflow-skills, secrets scan)
+- [ ] Homelab packaging — see Phase 1
+- [ ] Client authentication — see Phase 1
+
+`Verified:` — (fill when health + task smoke succeed on the host)
+
+---
+
+### Phase 1 — Homelab-ready (next priority)
+
+Status: **todo**. Goal: run reliably on Umbrel/Compose over Tailscale with basic client auth and safe repo resolution.
+
+- [ ] Docker Compose stack
+  - [ ] Service definition (Node 20+, port, env)
+  - [ ] Persistent volume for `REPOS_ROOT` / `repos/`
+  - [ ] Document Umbrel / custom-app style usage
+  - **spec:** `docker-compose.spec.md`
+- [ ] Tailscale-oriented defaults and docs
+  - [ ] Bind / HOST guidance for tailnet access
+  - [ ] Client reachability notes (no public exposure assumed)
+  - **spec:** `tailscale-homelab-docs.spec.md`
+- [ ] Client authentication
+  - [ ] API key (or equivalent) for callers
+  - [ ] Reject unauthenticated task (and mutating) routes
+  - **spec:** `client-auth.spec.md`
+- [ ] Repo registration and validation
+  - [ ] Ensure `{REPOS_ROOT}/{repo}` exists
+  - [ ] Ensure path is a git working tree (or documented allowlist)
+  - [ ] Clear 4xx errors for unknown / invalid repos
+  - **spec:** `repo-validation.spec.md`
+
+---
+
+### Phase 2 — API depth and operations
+
+Status: **todo**. Goal: production-shaped task lifecycle and observability without yet building the full spec harness.
+
+- [ ] Async job queue
+  - [ ] Fire-and-forget accept (true async `202` + id)
+  - [ ] Status polling endpoint
+  - [ ] Optional webhooks on completion
+  - **spec:** `async-task-queue.spec.md`
+- [ ] Run history and persistence
+  - [ ] Store agentId, runId, status, timestamps, result summary
+  - [ ] List / get by id
+  - **spec:** `run-history.spec.md`
+- [ ] Streaming task output to clients
+  - [ ] SSE and/or WebSocket
+  - **spec:** `task-streaming.spec.md`
+- [ ] Scheduled review jobs
+  - [ ] PR diff review, branch sync checks, triage/hygiene examples
+  - [ ] Use `Agent.resume` where cross-process continuation fits
+  - **spec:** `scheduled-review-jobs.spec.md`
+- [ ] MCP configuration
+  - [ ] Per task and/or per repo
+  - **spec:** `mcp-config.spec.md`
+
+---
+
+### Phase 3 — Spec harness and pluggable runners (flagship)
+
+Status: **todo**. Goal: qualified specs drive staged, observable, resumable pipelines; runners are swappable.
+
+- [ ] Spec schema (machine-actionable: IDs, AC, dependencies)
+  - **spec:** `spec-schema.spec.md`
+- [ ] Spec editor / served environment (UI TBD)
+  - **spec:** `spec-editor.spec.md`
+- [ ] Stage orchestration service
+  - [ ] Stages: implement → build → test → deploy → review
+  - [ ] Per-stage logs, artifacts, pass/fail; resumable; tied to spec sections
+  - **spec:** `stage-orchestration.spec.md`
+- [ ] Runner interface (do not hard-couple to `@cursor/sdk`)
+  - **spec:** `harness-runner-interface.spec.md`
+- [ ] Cursor SDK runner adapter (default)
+  - **spec:** `runner-cursor-sdk.spec.md`
+- [ ] Hermes Agent integration (orchestration, schedule, memory/skills, delegation)
+  - **spec:** `hermes-integration.spec.md`
+- [ ] OpenCode runner adapter
+  - **spec:** `runner-opencode.spec.md`
+- [ ] Multi-tenant isolation (if multiple clients share one host)
+  - **spec:** `multi-tenant-isolation.spec.md`
+
+---
+
+## Next specs (ordered)
+
+Write / implement in this order unless a dependency forces a skip. Update status here when the linked spec exists or the feature lands.
+
+| # | Status | Spec file | One-line scope |
+|---|--------|-----------|----------------|
+| 1 | `[ ]` | `docker-compose.spec.md` | Compose stack, env, `repos/` volume, Umbrel-friendly notes |
+| 2 | `[ ]` | `tailscale-homelab-docs.spec.md` | Tailnet bind/defaults and client access docs |
+| 3 | `[ ]` | `client-auth.spec.md` | API key (or equivalent) gate for client calls |
+| 4 | `[ ]` | `repo-validation.spec.md` | Exist + git-repo checks; safe errors before agent start |
+| 5 | `[ ]` | `async-task-queue.spec.md` | Accept/poll/(webhook) async task lifecycle |
+| 6 | `[ ]` | `run-history.spec.md` | Persist and query past runs |
+| 7 | `[ ]` | `task-streaming.spec.md` | Stream agent output to clients |
+| 8 | `[ ]` | `scheduled-review-jobs.spec.md` | First real cron jobs using the scheduler hook |
+| 9 | `[ ]` | `mcp-config.spec.md` | MCP servers per task/repo |
+| 10 | `[ ]` | `spec-schema.spec.md` | Qualified spec format for the harness |
+| 11 | `[ ]` | `harness-runner-interface.spec.md` | Pluggable runner contract |
+| 12 | `[ ]` | `stage-orchestration.spec.md` | Stage pipeline + observability + resume |
+| 13 | `[ ]` | `runner-cursor-sdk.spec.md` | Cursor adapter behind the interface |
+| 14 | `[ ]` | `spec-editor.spec.md` | Hosted editor/environment |
+| 15 | `[ ]` | `hermes-integration.spec.md` | Hermes as orchestrator / delegate |
+| 16 | `[ ]` | `runner-opencode.spec.md` | OpenCode adapter |
+| 17 | `[ ]` | `multi-tenant-isolation.spec.md` | Isolation if shared host |
+
+**Suggested immediate next step:** author `docker-compose.spec.md`, then implement that slice.
+
+---
+
+## Inbox (unscheduled ideas)
+
+Capture anything that comes up while developing. Promote into a phase + next-specs row when it deserves a full spec.
+
+- [ ] _(empty — add bullets here)_
+
+---
+
+## Done log (recent)
+
+Coarse record of what already counts as landed; detail stays in git history / changelog.
+
+| When | Item | Notes |
+|------|------|-------|
+| scaffold | Health + config + sync `POST /tasks` + local SDK runner | See Phase 0 |
+| scaffold | Scheduler registration API (no jobs) | See Phase 0 |
+| 2026-07 | workflow-skills full package + shared config | Harness docs, not product API |
+
+---
+
+## Maintenance checklist
+
+After finishing an implementation (or on a periodic review):
+
+- [ ] Update feature checkboxes (`todo` / `partial` / `done`) for parents and children
+- [ ] Set or clear `spec:` links; create `*.spec.md` when starting, not when inventing inbox ideas
+- [ ] Add `Verified:` only after host smoke (Compose up, Tailscale reach, curl health / task)
+- [ ] Move finished rows mentally into Done log if helpful
+- [ ] Sync README / AGENTS roadmap sections only when **vision** changes (not every checkbox)
+- [ ] New idea → Inbox first; do not invent alternate pipeline folders outside `.agents/specs/`
+
+---
+
+## Related docs
+
+| Doc | Role |
+|-----|------|
+| [README.md](../../README.md) | Human overview, API sketch, env |
+| [AGENTS.md](../../AGENTS.md) | Agent architecture, conventions, roadmap intent |
+| [STACK.md](../skills/shared/STACK.md) | Stack companion to `config.json` |
+| [CHANGELOG.md](../skills/shared/CHANGELOG.md) | What agents actually shipped |
+| [MEMORY.md](../skills/shared/MEMORY.md) | Anti-regression traps |
