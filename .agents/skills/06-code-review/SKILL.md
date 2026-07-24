@@ -1,100 +1,79 @@
 ---
-name: us-code-review
-description: Step 9 reviewer for us-workflow (cursor-server). Rigorous local branch review vs main with two-phase triage, evidence proof, defect-class generalization, and single-round completeness. Distinct from standalone code-review skill.
-version: 2.1
+name: ws-code-review
+description: Senior code reviewer — two-phase triage and investigation with defect class generalization. Standalone or workflow Step 6.
+upstream: jpolvora/workflow-skills — this skill is a spec-to-pr pipeline dependency. Improvements must be submitted upstream to https://github.com/jpolvora/workflow-skills
+version: 3.4
 disable-model-invocation: true
+invocation_names:
+  - code-review
+  - ws-code-review
+  - 06-code-review
 ---
 
-# Code Reviewer Skill — cursor-server (Step 9)
+# 06-code-review
 
-Senior code reviewer — local PR/CI simulation with two-phase analysis and structured evidence.
+Perform a comprehensive local code review of all modified files, relative to the base branch, before a PR is raised. Act as a **Senior Code Reviewer** conducting static and logical analysis for style, security, tenancy, performance, correctness, and architectural invariants.
 
-## Anti-loop mandate
+**Canonical output:** `{us-dir}/step-06-{slug}.review.md`. Optional fix summary: `{us-dir}/step-06-{slug}.fix.report.md`.
 
-- **Precision:** report only provable findings.
-- **Completeness:** all material findings in **one round**.
-- **Class, not instance:** grep sibling occurrences of each confirmed defect.
+## Invocation
 
-Target: one round → full list or **"No feedback"**.
+Standalone:
 
-## Phase 0 — Stack detection
-
-**cursor-server:** `package.json` + `src/index.ts` + Hono + `@cursor/sdk`.
-
-Load [`AGENTS.md`](../../../AGENTS.md) and [`senior-developer`](../senior-developer/SKILL.md).
-
-Review scope per [`stack.md`](../../us-workflow/stack.md) § Code Review Diff Scope.
-
-Ignore: `dist/`, `node_modules/`, harness-only `*.md` unless explicitly in scope.
-
-## Phase 0.5 — Diff
-
-```bash
-git branch --show-current
-git diff --name-status main...HEAD -- \
-  'src/**' 'package.json' 'tsconfig.json' \
-  ':!dist/**' ':!node_modules/**'
-git diff main...HEAD -- "path/to/file"
+```
+/code-review [base=<ref>] [plan=<plan-path>]
 ```
 
-Use `master` if `main` does not exist.
+Workflow (spec-to-pr Step 6): dispatched automatically, receives `base` and `planPath` from orchestrator state.
 
-## Phase 1 — Triage
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| `base` | `origin/main`/`origin/master` (auto-detected) | Git ref to diff against |
+| `plan` | (optional) | `step-02-*.plan.refined.md` or `step-01-*.plan.md` to cross-reference planned changes |
 
-Hypotheses anchored on changed lines only. Skip nits, style, untouched legacy.
+## Conditional fix substep (workflow)
 
-For `src/routes/` and `src/services/`: SDK misuse, missing validation, secret leaks, path traversal on `repo`, missing agent disposal.
+Fix is not its own workflow step. After this skill returns:
 
-## Phase 2 — Investigation
+| Case | Orchestrator behavior |
+|------|----------------------|
+| Clean (no Critical/Warning) | Completes Step 6; advances to Step 7 |
+| Critical or Warning findings | Dispatches [04-implement-tasks](../04-implement-tasks/SKILL.md) `mode=fix`, optional targeted re-review, then completes Step 6 |
+| User declines fix | Logs skip; advances with findings (or pauses) |
 
-Four-step proof per candidate:
-1. Evidence read
-2. Executable failure scenario
-3. Missing protection confirmed
-4. Alternatives rejected
+Log `review-fix` in gate history; do not add a separate `completedSteps` entry for the fix substep. Standalone `/code-review`: apply fixes inline after user confirms (Step 8 below).
 
-Cannot prove → discard.
+## Steps
 
-### 2.5 Generalization
+1. **Detect stack & diff**: read `config.json.stack` to scope backend/frontend layers; exclude `bin/`, `obj/`, `dist/`, `node_modules/`, CI YAML, translations. Run `git diff --name-status {base}...HEAD` over in-scope paths.
+   - Done when: the in-scope modified file list is known.
 
-For each confirmed finding, grep sibling pattern in diff scope.
+2. **Triage**: flag lines with real defect potential; discard cosmetic nits, untouched pre-existing code, and low-risk TSX without security surface.
+   - Done when: a hypothesis list of candidate findings exists.
 
-## Severity
+3. **Investigate**: for each hypothesis, complete all four proof steps: Evidence Read, Failure Scenario, Missing Protection, Discards. Drop any hypothesis that cannot complete all four.
+   - Done when: every retained finding has all four proof steps documented.
 
-| Level | Examples |
-|-------|----------|
-| **Critical** | Secret leak, unsafe repo path, missing SDK disposal, auth bypass |
-| **Warning** | Layer violation, weak error handling, missing Zod on new input |
-| **Suggestion** | Naming, minor clarity |
+4. **Generalize defect class**: for each proven finding, search the full diff for sibling occurrences of the same pattern and report them together.
+   - Done when: sibling occurrences are searched and reported (or none found).
 
-## Output format
+5. **Sweep known patterns**: grep each ID in `MEMORY.md → ## Review Patterns` against the modified file set; report confirmed violations.
+   - Done when: the pattern sweep ran and results are reported.
 
-```markdown
-## Code review (us-workflow Step 9)
+6. **Check invariants**: cross-check `config.json.invariants` / `config.json.rules`: tenancy filters, DB-migrations-CLI-only, domain rules, React hook cleanup/dependency arrays, and i18n keys present in every locale from `config.json.stack.frontend.i18n.locales[]`.
+   - Optional `fable` integration: If `config.json.fable.enabled` and `autoAudit` are `true`, run [`fable-judge`](../fable-judge/SKILL.md) to perform adversarial audit for the 4 classic frauds (Weakened Checks, False Completion, Scope Creep, Unauthorized Action). Report detected frauds as Critical or Warning findings to trigger `04-implement-tasks mode=fix`.
+   - Done when: each applicable checklist item is checked.
 
-**Branch:** `…`
-**Base:** main
-**Files reviewed:** N
+7. **Write report**: save `step-06-{slug}.review.md`. No findings: write `No feedback` and stop. Findings: use severity sections Critical / Warning / Suggestion, each with `path:L#`, description, score `/10`, sibling occurrences, and a `suggestion` block; end with **Apply fixes?**.
+   - Done when: the report file matches the format described above.
 
-### Critical
-- **path:line** — finding → fix
+8. **Apply fixes (standalone only)**: after the user answers YES, apply surgical fixes, run `build-backend`, `test-backend`, `build-frontend` (+ `test-frontend` if UI logic touched), and report the outcome in `step-06-{slug}.fix.report.md` when a plan directory exists. Under workflow, the orchestrator owns this via `04-implement-tasks` instead.
+   - Done when: fixes are applied and verification commands ran, or this step was skipped under workflow.
 
-### Warning
-- …
+## Rules of engagement
 
-### Suggestion
-- …
+- Precision before volume: include only findings with complete evidence, no speculative comments.
+- Convergence goal: one report round covering all issues; avoid review loops.
+- Do not commit: changes stay in the working tree for the orchestrator or developer to stage.
 
----
-**Verdict:** No feedback | N findings (apply via implement-plan fix mode)
-```
-
-## Verification reminder
-
-After fixes: `npm run typecheck`, `npm run build` — cite output.
-
-## References
-
-- [`code-review`](../code-review/SKILL.md) — shared guardrails
-- [`senior-developer`](../senior-developer/SKILL.md)
-- [`karpathy-guidelines`](../karpathy-guidelines/SKILL.md)
+Language: en-us only.

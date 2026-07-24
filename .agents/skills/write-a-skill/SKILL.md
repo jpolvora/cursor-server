@@ -1,117 +1,71 @@
 ---
 name: write-a-skill
-description: Create new agent skills with proper structure, progressive disclosure, and bundled resources. Use when user wants to create, write, or build a new skill.
+description: >
+  Creates, edits, or audits agent skills for predictability — structure, progressive disclosure,
+  descriptions, and pruning. Use when the user wants to create, write, build, rewrite, or optimize
+  a skill, or mentions skill authoring.
+upstream: jpolvora/workflow-skills
+version: 2.0
+invocation_names:
+  - write-a-skill
 ---
 
-# Writing Skills
+# write-a-skill
 
-## Process
+Root virtue: **predictability** (same process every run, not the same tokens). Bold terms → [`GLOSSARY.md`](GLOSSARY.md).
 
-1. **Gather requirements** - ask user about:
-   - What task/domain does the skill cover?
-   - What specific use cases should it handle?
-   - Does it need executable scripts or just instructions?
-   - Any reference materials to include?
+## Steps
 
-2. **Draft the skill** - create:
-   - SKILL.md with concise instructions
-   - Additional reference files if content exceeds 500 lines
-   - Utility scripts if deterministic operations needed
+1. **Gather** — Ask: domain/task, use cases/branches, scripts needed?, reference materials?
+   - Done when: scope and invocation choice (model vs user) are agreed.
 
-3. **Review with user** - present draft and ask:
-   - Does this cover your use cases?
-   - Anything missing or unclear?
-   - Should any section be more/less detailed?
+2. **Consult MEMORY** — Grep `{sharedDir}/MEMORY.md` for skill/script traps (launchers, CRLF, encoding, managed-skill edits). Apply Solutions before drafting scripts.
+   - Done when: relevant entries noted or none found.
 
-## Skill Structure
+3. **Decide invocation** — Model-invoked (keep `description`, pay **context load**) only if the agent or another skill must reach it. Otherwise user-invoked (`disable-model-invocation: true`, human-facing one-line description).
+   - Done when: invocation mode is set and justified.
+
+4. **Draft** — Create `skill-name/SKILL.md` (plus scripts/reference files only when earned). Prefer **steps** with checkable **Done when** criteria; push rare detail behind a **context pointer**. Recipes must use explicit `python` / `node` / `bash` launchers ([`tools.md`](../shared/tools.md) § Script launchers). `.sh` files: LF only.
+   - Done when: frontmatter + body exist; every step has a Done when; description matches mode (triggers if model-invoked).
+
+5. **Prune** — Single source of truth; cut **no-ops**, **duplication**, **sediment**; hunt **leading words**; collapse synonym **branches** in the description.
+   - Done when: checklist below passes.
+
+6. **Review with user** — Coverage, clarity, detail level.
+   - Done when: user accepts or requests a specific edit.
+
+## Folder layout
 
 ```
 skill-name/
-├── SKILL.md           # Main instructions (required)
-├── REFERENCE.md       # Detailed docs (if needed)
-├── EXAMPLES.md        # Usage examples (if needed)
-└── scripts/           # Utility scripts (if needed)
-    └── helper.js
+├── SKILL.md        # required (prefer ≤100 lines)
+├── GLOSSARY.md     # or REFERENCE.md — disclosed reference
+├── EXAMPLES.md     # optional
+└── scripts/        # deterministic helpers only
 ```
 
-## SKILL.md Template
+## Description (model-invoked)
 
-```md
----
-name: skill-name
-description: Brief description of capability. Use when [specific triggers].
----
+Third person · max 1024 chars · front-load the **leading word** · one trigger per **branch** · no body identity.
 
-# Skill Name
+Good: `Extract text and tables from PDFs, fill forms, merge docs. Use when working with PDFs, forms, or document extraction.`
 
-## Quick start
+Bad: `Helps with documents.`
 
-[Minimal working example]
+## When to add scripts / split
 
-## Workflows
+- Scripts: deterministic ops, repeated codegen, explicit error handling.
+- Split / disclose: SKILL.md >100 lines, rare branches, distinct domains.
 
-[Step-by-step processes with checklists for complex tasks]
+## Review checklist
 
-## Advanced features
+- [ ] Description mode correct (triggers if model-invoked; human one-liner if user-invoked)
+- [ ] SKILL.md ≤100 lines or excess disclosed
+- [ ] Every step has checkable Done when
+- [ ] No time-sensitive facts; consistent terms; one-level-deep pointers
+- [ ] Failure modes checked: premature completion, duplication, sprawl, no-op, negation
+- [ ] MEMORY consulted; scripts use explicit launchers; `.sh` is LF
 
-[Link to separate files: See REFERENCE.md in the skill folder]
-```
+## Diagnose (edit existing skills)
 
-## Description Requirements
-
-The description is **the only thing your agent sees** when deciding which skill to load. It's surfaced in the system prompt alongside all other installed skills. Your agent reads these descriptions and picks the relevant skill based on the user's request.
-
-**Goal**: Give your agent just enough info to know:
-
-1. What capability this skill provides
-2. When/why to trigger it (specific keywords, contexts, file types)
-
-**Format**:
-
-- Max 1024 chars
-- Write in third person
-- First sentence: what it does
-- Second sentence: "Use when [specific triggers]"
-
-**Good example**:
-
-```
-Extract text and tables from PDF files, fill forms, merge documents. Use when working with PDF files or when user mentions PDFs, forms, or document extraction.
-```
-
-**Bad example**:
-
-```
-Helps with documents.
-```
-
-The bad example gives your agent no way to distinguish this from other document skills.
-
-## When to Add Scripts
-
-Add utility scripts when:
-
-- Operation is deterministic (validation, formatting)
-- Same code would be generated repeatedly
-- Errors need explicit handling
-
-Scripts save tokens and improve reliability vs generated code.
-
-## When to Split Files
-
-Split into separate files when:
-
-- SKILL.md exceeds 100 lines
-- Content has distinct domains (finance vs sales schemas)
-- Advanced features are rarely needed
-
-## Review Checklist
-
-After drafting, verify:
-
-- [ ] Description includes triggers ("Use when...")
-- [ ] SKILL.md under 100 lines
-- [ ] No time-sensitive info
-- [ ] Consistent terminology
-- [ ] Concrete examples included
-- [ ] References one level deep
+Load [`GLOSSARY.md`](GLOSSARY.md). Apply levers: information hierarchy, progressive disclosure, leading words, pruning. Prefer sharpening completion criteria before splitting by sequence.
