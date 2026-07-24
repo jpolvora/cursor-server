@@ -21,7 +21,7 @@ Requirements and endpoint design are not finalized. Prefer small, reviewable inc
 - **Host**: home lab server (Umbrel, Docker Compose stack, or bare Node).
 - **Access**: Tailscale tailnet — clients on home/company laptops reach the API over VPN; avoid assuming public-internet exposure.
 - **Data**: repo clones live under `REPOS_ROOT` (volume-mounted in container deployments).
-- **Packaging**: Docker Compose is the intended production path; manifest not yet in repo.
+- **Packaging**: Docker Compose is the production path (`Dockerfile`, `docker-compose.yml`, [docs/docker.md](./docs/docker.md)).
 
 When adding deployment artifacts, favor Compose over bespoke scripts; keep Umbrel compatibility (standard Compose, clear env vars, persistent volumes).
 
@@ -114,7 +114,6 @@ New runners plug in behind the same spec → stage → outcome contract.
 
 Treat these as design placeholders — confirm with the owner before building:
 
-- Docker Compose stack + Umbrel-friendly packaging
 - Tailscale-oriented bind/config defaults and docs
 - Authentication / API keys for clients calling this server
 - Async job queue (fire-and-forget tasks, status polling, webhooks)
@@ -141,7 +140,7 @@ For task endpoints, a real `CURSOR_API_KEY` and a clone under `repos/` are requi
 
 - Do not switch to cloud runtime without an explicit requirement (this server is local-first / homelab-first).
 - Do not add large frameworks or ORMs for the initial API surface.
-- Do not implement roadmap items (Docker, spec editor, Hermes) without explicit owner go-ahead — but **do** keep README/AGENTS roadmap sections updated when vision changes.
+- Do not implement roadmap items (spec editor, Hermes, Umbrel App Store manifest) without explicit owner go-ahead — but **do** keep README/AGENTS roadmap sections updated when vision changes.
 
 ---
 

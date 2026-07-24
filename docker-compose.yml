@@ -1,0 +1,17 @@
+services:
+  cursor-server:
+    build: .
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "3000"
+      REPOS_ROOT: /data/repos
+    volumes:
+      - repos_data:/data/repos
+    restart: unless-stopped
+
+volumes:
+  repos_data:
