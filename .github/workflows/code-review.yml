@@ -1,0 +1,57 @@
+# Agentic Code Review — consumer (from jpolvora/agentic-code-reviewers)
+# Docs: https://github.com/jpolvora/agentic-code-reviewers/blob/main/docs/workflows.md
+#
+# Engine: opencode · Model: opencode-go/deepseek-v4-flash
+# Auto-fix: disabled (no auto-fix.yml)
+#
+# Required secrets:
+#   OPENCODE_API_KEY — OpenCode Go (run.sh installs CLI + auth in CI)
+# Optional secrets:
+#   AGENTIC_CODE_REVIEWERS_GITHUB_TOKEN — PAT with repo / pull-requests:write
+#     (github.token can post comments but often cannot resolve review threads)
+
+name: Agentic Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Run code reviewer
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          AGENTIC_CODE_REVIEWERS_GITHUB_TOKEN: ${{ secrets.AGENTIC_CODE_REVIEWERS_GITHUB_TOKEN || github.token }}
+          AGENTIC_CODE_REVIEWERS_ENGINE: opencode
+          AGENTIC_CODE_REVIEWERS_MODEL: opencode-go/deepseek-v4-flash
+        run: |
+          git checkout -B "${{ github.head_ref }}"
+          curl -fsSL https://raw.githubusercontent.com/jpolvora/agentic-code-reviewers/release/run.sh | bash -s -- \
+            --gh \
+            --engine opencode \
+            --model opencode-go/deepseek-v4-flash \
+            --source-branch "refs/heads/${{ github.head_ref }}" \
+            --target-branch "refs/heads/${{ github.event.pull_request.base.ref }}"
+        continue-on-error: true
+
+      - name: Check for active threads
+        env:
+          AGENTIC_CODE_REVIEWERS_GITHUB_TOKEN: ${{ secrets.AGENTIC_CODE_REVIEWERS_GITHUB_TOKEN || github.token }}
+        run: |
+          ACTIVE=$(node .agents/skills/solve-pr/scripts/fetch_threads.cjs ${{ github.event.pull_request.number }} --json 2>/dev/null | jq '.activeThreads | length' || echo 0)
+          echo "Active threads: $ACTIVE"
+          [ "$ACTIVE" -eq 0 ] || exit 1
