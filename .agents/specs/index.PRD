@@ -5,7 +5,7 @@ Living index of vision, features, roadmap, backlog, and done work.
 
 | Field | Value |
 |-------|-------|
-| Updated | 2026-07-24 |
+| Updated | 2026-07-24 (Docker Compose packaging landed) |
 | Priority order | Homelab-ready first (Compose → Tailscale/docs → auth → repo validation → API depth → harness) |
 | Spec folder | `.agents/specs/` |
 
@@ -105,7 +105,7 @@ Status: **partial** (usable sync API; not production-hardened).
   - [ ] Default / sample jobs registered
   - [ ] Review / triage / hygiene job implementations — see Phase 2
 - [x] Agent / workflow harness docs (AGENTS.md, workflow-skills, secrets scan)
-- [ ] Homelab packaging — see Phase 1
+- [x] Homelab packaging (Compose) — see Phase 1 Docker Compose
 - [ ] Client authentication — see Phase 1
 
 `Verified:` — (fill when health + task smoke succeed on the host)
@@ -114,13 +114,15 @@ Status: **partial** (usable sync API; not production-hardened).
 
 ### Phase 1 — Homelab-ready (next priority)
 
-Status: **todo**. Goal: run reliably on Umbrel/Compose over Tailscale with basic client auth and safe repo resolution.
+Status: **partial** (Compose packaging landed; Tailscale deep-dive, auth, repo validation still open). Goal: run reliably on Umbrel/Compose over Tailscale with basic client auth and safe repo resolution.
 
-- [ ] Docker Compose stack
-  - [ ] Service definition (Node 20+, port, env)
-  - [ ] Persistent volume for `REPOS_ROOT` / `repos/`
-  - [ ] Document Umbrel / custom-app style usage
-  - **spec:** `docker-compose.spec.md`
+- [x] Docker Compose stack
+  - [x] Service definition (Node 20+, port, env)
+  - [x] Persistent volume for `REPOS_ROOT` / `repos/`
+  - [x] Document Umbrel / custom-app style usage
+  - **spec:** `docker-compose.spec.md` (mirror) · canonical `.agents/plans/docker-compose/step-00-docker-compose.spec.md`
+  - **plan:** `.agents/plans/docker-compose/step-01-docker-compose.plan.md`
+  - **docs:** `docs/docker.md` · `Dockerfile` · `docker-compose.yml`
 - [ ] Tailscale-oriented defaults and docs
   - [ ] Bind / HOST guidance for tailnet access
   - [ ] Client reachability notes (no public exposure assumed)
@@ -194,7 +196,7 @@ Write / implement in this order unless a dependency forces a skip. Update status
 
 | # | Status | Spec file | One-line scope |
 |---|--------|-----------|----------------|
-| 1 | `[ ]` | `docker-compose.spec.md` | Compose stack, env, `repos/` volume, Umbrel-friendly notes |
+| 1 | `[x]` | `docker-compose.spec.md` | Compose stack, env, `repos/` volume, Umbrel-friendly notes — **packaging landed** |
 | 2 | `[ ]` | `tailscale-homelab-docs.spec.md` | Tailnet bind/defaults and client access docs |
 | 3 | `[ ]` | `client-auth.spec.md` | API key (or equivalent) gate for client calls |
 | 4 | `[ ]` | `repo-validation.spec.md` | Exist + git-repo checks; safe errors before agent start |
@@ -212,7 +214,7 @@ Write / implement in this order unless a dependency forces a skip. Update status
 | 16 | `[ ]` | `runner-opencode.spec.md` | OpenCode adapter |
 | 17 | `[ ]` | `multi-tenant-isolation.spec.md` | Isolation if shared host |
 
-**Suggested immediate next step:** author `docker-compose.spec.md`, then implement that slice.
+**Suggested immediate next step:** `tailscale-homelab-docs.spec.md` or `client-auth.spec.md`.
 
 ---
 
@@ -233,6 +235,7 @@ Coarse record of what already counts as landed; detail stays in git history / ch
 | scaffold | Health + config + sync `POST /tasks` + local SDK runner | See Phase 0 |
 | scaffold | Scheduler registration API (no jobs) | See Phase 0 |
 | 2026-07 | workflow-skills full package + shared config | Harness docs, not product API |
+| 2026-07-24 | Docker Compose packaging | `Dockerfile`, `docker-compose.yml`, `docs/docker.md` — Phase 1 |
 
 ---
 
