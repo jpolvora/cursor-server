@@ -191,7 +191,7 @@ Status: **todo**. Goal: qualified specs drive staged, observable, resumable pipe
   - **spec:** `12-stage-orchestration.spec.md`
 - [x] Runner interface (do not hard-couple to `@cursor/sdk`)
   - **spec:** `11-harness-runner-interface.spec.md`
-- [ ] Cursor SDK runner adapter (default)
+- [x] Cursor SDK runner adapter (default)
   - **spec:** `13-runner-cursor-sdk.spec.md`
 - [ ] Spec editor / served environment (UI TBD)
   - **spec:** `14-spec-editor.spec.md`
@@ -222,7 +222,7 @@ Write / implement in this order unless a dependency forces a skip. Update status
 | 10 | `[x]` | `10-spec-schema.spec.md` | Qualified spec format & Zod schema for the harness engine — **landed** |
 | 11 | `[x]` | `11-harness-runner-interface.spec.md` | Pluggable runner contract (Cursor SDK, Hermes, OpenCode) — **landed** |
 | 12 | `[x]` | `12-stage-orchestration.spec.md` | Stage pipeline + observability + resume — **landed** |
-| 13 | `[ ]` | `13-runner-cursor-sdk.spec.md` | Cursor adapter behind the interface |
+| 13 | `[x]` | `13-runner-cursor-sdk.spec.md` | Cursor adapter behind the interface |
 | 14 | `[ ]` | `14-spec-editor.spec.md` | Hosted editor/environment |
 | 15 | `[ ]` | `15-hermes-integration.spec.md` | Hermes as orchestrator / delegate |
 | 16 | `[ ]` | `16-runner-opencode.spec.md` | OpenCode adapter |
@@ -230,7 +230,7 @@ Write / implement in this order unless a dependency forces a skip. Update status
 | 18 | `[ ]` | `18-mcp-config.spec.md` | MCP servers per task/repo (deferred to future backlog) |
 | 19 | `[x]` | `19-event-gateway.spec.md` | Standardized Event Ingestion Gateway (`POST /events`) |
 
-**Suggested immediate next step:** `13-runner-cursor-sdk.spec.md` (Cursor SDK Harness Runner Adapter).
+**Suggested immediate next step:** `14-spec-editor.spec.md` (Hosted spec editor/environment).
 
 ---
 
