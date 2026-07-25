@@ -12,6 +12,7 @@
     "start": "node dist/index.js",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test dist/services dist/routes dist/jobs",
     "scan-secrets": "node scripts/scan-secrets.mjs",
     "prepare": "husky"
   },

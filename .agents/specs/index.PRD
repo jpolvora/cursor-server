@@ -124,23 +124,23 @@ Status: **partial** (Compose + Tailscale docs landed; auth, repo validation stil
   - [x] Service definition (Node 20+, port, env)
   - [x] Persistent volume for `REPOS_ROOT` / `repos/`
   - [x] Document Umbrel / custom-app style usage
-  - **spec:** `docker-compose.spec.md` (mirror) · canonical `.agents/plans/docker-compose/step-00-docker-compose.spec.md`
+  - **spec:** `01-docker-compose.spec.md` (mirror) · canonical `.agents/plans/docker-compose/step-00-docker-compose.spec.md`
   - **plan:** `.agents/plans/docker-compose/step-01-docker-compose.plan.md`
   - **docs:** `docs/docker.md` · `Dockerfile` · `docker-compose.yml`
 - [x] Tailscale-oriented defaults and docs
   - [x] Bind / HOST guidance for tailnet access
   - [x] Client reachability notes (no public exposure assumed)
-  - **spec:** `tailscale-homelab-docs.spec.md` (mirror) · canonical `.agents/plans/tailscale-homelab-docs/step-00-tailscale-homelab-docs.spec.md`
+  - **spec:** `02-tailscale-homelab-docs.spec.md` (mirror) · canonical `.agents/plans/tailscale-homelab-docs/step-00-tailscale-homelab-docs.spec.md`
   - **docs:** README Network access · `docs/docker.md` Network/Tailscale · `.env.example` HOST comment · AGENTS Deployment
 - [x] Client authentication
   - [x] API key (or equivalent) for callers
   - [x] Reject unauthenticated task (and mutating) routes
-  - **spec:** `client-auth.spec.md`
+  - **spec:** `03-client-auth.spec.md`
 - [x] Repo registration and validation
   - [x] Ensure `{REPOS_ROOT}/{repo}` exists
   - [x] Ensure path is a git working tree (or documented allowlist)
   - [x] Clear 4xx errors for unknown / invalid repos
-  - **spec:** `repo-validation.spec.md`
+  - **spec:** `04-repo-validation.spec.md`
 
 ---
 
@@ -153,26 +153,29 @@ Status: **todo**. Goal: production-shaped task lifecycle and observability witho
   - [x] Dedicated (exclusive) agent profile that knows how to invoke and drive `spec-to-pr` and `spec-to-pr-lite` flows end-to-end
   - [x] Caller can choose the agent (exclusive spec-to-pr* agent vs default / other agents) — builds on landed `POST /tasks` `agent` allowlist
   - [x] Surface which flow ran (`spec-to-pr` vs `spec-to-pr-lite`) and basic outcome metadata
-  - **spec:** `workflow-skills-spec-to-pr.spec.md`
+  - **spec:** `05-workflow-skills-spec-to-pr.spec.md`
 - [x] Async job queue
   - [x] Fire-and-forget accept (true async `202` + id)
   - [x] Status polling endpoint
   - [x] Optional webhooks on completion
-  - **spec:** `async-task-queue.spec.md`
+  - **spec:** `06-async-task-queue.spec.md`
 - [x] Run history and persistence
   - [x] Store agentId, runId, status, timestamps, result summary
   - [x] List / get by id
-  - **spec:** `run-history.spec.md`
+  - **spec:** `07-run-history.spec.md`
 - [ ] Streaming task output to clients
   - [ ] SSE and/or WebSocket
-  - **spec:** `task-streaming.spec.md`
+  - **spec:** `08-task-streaming.spec.md`
 - [x] Scheduled review jobs
   - [x] PR diff review, branch sync checks, triage/hygiene examples
   - [x] Use `Agent.resume` where cross-process continuation fits
-  - **spec:** `scheduled-review-jobs.spec.md`
+  - **spec:** `09-scheduled-review-jobs.spec.md`
+- [x] Event gateway
+  - [x] Standardized event ingestion API (`POST /events`)
+  - **spec:** `19-event-gateway.spec.md`
 - [ ] MCP configuration
   - [ ] Per task and/or per repo
-  - **spec:** `mcp-config.spec.md`
+  - **spec:** `18-mcp-config.spec.md`
 
 ---
 
@@ -181,23 +184,23 @@ Status: **todo**. Goal: production-shaped task lifecycle and observability witho
 Status: **todo**. Goal: qualified specs drive staged, observable, resumable pipelines; runners are swappable.
 
 - [x] Spec schema (machine-actionable: IDs, AC, dependencies)
-  - **spec:** `spec-schema.spec.md`
-- [ ] Spec editor / served environment (UI TBD)
-  - **spec:** `spec-editor.spec.md`
-- [ ] Stage orchestration service
-  - [ ] Stages: implement → build → test → deploy → review
-  - [ ] Per-stage logs, artifacts, pass/fail; resumable; tied to spec sections
-  - **spec:** `stage-orchestration.spec.md`
+  - **spec:** `10-spec-schema.spec.md`
+- [x] Stage orchestration service
+  - [x] Stages: implement → build → test → deploy → review
+  - [x] Per-stage logs, artifacts, pass/fail; resumable; tied to spec sections
+  - **spec:** `12-stage-orchestration.spec.md`
 - [x] Runner interface (do not hard-couple to `@cursor/sdk`)
-  - **spec:** `harness-runner-interface.spec.md`
-- [x] Cursor SDK runner adapter (default)
-  - **spec:** `runner-cursor-sdk.spec.md`
+  - **spec:** `11-harness-runner-interface.spec.md`
+- [ ] Cursor SDK runner adapter (default)
+  - **spec:** `13-runner-cursor-sdk.spec.md`
+- [ ] Spec editor / served environment (UI TBD)
+  - **spec:** `14-spec-editor.spec.md`
 - [ ] Hermes Agent integration (orchestration, schedule, memory/skills, delegation)
-  - **spec:** `hermes-integration.spec.md`
+  - **spec:** `15-hermes-integration.spec.md`
 - [ ] OpenCode runner adapter
-  - **spec:** `runner-opencode.spec.md`
+  - **spec:** `16-runner-opencode.spec.md`
 - [ ] Multi-tenant isolation (if multiple clients share one host)
-  - **spec:** `multi-tenant-isolation.spec.md`
+  - **spec:** `17-multi-tenant-isolation.spec.md`
 
 ---
 
@@ -207,26 +210,27 @@ Write / implement in this order unless a dependency forces a skip. Update status
 
 | # | Status | Spec file | One-line scope |
 |---|--------|-----------|----------------|
-| 1 | `[x]` | `docker-compose.spec.md` | Compose stack, env, `repos/` volume, Umbrel-friendly notes — **packaging landed** |
-| 2 | `[x]` | `tailscale-homelab-docs.spec.md` | Tailnet bind/defaults and client access docs — **docs landed** |
-| 3 | `[x]` | `client-auth.spec.md` | API key (or equivalent) gate for client calls |
-| 4 | `[x]` | `repo-validation.spec.md` | Exist + git-repo checks; safe errors before agent start |
-| 5 | `[x]` | `workflow-skills-spec-to-pr.spec.md` | Run installed `spec-to-pr` / `spec-to-pr-lite`; exclusive agent roles; caller chooses agent |
-| 6 | `[x]` | `async-task-queue.spec.md` | Accept/poll/(webhook) async task lifecycle |
-| 7 | `[x]` | `run-history.spec.md` | Persist and query past runs |
-| 8 | `[x]` | `task-streaming.spec.md` | Stream agent output to clients via SSE |
-| 9 | `[x]` | `scheduled-review-jobs.spec.md` | First real cron jobs using the scheduler hook |
-| 10 | `[x]` | `spec-schema.spec.md` | Qualified spec format & Zod schema for the harness engine — **landed** |
-| 11 | `[x]` | `harness-runner-interface.spec.md` | Pluggable runner contract (Cursor SDK, Hermes, OpenCode) — **landed** |
-| 12 | `[ ]` | `stage-orchestration.spec.md` | Stage pipeline + observability + resume |
-| 13 | `[ ]` | `runner-cursor-sdk.spec.md` | Cursor adapter behind the interface |
-| 14 | `[ ]` | `spec-editor.spec.md` | Hosted editor/environment |
-| 15 | `[ ]` | `hermes-integration.spec.md` | Hermes as orchestrator / delegate |
-| 16 | `[ ]` | `runner-opencode.spec.md` | OpenCode adapter |
-| 17 | `[ ]` | `multi-tenant-isolation.spec.md` | Isolation if shared host |
-| 18 | `[ ]` | `mcp-config.spec.md` | MCP servers per task/repo (deferred to future backlog) |
+| 1 | `[x]` | `01-docker-compose.spec.md` | Compose stack, env, `repos/` volume, Umbrel-friendly notes — **packaging landed** |
+| 2 | `[x]` | `02-tailscale-homelab-docs.spec.md` | Tailnet bind/defaults and client access docs — **docs landed** |
+| 3 | `[x]` | `03-client-auth.spec.md` | API key (or equivalent) gate for client calls |
+| 4 | `[x]` | `04-repo-validation.spec.md` | Exist + git-repo checks; safe errors before agent start |
+| 5 | `[x]` | `05-workflow-skills-spec-to-pr.spec.md` | Run installed `spec-to-pr` / `spec-to-pr-lite`; exclusive agent roles; caller chooses agent |
+| 6 | `[x]` | `06-async-task-queue.spec.md` | Accept/poll/(webhook) async task lifecycle |
+| 7 | `[x]` | `07-run-history.spec.md` | Persist and query past runs |
+| 8 | `[x]` | `08-task-streaming.spec.md` | Stream agent output to clients via SSE |
+| 9 | `[x]` | `09-scheduled-review-jobs.spec.md` | First real cron jobs using the scheduler hook |
+| 10 | `[x]` | `10-spec-schema.spec.md` | Qualified spec format & Zod schema for the harness engine — **landed** |
+| 11 | `[x]` | `11-harness-runner-interface.spec.md` | Pluggable runner contract (Cursor SDK, Hermes, OpenCode) — **landed** |
+| 12 | `[x]` | `12-stage-orchestration.spec.md` | Stage pipeline + observability + resume — **landed** |
+| 13 | `[ ]` | `13-runner-cursor-sdk.spec.md` | Cursor adapter behind the interface |
+| 14 | `[ ]` | `14-spec-editor.spec.md` | Hosted editor/environment |
+| 15 | `[ ]` | `15-hermes-integration.spec.md` | Hermes as orchestrator / delegate |
+| 16 | `[ ]` | `16-runner-opencode.spec.md` | OpenCode adapter |
+| 17 | `[ ]` | `17-multi-tenant-isolation.spec.md` | Isolation if shared host |
+| 18 | `[ ]` | `18-mcp-config.spec.md` | MCP servers per task/repo (deferred to future backlog) |
+| 19 | `[x]` | `19-event-gateway.spec.md` | Standardized Event Ingestion Gateway (`POST /events`) |
 
-**Suggested immediate next step:** `harness-runner-interface.spec.md` (Pluggable runner interface for Phase 3 Flagship Harness).
+**Suggested immediate next step:** `13-runner-cursor-sdk.spec.md` (Cursor SDK Harness Runner Adapter).
 
 ---
 
