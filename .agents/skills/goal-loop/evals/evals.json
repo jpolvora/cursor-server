@@ -1,0 +1,25 @@
+{
+  "skill_name": "goal-loop",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Loop until check-harness reports zero critical findings.",
+      "expected_output": "Generic convergence loop with exit condition and iteration cap.",
+      "assertions": [
+        "Agent loads goal-loop",
+        "Defines measurable done condition",
+        "Does not infinite-loop without reporting progress"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "goal loop with max 2 iterations on flaky test",
+      "expected_output": "Respects iteration cap; reports last state when not converged.",
+      "assertions": [
+        "Honors max iteration bound when specified",
+        "Documents exit reason when goal not met",
+        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+      ]
+    }
+  ]
+}

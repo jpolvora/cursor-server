@@ -3,8 +3,7 @@ name: show-harness
 description: >
   Snapshot the harness active in this session — skills, rules, instructions, precedence,
   and can/cannot — as short bullets. Invoke anytime with /show-harness or @show-harness.
-upstream: jpolvora/workflow-skills
-version: 1.0
+version: 0.0.82
 disable-model-invocation: true
 invocation_names:
   - show-harness

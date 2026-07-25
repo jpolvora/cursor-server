@@ -3,8 +3,7 @@ name: fable-domain
 description: >
   Generates and manages domain adapters for specialized agent workflows (DevOps, Data Analysis, Research, Ops).
   Defines binding minimum evidence sets, domain authority, observation rules, and fraud definitions.
-upstream: jpolvora/workflow-skills — improvements must be submitted upstream to https://github.com/jpolvora/workflow-skills
-version: 1.0
+version: 0.0.82
 invocation_names:
   - fable-domain
   - /fable-domain

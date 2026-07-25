@@ -2,7 +2,7 @@
 
 > **Human audience.** Orchestrator FSM lives in [`SKILL.md`](SKILL.md) — English agent contract. Use this README + [`DIAGRAM.md`](DIAGRAM.md) for onboarding. FAQ sections that still mention steps 11–13 are **legacy**; trust [`SKILL.md`](SKILL.md) / this README for steps **0–9**.
 >
-> **Current:** Standard FSM steps **0–9** (F0–F6). Pipeline skill folders `00`–`09` (+ unprefixed `goal-fix-pr`, `update-plan-implementation`). Dual-mode with [`spec-to-pr-lite`](../spec-to-pr-lite/SKILL.md) (steps 0–5). Tools via [`tools.md`](../shared/tools.md). Config: `.agents/skills/shared/config.json`.
+> **Current:** Standard FSM steps **0–9** (F0–F6). Pipeline skill folders `ws-*` (`ws-write-spec`…`ws-fix-pr`, `ws-goal-fix-pr`, `ws-update-plan-implementation`). Dual-mode with [`spec-to-pr-lite`](../spec-to-pr-lite/SKILL.md) (steps 0–5). Tools via [`tools.md`](../shared/tools.md). Config: `.agents/skills/shared/config.json`.
 >
 > **Identity:** `/spec-to-pr` / `@[spec-to-pr]`. Runtime tags: `uswf/`; plan slugs: `us-{id}`.
 
@@ -106,7 +106,7 @@ Session model only. Pause → switch in IDE/agent host → Resume. No `--model` 
 | **8** | Ship | `ws-ship-pr` | Delivery + push/PR → `step-08-{slug}.result.md` |
 | **9** | Fix-PR | `ws-fix-pr` / `ws-goal-fix-pr` | Threads → merge policy |
 
-Post-workflow QA deltas: `ws-update-plan-implementation` (`update-plan-implementation`).
+Post-workflow QA deltas: `ws-update-plan-implementation` (`ws-update-plan-implementation`).
 
 ### Step 7 — Testing (summary)
 

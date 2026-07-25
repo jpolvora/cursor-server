@@ -1,0 +1,25 @@
+{
+  "skill_name": "gabarito",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Is this architecture good? (vague praise wanted)",
+      "expected_output": "Direct accountable answer; no empty praise; calibrated confidence.",
+      "assertions": [
+        "Does not output sycophantic flattery",
+        "States assumptions or asks one critical question if blocked",
+        "No em dash per gabarito style"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "stop gabarito — just answer yes or no: should we use Redis?",
+      "expected_output": "Opt-out honored; shorter direct answer without gabarito lecture.",
+      "assertions": [
+        "Respects stop gabarito opt-out phrase",
+        "Still gives reasoned recommendation when asked",
+        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+      ]
+    }
+  ]
+}

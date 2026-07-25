@@ -1,8 +1,7 @@
 ---
 name: check-workflows
 description: Deeply validate and simulate workflow processes (spec-to-pr & spec-to-pr-lite) near real usage. Detects broken steps, missing dependencies, script syntax errors, and suggests actionable fixes with interactive user confirmation.
-upstream: jpolvora/workflow-skills — this skill is a harness validation skill. Improvements must be submitted upstream to https://github.com/jpolvora/workflow-skills
-version: 1.1
+version: 0.0.82
 disable-model-invocation: true
 ---
 
@@ -37,8 +36,8 @@ python .agents/skills/check-workflows/scripts/check_workflows.py --fix --yes
 The validation process performs end-to-end simulation across both orchestrators:
 
 ### 1. Workflow Simulation & Step Continuity
-- **Standard (`spec-to-pr`) Simulation**: Simulates stepping through Steps 0 to 9 (`00-write-spec`, `01-write-plan`, `02-interview`, `03-plan-to-tasks`, `04-implement-tasks`, `05-verify-plan`, `06-code-review`, `07-testing`, `08-ship-pr`, `09-fix-pr`).
-- **Lite (`spec-to-pr-lite`) Simulation**: Simulates stepping through Steps 0 to 5 (`00-write-spec`, `01-write-plan`, `04-implement-tasks`, `06-code-review`, `08-ship-pr`, `09-fix-pr`).
+- **Standard (`spec-to-pr`) Simulation**: Simulates stepping through Steps 0 to 9 (`ws-write-spec`, `ws-write-plan`, `ws-interview`, `ws-plan-to-tasks`, `ws-implement-tasks`, `ws-verify-plan`, `ws-code-review`, `ws-testing`, `ws-ship-pr`, `ws-fix-pr`).
+- **Lite (`spec-to-pr-lite`) Simulation**: Simulates stepping through Steps 0 to 5 (`ws-write-spec`, `ws-write-plan`, `ws-implement-tasks`, `ws-code-review`, `ws-ship-pr`, `ws-fix-pr`).
 - **Linked Skill Check**: Verifies that every step links to an existing skill under `.agents/skills/<skill>/SKILL.md`.
 
 ### 2. Script Syntax & Execution Check

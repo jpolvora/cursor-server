@@ -155,7 +155,7 @@ async function main() {
           prNumber: prId,
           owner,
           repo,
-          cooperativeContract: '.agents/skills/09-fix-pr/scripts/COOPERATIVE_FIX.md',
+          cooperativeContract: '.agents/skills/ws-fix-pr/scripts/COOPERATIVE_FIX.md',
           activeThreads: normalized,
         },
         null,

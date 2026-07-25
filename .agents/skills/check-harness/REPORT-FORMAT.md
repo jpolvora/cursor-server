@@ -35,7 +35,7 @@ Otherwise — **correction plan** (mandatory before editing):
 
 | # | Severity | File | Problem (error) | Proposed correction |
 |---|------------|---------|-----------------|-------------------|
-| 1 | critical | `AGENTS.md:L28` | Link `.agents/skills/foo` nonexistent | Replace with `.agents/skills/01-write-plan/SKILL.md` |
+| 1 | critical | `AGENTS.md:L28` | Link `.agents/skills/foo` nonexistent | Replace with `.agents/skills/ws-write-plan/SKILL.md` |
 | 2 | warning | `AGENTS.md` | Skill `example` on disk without routing | Add line in § Skill loading table (see diff below) |
 
 #### Details per item (when diff does not fit in table)
@@ -61,7 +61,7 @@ Otherwise — **correction plan** (mandatory before editing):
 ### Redundancies and conflicts
 | Theme | Files | Type | Plan item (#) |
 |------|----------|------|-------------------|
-| Code review | `06-code-review` (`us-code-review`) + `code-review` | name collision → resolved on port | — |
+| Code review | `ws-code-review` (`us-code-review`) + `code-review` | name collision → resolved on port | — |
 
 ### Auto-load skills matrix (Phase 5c.1)
 | Skill | Mandatory? | Lines | Output directives | Interacts with |
@@ -99,7 +99,7 @@ Otherwise — **correction plan** (mandatory before editing):
 | Code review | local review vs workflow review step | complementary — local branch vs workflow step | No | Distinct triggers; keep both |
 | Code review | architecture review vs diff review | complementary — architecture vs diff | No | Task router already distinguishes |
 | Security | general security vs language-specific | complementary — OWASP vs language-specific | No | Domain review already references security review |
-| PR workflow | fix vs goal-fix-pr | superset — goal-fix-pr wraps fix-pr | No | Keep both; goal-fix-pr delegates to fix-pr |
+| PR workflow | fix vs ws-goal-fix-pr | superset — ws-goal-fix-pr wraps fix-pr | No | Keep both; ws-goal-fix-pr delegates to fix-pr |
 | Planning | write-plan vs interview | complementary — create vs audit plan | No | Sequential workflow; distinct triggers |
 | Domain | single vs multi-domain review | superset — batch orchestrator | No | Multi-domain orchestrates single |
 | UI/Frontend | UI patterns vs taste/design | complementary — internal patterns vs anti-slop | No | Taste skill loads design doc for distinction |

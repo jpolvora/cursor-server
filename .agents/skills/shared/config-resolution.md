@@ -1,7 +1,7 @@
 # Config & SCM Resolution — Dual-Mode
 
 Canonical config and SCM resolution for **all** workflow skills.
-Used by `spec-to-pr`, `spec-to-pr-lite`, providers, `09-fix-pr`, `goal-fix-pr`, `08-ship-pr`.
+Used by `spec-to-pr`, `spec-to-pr-lite`, providers, `ws-fix-pr`, `ws-goal-fix-pr`, `ws-ship-pr`.
 
 ---
 

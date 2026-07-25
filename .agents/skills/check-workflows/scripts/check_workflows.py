@@ -160,16 +160,16 @@ class WorkflowChecker:
 
         # Step definitions for Standard FSM
         expected_steps = {
-            0: ("Spec Creation", "00-write-spec"),
-            1: ("Plan Creation", "01-write-plan"),
-            2: ("Plan Interview", "02-interview"),
-            3: ("Plan to Tasks", "03-plan-to-tasks"),
-            4: ("Task Implementation", "04-implement-tasks"),
-            5: ("Plan Verification", "05-verify-plan"),
-            6: ("Code Review", "06-code-review"),
-            7: ("Testing", "07-testing"),
-            8: ("Ship PR", "08-ship-pr"),
-            9: ("Fix PR Threads", "09-fix-pr"),
+            0: ("Spec Creation", "ws-write-spec"),
+            1: ("Plan Creation", "ws-write-plan"),
+            2: ("Plan Interview", "ws-interview"),
+            3: ("Plan to Tasks", "ws-plan-to-tasks"),
+            4: ("Task Implementation", "ws-implement-tasks"),
+            5: ("Plan Verification", "ws-verify-plan"),
+            6: ("Code Review", "ws-code-review"),
+            7: ("Testing", "ws-testing"),
+            8: ("Ship PR", "ws-ship-pr"),
+            9: ("Fix PR Threads", "ws-fix-pr"),
         }
 
         # Parse FSM table
@@ -215,7 +215,7 @@ class WorkflowChecker:
             }
 
         # Check auxiliary skills dispatched by standard workflow
-        aux_skills = ["goal-fix-pr", "update-plan-implementation", "github-provider", "azure-devops-provider", "local-spec-provider"]
+        aux_skills = ["ws-goal-fix-pr", "ws-update-plan-implementation", "github-provider", "azure-devops-provider", "local-spec-provider"]
         for aux in aux_skills:
             if (SKILLS_DIR / aux / "SKILL.md").exists():
                 dispatched_skills.add(aux)
@@ -255,12 +255,12 @@ class WorkflowChecker:
         text = lite_skill_path.read_text(encoding="utf-8", errors="replace")
 
         expected_steps = {
-            0: ("Spec Creation", "00-write-spec"),
-            1: ("Plan Creation", "01-write-plan"),
-            2: ("Implementation", "04-implement-tasks"),
-            3: ("Code Review", "06-code-review"),
-            4: ("Ship PR", "08-ship-pr"),
-            5: ("Fix PR Threads", "09-fix-pr"),
+            0: ("Spec Creation", "ws-write-spec"),
+            1: ("Plan Creation", "ws-write-plan"),
+            2: ("Implementation", "ws-implement-tasks"),
+            3: ("Code Review", "ws-code-review"),
+            4: ("Ship PR", "ws-ship-pr"),
+            5: ("Fix PR Threads", "ws-fix-pr"),
         }
 
         matches = re.findall(r"^\s*\|\s*([0-5])\s*\|\s*([^|]+)\s*\|", text, re.MULTILINE)
@@ -304,7 +304,7 @@ class WorkflowChecker:
             }
 
         # Check auxiliary skills dispatches
-        aux_skills = ["goal-fix-pr", "github-provider", "azure-devops-provider", "local-spec-provider"]
+        aux_skills = ["ws-goal-fix-pr", "github-provider", "azure-devops-provider", "local-spec-provider"]
         for aux in aux_skills:
             if (SKILLS_DIR / aux / "SKILL.md").exists():
                 dispatched_skills.add(aux)
