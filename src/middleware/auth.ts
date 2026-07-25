@@ -11,6 +11,7 @@ export function authMiddleware(config: Config): MiddlewareHandler {
 
     const authHeader = c.req.header("Authorization");
     const customHeader = c.req.header("X-API-Key");
+    const queryKey = c.req.query("api_key") || c.req.query("token");
 
     let providedKey: string | undefined;
 
@@ -18,6 +19,8 @@ export function authMiddleware(config: Config): MiddlewareHandler {
       providedKey = customHeader;
     } else if (authHeader && authHeader.startsWith("Bearer ")) {
       providedKey = authHeader.substring(7).trim();
+    } else if (queryKey) {
+      providedKey = queryKey;
     }
 
     if (providedKey && providedKey === apiKey) {

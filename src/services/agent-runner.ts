@@ -63,6 +63,22 @@ function buildImplementPrompt(userPrompt: string, planText?: string): string {
   ].join("\n");
 }
 
+function buildSpecToPrPrompt(userPrompt: string, lite: boolean = false): string {
+  const skillPath = lite
+    ? ".agents/skills/spec-to-pr-lite/SKILL.md"
+    : ".agents/skills/spec-to-pr/SKILL.md";
+  const flowName = lite ? "Spec-to-PR Lite" : "Spec-to-PR";
+
+  return [
+    `You are operating as a dedicated ${flowName} agent workflow runner.`,
+    `First, inspect and read instructions in \`${skillPath}\` if present in the working tree or customization roots.`,
+    `Follow the ${flowName} workflow steps strictly to turn the following task/specification into completed, verified work.`,
+    "",
+    "## Task / Spec:",
+    userPrompt,
+  ].join("\n");
+}
+
 function promptForAgent(agent: AgentId, userPrompt: string, planText?: string): string {
   switch (agent) {
     case "planner":
@@ -73,6 +89,10 @@ function promptForAgent(agent: AgentId, userPrompt: string, planText?: string): 
       return planText
         ? buildImplementPrompt(userPrompt, planText)
         : buildPlanPrompt(userPrompt);
+    case "spec-to-pr":
+      return buildSpecToPrPrompt(userPrompt, false);
+    case "spec-to-pr-lite":
+      return buildSpecToPrPrompt(userPrompt, true);
     case "default":
     default:
       return userPrompt;

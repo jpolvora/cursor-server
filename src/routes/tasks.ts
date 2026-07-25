@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { streamSSE } from "hono/streaming";
 import { z } from "zod";
 import { resolveAgent } from "../agents.js";
 import type { Config } from "../config.js";
@@ -29,6 +30,72 @@ export function createTaskRoutes(config: Config) {
 
     const list = taskStore.listTasks({ status, repo, source });
     return c.json({ tasks: list });
+  });
+
+  // Stream task status & log output via Server-Sent Events (SSE)
+  tasks.get("/:id/stream", (c) => {
+    const id = c.req.param("id");
+    const task = taskStore.getTask(id);
+
+    if (!task) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+
+    return streamSSE(c, async (stream) => {
+      await stream.writeSSE({
+        event: "status",
+        data: JSON.stringify({ id: task.id, status: task.status, result: task.result, error: task.error }),
+      });
+
+      if (task.status === "completed" || task.status === "failed" || task.status === "cancelled") {
+        await stream.writeSSE({ event: "done", data: JSON.stringify({ id: task.id, status: task.status }) });
+        return;
+      }
+
+      const onStatus = async (data: { id: string; status: string; record: any }) => {
+        if (data.id === id) {
+          await stream.writeSSE({
+            event: "status",
+            data: JSON.stringify({ id: data.id, status: data.status, result: data.record.result, error: data.record.error }),
+          });
+          if (data.status === "completed" || data.status === "failed" || data.status === "cancelled") {
+            await stream.writeSSE({ event: "done", data: JSON.stringify({ id: data.id, status: data.status }) });
+            cleanup();
+            stream.close();
+          }
+        }
+      };
+
+      const onOutput = async (data: { id: string; chunk: string }) => {
+        if (data.id === id) {
+          await stream.writeSSE({
+            event: "output",
+            data: JSON.stringify({ id: data.id, chunk: data.chunk }),
+          });
+        }
+      };
+
+      const cleanup = () => {
+        taskStore.events.off("task:status", onStatus);
+        taskStore.events.off("task:output", onOutput);
+      };
+
+      taskStore.events.on("task:status", onStatus);
+      taskStore.events.on("task:output", onOutput);
+
+      stream.onAbort(() => {
+        cleanup();
+      });
+
+      while (!stream.aborted) {
+        await stream.sleep(1000);
+        const current = taskStore.getTask(id);
+        if (current && (current.status === "completed" || current.status === "failed" || current.status === "cancelled")) {
+          cleanup();
+          break;
+        }
+      }
+    });
   });
 
   // Get task by ID

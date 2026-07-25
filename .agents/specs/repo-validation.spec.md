@@ -10,8 +10,8 @@
 4. Return clean 4xx HTTP responses (`400 Bad Request` / `404 Not Found`) before starting the local Cursor SDK agent.
 
 ## Acceptance Criteria
-- [ ] Safe path resolution prevents directory traversal (e.g., `repo: "../../etc"` returns `400 Bad Request`).
-- [ ] Non-existent repository folder returns `404 Not Found` with `{ "error": "Repository not found" }`.
-- [ ] Non-git repository folder returns `400 Bad Request` with `{ "error": "Repository path is not a valid git working tree" }`.
-- [ ] Valid git repositories pass validation and allow task execution to proceed.
-- [ ] Typecheck, build, and tests pass.
+- [x] Safe path resolution prevents directory traversal (e.g., `repo: "../../etc"` returns `400 Bad Request`).
+- [x] Non-existent repository folder returns `404 Not Found` with `{ "error": "Repository not found" }`.
+- [x] Non-git repository folder returns `400 Bad Request` with `{ "error": "Repository path is not a valid git working tree" }`.
+- [x] Valid git repositories pass validation and allow task execution to proceed.
+- [x] Typecheck, build, and tests pass.

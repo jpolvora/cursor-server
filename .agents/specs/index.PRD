@@ -148,13 +148,12 @@ Status: **partial** (Compose + Tailscale docs landed; auth, repo validation stil
 
 Status: **todo**. Goal: production-shaped task lifecycle and observability without yet building the full spec harness.
 
-- [ ] Workflow-skills runners (`spec-to-pr` / `spec-to-pr-lite`) — **soon**
-  - [ ] Run installed [workflow-skills](https://github.com/jpolvora/workflow-skills) orchestrators already present under `.agents/skills/` in the target repo
-  - [ ] Dedicated (exclusive) agent profile that knows how to invoke and drive `spec-to-pr` and `spec-to-pr-lite` flows end-to-end
-  - [ ] Caller can choose the agent (exclusive spec-to-pr* agent vs default / other agents) — builds on landed `POST /tasks` `agent` allowlist
-  - [ ] Surface which flow ran (`spec-to-pr` vs `spec-to-pr-lite`) and basic outcome metadata
+- [x] Workflow-skills runners (`spec-to-pr` / `spec-to-pr-lite`)
+  - [x] Run installed [workflow-skills](https://github.com/jpolvora/workflow-skills) orchestrators already present under `.agents/skills/` in the target repo
+  - [x] Dedicated (exclusive) agent profile that knows how to invoke and drive `spec-to-pr` and `spec-to-pr-lite` flows end-to-end
+  - [x] Caller can choose the agent (exclusive spec-to-pr* agent vs default / other agents) — builds on landed `POST /tasks` `agent` allowlist
+  - [x] Surface which flow ran (`spec-to-pr` vs `spec-to-pr-lite`) and basic outcome metadata
   - **spec:** `workflow-skills-spec-to-pr.spec.md`
-  - **note:** Roadmap only for now; write the `*.spec.md` when starting implementation. Does not replace Phase 3 flagship harness. Distinct from Phase 0 task roles (`planner` / `implementer` / etc.).
 - [x] Async job queue
   - [x] Fire-and-forget accept (true async `202` + id)
   - [x] Status polling endpoint
@@ -212,10 +211,10 @@ Write / implement in this order unless a dependency forces a skip. Update status
 | 2 | `[x]` | `tailscale-homelab-docs.spec.md` | Tailnet bind/defaults and client access docs — **docs landed** |
 | 3 | `[x]` | `client-auth.spec.md` | API key (or equivalent) gate for client calls |
 | 4 | `[x]` | `repo-validation.spec.md` | Exist + git-repo checks; safe errors before agent start |
-| 5 | `[ ]` | `workflow-skills-spec-to-pr.spec.md` | **Soon:** run installed `spec-to-pr` / `spec-to-pr-lite`; exclusive agent; caller chooses agent |
+| 5 | `[x]` | `workflow-skills-spec-to-pr.spec.md` | Run installed `spec-to-pr` / `spec-to-pr-lite`; exclusive agent roles; caller chooses agent |
 | 6 | `[x]` | `async-task-queue.spec.md` | Accept/poll/(webhook) async task lifecycle |
 | 7 | `[x]` | `run-history.spec.md` | Persist and query past runs |
-| 8 | `[ ]` | `task-streaming.spec.md` | Stream agent output to clients |
+| 8 | `[x]` | `task-streaming.spec.md` | Stream agent output to clients via SSE |
 | 9 | `[ ]` | `scheduled-review-jobs.spec.md` | First real cron jobs using the scheduler hook |
 | 10 | `[ ]` | `mcp-config.spec.md` | MCP servers per task/repo |
 | 11 | `[ ]` | `spec-schema.spec.md` | Qualified spec format for the harness |
@@ -227,7 +226,7 @@ Write / implement in this order unless a dependency forces a skip. Update status
 | 17 | `[ ]` | `runner-opencode.spec.md` | OpenCode adapter |
 | 18 | `[ ]` | `multi-tenant-isolation.spec.md` | Isolation if shared host |
 
-**Suggested immediate next step:** finish Phase 1 (`client-auth` / `repo-validation`), then **`workflow-skills-spec-to-pr.spec.md`** (soon).
+**Suggested immediate next step:** `scheduled-review-jobs.spec.md` (first real cron jobs using scheduler hook).
 
 ---
 

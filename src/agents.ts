@@ -4,6 +4,8 @@ export const AGENTS = [
   "planner",
   "implementer",
   "plan+implementer",
+  "spec-to-pr",
+  "spec-to-pr-lite",
 ] as const;
 
 export type AgentId = (typeof AGENTS)[number];
@@ -16,6 +18,11 @@ const ALIASES: Record<string, AgentId> = {
   plan_implementer: "plan+implementer",
   "plan-implementer": "plan+implementer",
   planimplementer: "plan+implementer",
+  spec_to_pr: "spec-to-pr",
+  "spectopr": "spec-to-pr",
+  spec_to_pr_lite: "spec-to-pr-lite",
+  "spectoprlite": "spec-to-pr-lite",
+  "spec-to-pr-lite": "spec-to-pr-lite",
 };
 
 export function isAgentId(value: string): value is AgentId {

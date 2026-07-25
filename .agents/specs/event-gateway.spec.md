@@ -10,8 +10,8 @@ External clients (Hermes Agent, Umbrel UI, webhooks) need a standardized event i
 4. Enqueue background agent task and return `202 Accepted` + `taskId`.
 
 ## Acceptance Criteria
-- [ ] `POST /events` requires valid API key when `SERVER_API_KEY` is configured.
-- [ ] Validates repository existence and git tree status using `repo-validator`.
-- [ ] Enqueues task and returns `202 Accepted` with `{ taskId, status: "queued", source, repo }`.
-- [ ] Dispatches optional webhook callback on task completion when `webhookUrl` is provided.
-- [ ] Typecheck, build, and tests pass.
+- [x] `POST /events` requires valid API key when `SERVER_API_KEY` is configured.
+- [x] Validates repository existence and git tree status using `repo-validator`.
+- [x] Enqueues task and returns `202 Accepted` with `{ taskId, status: "queued", source, repo }`.
+- [x] Dispatches optional webhook callback on task completion when `webhookUrl` is provided.
+- [x] Typecheck, build, and tests pass.

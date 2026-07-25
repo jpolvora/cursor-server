@@ -29,6 +29,7 @@ export function processTaskInBackground(config: Config, taskId: string): void {
       status: "running",
       startedAt: new Date().toISOString(),
     });
+    taskStore.emitOutput(taskId, `[${new Date().toISOString()}] Task started: role=${task.agent}, model=${task.model}\n`);
 
     try {
       const result = await runTask(config, {
@@ -45,6 +46,7 @@ export function processTaskInBackground(config: Config, taskId: string): void {
         durationMs: endTime - startTime,
         result,
       });
+      taskStore.emitOutput(taskId, `[${new Date().toISOString()}] Task completed in ${endTime - startTime}ms\n`);
 
       if (task.webhookUrl && updatedTask) {
         await sendWebhookNotification(task.webhookUrl, updatedTask);
@@ -58,6 +60,7 @@ export function processTaskInBackground(config: Config, taskId: string): void {
         durationMs: endTime - startTime,
         error: errorMessage,
       });
+      taskStore.emitOutput(taskId, `[${new Date().toISOString()}] Task failed: ${errorMessage}\n`);
 
       if (task.webhookUrl && updatedTask) {
         await sendWebhookNotification(task.webhookUrl, updatedTask);

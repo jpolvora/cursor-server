@@ -1,3 +1,4 @@
+import EventEmitter from "node:events";
 import fs from "node:fs";
 import path from "node:path";
 import type { AgentId } from "../agents.js";
@@ -37,6 +38,7 @@ export interface CreateTaskOptions {
 class TaskStore {
   private tasks = new Map<string, TaskRecord>();
   private storagePath: string | null = null;
+  public readonly events = new EventEmitter();
 
   public init(reposRoot: string) {
     this.storagePath = path.resolve(reposRoot, ".tasks.json");
@@ -91,6 +93,7 @@ class TaskStore {
 
     this.tasks.set(id, record);
     this.saveToDisk();
+    this.events.emit("task:status", { id, status: record.status, record });
     return record;
   }
 
@@ -109,7 +112,14 @@ class TaskStore {
 
     this.tasks.set(id, updated);
     this.saveToDisk();
+    if (updates.status) {
+      this.events.emit("task:status", { id, status: updated.status, record: updated });
+    }
     return updated;
+  }
+
+  public emitOutput(id: string, chunk: string) {
+    this.events.emit("task:output", { id, chunk });
   }
 
   public listTasks(filter?: { status?: string; repo?: string; source?: string }): TaskRecord[] {

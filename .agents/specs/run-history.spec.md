@@ -9,7 +9,7 @@ Clients and web dashboards require persistence and querying of past and running 
 3. Retain history across server restarts.
 
 ## Acceptance Criteria
-- [ ] Task records saved to disk under `REPOS_ROOT/.tasks.json` or equivalent store.
-- [ ] `GET /tasks` lists all tasks sorted by `createdAt` descending.
-- [ ] Supports filtering via query parameters: `GET /tasks?status=completed&repo=my-repo`.
-- [ ] Typecheck, build, and tests pass.
+- [x] Task records saved to disk under `REPOS_ROOT/.tasks.json` or equivalent store.
+- [x] `GET /tasks` lists all tasks sorted by `createdAt` descending.
+- [x] Supports filtering via query parameters: `GET /tasks?status=completed&repo=my-repo`.
+- [x] Typecheck, build, and tests pass.
