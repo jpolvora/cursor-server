@@ -21,3 +21,10 @@ Addressed 2 active review threads on Pull Request #5 (`https://github.com/jpolvo
 - `npm run typecheck`: Passed
 - `npm run build`: Passed
 - `node --test --test-force-exit "dist/**/*.test.js"`: 42 passed, 0 failed
+
+## Follow-up (CI gate)
+
+Agentic Code Review job failed after SEM ISSUES (0 pending threads) because
+`.github/workflows/code-review.yml` still called missing
+`.agents/skills/solve-pr/scripts/fetch_threads.cjs`. Updated to
+`github-provider/scripts/fetch_threads.cjs` with `${ACTIVE:-0}` default.
