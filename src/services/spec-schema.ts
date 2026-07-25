@@ -241,3 +241,90 @@ export function listRepoSpecs(repoPath: string): SpecSummary[] {
 
   return results;
 }
+
+const SAFE_SPEC_FILENAME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*\.(spec\.md|json)$/;
+
+/**
+ * Reject path traversal and non-basename names. Returns the safe basename.
+ */
+export function assertSafeSpecFilename(name: string): string {
+  if (!name || typeof name !== "string") {
+    throw new Error("Spec filename is required");
+  }
+  if (name.includes("..") || name.includes("/") || name.includes("\\") || name.includes("\0")) {
+    throw new Error("Invalid spec filename (path segments not allowed)");
+  }
+  const base = path.basename(name);
+  if (base !== name || !SAFE_SPEC_FILENAME_RE.test(base)) {
+    throw new Error("Invalid spec filename");
+  }
+  return base;
+}
+
+export function agentsSpecsDir(repoPath: string): string {
+  return path.join(repoPath, ".agents", "specs");
+}
+
+function resolveUnderDir(rootDir: string, file: string): string {
+  const safe = assertSafeSpecFilename(file);
+  const root = path.resolve(rootDir);
+  const target = path.resolve(root, safe);
+  if (!target.startsWith(root + path.sep) && target !== root) {
+    throw new Error("Path traversal detected");
+  }
+  return target;
+}
+
+/**
+ * Resolve a write/read path confined to `{repoPath}/.agents/specs/{file}`.
+ */
+export function resolveAgentsSpecPath(repoPath: string, file: string): string {
+  return resolveUnderDir(agentsSpecsDir(repoPath), file);
+}
+
+/**
+ * Read a spec file. Prefers `.agents/specs/`; falls back to `.cursor/specs/` and `specs/`
+ * when the basename exists there and stays under the repo root.
+ */
+export function readRepoSpecFile(repoPath: string, file: string): { content: string; path: string } {
+  const safe = assertSafeSpecFilename(file);
+  const candidates = [
+    path.join(repoPath, ".agents", "specs", safe),
+    path.join(repoPath, ".cursor", "specs", safe),
+    path.join(repoPath, "specs", safe),
+  ];
+
+  const repoRoot = path.resolve(repoPath);
+  for (const candidate of candidates) {
+    const resolved = path.resolve(candidate);
+    if (!resolved.startsWith(repoRoot + path.sep) && resolved !== repoRoot) {
+      continue;
+    }
+    if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) {
+      continue;
+    }
+    return {
+      content: fs.readFileSync(resolved, "utf-8"),
+      path: path.relative(repoPath, resolved).replace(/\\/g, "/"),
+    };
+  }
+
+  throw Object.assign(new Error(`Spec file '${safe}' not found`), { code: "ENOENT" });
+}
+
+/**
+ * Write UTF-8 content to `{repoPath}/.agents/specs/{file}`, creating the directory if needed.
+ */
+export function writeRepoSpecFile(
+  repoPath: string,
+  file: string,
+  content: string,
+): { path: string; absolutePath: string } {
+  const target = resolveAgentsSpecPath(repoPath, file);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, content, "utf-8");
+  return {
+    absolutePath: target,
+    path: path.relative(repoPath, target).replace(/\\/g, "/"),
+  };
+}

@@ -1,6 +1,16 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
-import { parseSpecMarkdown, validateSpecPayload, listRepoSpecs } from "./spec-schema.js";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import {
+  assertSafeSpecFilename,
+  listRepoSpecs,
+  parseSpecMarkdown,
+  readRepoSpecFile,
+  validateSpecPayload,
+  writeRepoSpecFile,
+} from "./spec-schema.js";
 
 describe("spec-schema", () => {
   it("parses markdown frontmatter and acceptance criteria", () => {
@@ -88,5 +98,40 @@ This is a test description.
     assert.strictEqual(Array.isArray(specs), true);
     assert.ok(specs.length > 0);
     assert.ok(specs.some((s) => s.id === "spec-schema"));
+  });
+
+  it("rejects path traversal in spec filenames", () => {
+    for (const bad of ["../evil.spec.md", "..\\evil.spec.md", "a/b.spec.md", "a\\b.spec.md", ""]) {
+      assert.throws(() => assertSafeSpecFilename(bad));
+    }
+  });
+
+  it("accepts safe basename .spec.md filenames", () => {
+    assert.strictEqual(assertSafeSpecFilename("14-spec-editor.spec.md"), "14-spec-editor.spec.md");
+  });
+
+  it("writes and reads a spec under .agents/specs (round-trip)", () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "spec-io-"));
+    try {
+      const content = "---\nid: round-trip\ntitle: Round Trip\n---\n# Round Trip\n";
+      const written = writeRepoSpecFile(tmp, "round-trip.spec.md", content);
+      assert.strictEqual(written.path, ".agents/specs/round-trip.spec.md");
+      assert.ok(fs.existsSync(path.join(tmp, ".agents", "specs", "round-trip.spec.md")));
+
+      const read = readRepoSpecFile(tmp, "round-trip.spec.md");
+      assert.strictEqual(read.content, content);
+      assert.strictEqual(read.path, ".agents/specs/round-trip.spec.md");
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects write when filename attempts traversal", () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "spec-io-bad-"));
+    try {
+      assert.throws(() => writeRepoSpecFile(tmp, "../escape.spec.md", "x"));
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
   });
 });

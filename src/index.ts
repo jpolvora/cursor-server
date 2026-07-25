@@ -11,7 +11,8 @@ import { createSpecRoutes, createRepoSpecRoutes } from "./routes/specs.js";
 import { authMiddleware } from "./middleware/auth.js";
 import { taskStore } from "./services/task-store.js";
 
-import { harnessRoutes } from "./routes/harness.js";
+import { createHarnessRoutes } from "./routes/harness.js";
+import { createUiRoutes } from "./routes/ui.js";
 import { stageStore } from "./services/stage-store.js";
 
 const config = loadConfig();
@@ -33,6 +34,9 @@ app.get("/agents", (c) =>
     aliases: { generic: "default" },
   }),
 );
+
+// Public UI (no auth) — APIs remain protected below
+app.route("/ui", createUiRoutes());
 
 // Protected routes
 app.use("/tasks", authMiddleware(config));
@@ -57,7 +61,7 @@ app.route("/repos", createRepoSpecRoutes(config));
 
 app.use("/harness", authMiddleware(config));
 app.use("/harness/*", authMiddleware(config));
-app.route("/harness", harnessRoutes);
+app.route("/harness", createHarnessRoutes(config));
 
 startScheduler(config);
 
