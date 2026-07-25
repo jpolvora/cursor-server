@@ -6,6 +6,7 @@ import { AGENTS } from "./agents.js";
 import { healthRoutes } from "./routes/health.js";
 import { createTaskRoutes } from "./routes/tasks.js";
 import { createEventRoutes } from "./routes/events.js";
+import { createJobsRoutes } from "./routes/jobs.js";
 import { authMiddleware } from "./middleware/auth.js";
 import { taskStore } from "./services/task-store.js";
 
@@ -16,7 +17,7 @@ const app = new Hono();
 taskStore.init(config.REPOS_ROOT);
 
 if (!config.SERVER_API_KEY) {
-  console.warn("⚠️ SERVER_API_KEY is not set. Authentication is disabled for task & event endpoints.");
+  console.warn("⚠️ SERVER_API_KEY is not set. Authentication is disabled for task, event & jobs endpoints.");
 }
 
 app.route("/", healthRoutes);
@@ -36,6 +37,10 @@ app.route("/tasks", createTaskRoutes(config));
 app.use("/events", authMiddleware(config));
 app.use("/events/*", authMiddleware(config));
 app.route("/events", createEventRoutes(config));
+
+app.use("/jobs", authMiddleware(config));
+app.use("/jobs/*", authMiddleware(config));
+app.route("/jobs", createJobsRoutes(config));
 
 startScheduler(config);
 

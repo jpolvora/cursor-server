@@ -166,9 +166,9 @@ Status: **todo**. Goal: production-shaped task lifecycle and observability witho
 - [ ] Streaming task output to clients
   - [ ] SSE and/or WebSocket
   - **spec:** `task-streaming.spec.md`
-- [ ] Scheduled review jobs
-  - [ ] PR diff review, branch sync checks, triage/hygiene examples
-  - [ ] Use `Agent.resume` where cross-process continuation fits
+- [x] Scheduled review jobs
+  - [x] PR diff review, branch sync checks, triage/hygiene examples
+  - [x] Use `Agent.resume` where cross-process continuation fits
   - **spec:** `scheduled-review-jobs.spec.md`
 - [ ] MCP configuration
   - [ ] Per task and/or per repo
@@ -215,7 +215,7 @@ Write / implement in this order unless a dependency forces a skip. Update status
 | 6 | `[x]` | `async-task-queue.spec.md` | Accept/poll/(webhook) async task lifecycle |
 | 7 | `[x]` | `run-history.spec.md` | Persist and query past runs |
 | 8 | `[x]` | `task-streaming.spec.md` | Stream agent output to clients via SSE |
-| 9 | `[ ]` | `scheduled-review-jobs.spec.md` | First real cron jobs using the scheduler hook |
+| 9 | `[x]` | `scheduled-review-jobs.spec.md` | First real cron jobs using the scheduler hook |
 | 10 | `[ ]` | `mcp-config.spec.md` | MCP servers per task/repo |
 | 11 | `[ ]` | `spec-schema.spec.md` | Qualified spec format for the harness |
 | 12 | `[ ]` | `harness-runner-interface.spec.md` | Pluggable runner contract |
