@@ -17,6 +17,7 @@ import {
   resolveStageAgent,
   DEFAULT_STAGE_TIMEOUT_MS,
 } from "./harness-runner.js";
+import "./hermes-runner.js";
 
 function ensureTestApiKey(): void {
   if (!process.env.CURSOR_API_KEY) {
@@ -53,6 +54,13 @@ describe("RunnerRegistry", () => {
     assert.ok(runner);
     assert.strictEqual(runner?.id, "cursor-sdk");
     assert.strictEqual(runner?.name, "Cursor SDK Runner");
+  });
+
+  it("should register hermes by default", () => {
+    const runner = runnerRegistry.get("hermes");
+    assert.ok(runner);
+    assert.strictEqual(runner?.id, "hermes");
+    assert.strictEqual(runner?.name, "Hermes Agent Runner");
   });
 
   it("should keep cursor-local as default", () => {
