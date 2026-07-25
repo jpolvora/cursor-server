@@ -40,7 +40,7 @@ Example health check: `curl http://100.x.y.z:3000/health` (or your MagicDNS name
 | **Now** | Local task API (incl. `agent` roles + `GET /agents`), scheduler hook, SDK integration, Docker Compose, Tailscale bind/client access docs |
 | **Next** | Client auth, repo validation, then workflow-skills `spec-to-pr*` runner (soon) |
 | **Hermes** | Integration with [Hermes Agent](https://github.com/NousResearch/hermes-agent) (Nous Research) for orchestration, scheduling, and delegation to specialized coding agents |
-| **Spec harness** | Hosted spec editor + qualified spec format; pipeline stages: **implement → build → test → deploy → review** |
+| **Spec harness** | MVP editor at `GET /ui/spec-editor` + qualified spec format landed; pipeline stages: **implement → build → test → deploy → review** (Hermes/OpenCode still open) |
 | **Pluggable runners** | Harness abstraction so OpenCode, Hermes Agent, or Cursor SDK can execute the same spec pipeline |
 
 The spec harness is the flagship long-term feature: authors write complete, machine-actionable specs in a served environment; the server executes them through specialized stage agents with full traceability from spec item to deploy artifact and review outcome.
@@ -51,6 +51,7 @@ Early scaffold. Implemented today:
 
 - `GET /health` — liveness
 - `GET /agents` — task role allowlist (`default`, `planner`, `implementer`, `plan+implementer`)
+- `GET /ui/spec-editor` — hosted Markdown spec editor (validate / save / Save & Run)
 - `POST /tasks` — run a local agent task against a named repo under `REPOS_ROOT` (optional `agent` / `model`)
 - Job scheduler hook (no default jobs registered yet)
 - Docker Compose packaging + Tailscale bind/client access docs
@@ -100,6 +101,10 @@ npm run dev
 ```json
 { "status": "ok" }
 ```
+
+### `GET /ui/spec-editor`
+
+Interactive Markdown spec editor (no auth on the page). Lists/opens specs under a repo, live-validates via `POST /specs/validate`, saves to `{repo}/.agents/specs/`, and **Save & Run** dispatches `POST /harness/runs`. When `SERVER_API_KEY` is set, enter it in the page so API calls send `X-API-Key`.
 
 ### `POST /tasks`
 
@@ -179,16 +184,14 @@ This repo consumes [jpolvora/agentic-code-reviewers](https://github.com/jpolvora
 | Workflow | File | Role |
 |----------|------|------|
 | **Agentic Code Review** | [`.github/workflows/code-review.yml`](.github/workflows/code-review.yml) | On PR: review with **opencode** / `opencode-go/deepseek-v4-flash`; fail if open bot threads remain |
-| **Agentic Auto Fix** | [`.github/workflows/auto-fix.yml`](.github/workflows/auto-fix.yml) | After review: fix open threads with **opencode** / `opencode-go/laguna-s-2.1`, commit + push (re-triggers review) |
 
 **GitHub Actions secrets** (repo Settings → Secrets):
 
 | Secret | Required for | Notes |
 |--------|--------------|-------|
-| `OPENCODE_API_KEY` | review + auto-fix | OpenCode Go; `run.sh` installs CLI + writes `auth.json` in CI |
-| `AGENTIC_CODE_REVIEWERS_GITHUB_TOKEN` | auto-fix (recommended) | PAT with `repo` / PR write; needed so push re-triggers `pull_request` workflows and threads resolve |
+| `OPENCODE_API_KEY` | review | OpenCode Go; `run.sh` installs CLI + writes `auth.json` in CI |
 
-Thread helpers live under [`.agents/skills/solve-pr/`](.agents/skills/solve-pr/) (vendored from the reviewer repo). Upstream docs: [workflows.md](https://github.com/jpolvora/agentic-code-reviewers/blob/main/docs/workflows.md).
+Thread helpers: [`.agents/skills/ws-fix-pr/`](.agents/skills/ws-fix-pr/) and [`github-provider/scripts/`](.agents/skills/github-provider/scripts/) (e.g. `fetch_threads.cjs`). Upstream docs: [workflows.md](https://github.com/jpolvora/agentic-code-reviewers/blob/main/docs/workflows.md).
 
 Local dry-run:
 

@@ -36,8 +36,12 @@ src/
   routes/
     health.ts           # GET /health
     tasks.ts            # POST /tasks (optional agent)
+    ui.ts               # GET /ui/spec-editor (public HTML editor)
+    specs.ts            # POST /specs/validate; GET/PUT /repos/:repo/specs[/:file]
+    harness.ts          # createHarnessRoutes — stage pipeline runs
   services/
     agent-runner.ts     # @cursor/sdk local Agent.create + send + wait (role prompts)
+    spec-schema.ts      # QualifiedSpec parse/validate + safe .agents/specs IO
   jobs/
     scheduler.ts        # node-cron registration (jobs added later)
 ```
@@ -111,7 +115,7 @@ Flagship feature: a **served spec editor/environment** where authors produce **f
 spec (qualified) → implement → build → test → deploy → review
 ```
 
-Each stage should be observable (logs, artifacts, pass/fail), resumable, and tied back to spec sections. The spec format and UI are not defined yet — design for machine-actionable structure (IDs, acceptance criteria, dependencies between items).
+**MVP landed:** `GET /ui/spec-editor` (Markdown edit / validate / save / Save & Run), QualifiedSpec parse in `spec-schema.ts`, and stage orchestration + Cursor SDK runner. Each stage should remain observable (logs, artifacts, pass/fail), resumable, and tied back to spec sections. Aspirational UI (AC builder, dependency graph, stage designer) and Hermes/OpenCode runners are still open.
 
 ### Pluggable harness abstraction
 
@@ -136,7 +140,7 @@ Treat these as design placeholders — confirm with the owner before building:
 - Streaming task output to clients (SSE / WebSocket)
 - Scheduled review jobs (PR diff review, branch sync checks)
 - MCP server configuration per task or per repo
-- Spec schema, editor UI, and stage orchestration service
+- Spec editor aspirational UI (AC builder, dependency graph, stage designer) beyond MVP Markdown editor
 - Hermes and OpenCode harness adapters
 - Multi-tenant isolation if multiple clients share one host
 
@@ -154,7 +158,7 @@ For task endpoints, a real `CURSOR_API_KEY` and a clone under `repos/` are requi
 
 - Do not switch to cloud runtime without an explicit requirement (this server is local-first / homelab-first).
 - Do not add large frameworks or ORMs for the initial API surface.
-- Do not implement roadmap items (spec editor, Hermes, Umbrel App Store manifest) without explicit owner go-ahead — but **do** keep README/AGENTS roadmap sections updated when vision changes.
+- Do not implement remaining roadmap items (Hermes, OpenCode adapters, Umbrel App Store manifest, aspirational spec-editor UI) without explicit owner go-ahead — but **do** keep README/AGENTS roadmap sections updated when vision changes.
 
 ---
 
