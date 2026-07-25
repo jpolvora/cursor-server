@@ -195,7 +195,7 @@ Status: **partial** (schema, orchestration, Cursor runner, and spec editor lande
   - **spec:** `13-runner-cursor-sdk.spec.md`
 - [x] Spec editor / served environment (`GET /ui/spec-editor`)
   - **spec:** `14-spec-editor.spec.md`
-- [ ] Hermes Agent integration (orchestration, schedule, memory/skills, delegation)
+- [x] Hermes Agent integration (orchestration, schedule, memory/skills, delegation)
   - **spec:** `15-hermes-integration.spec.md`
 - [ ] OpenCode runner adapter
   - **spec:** `16-runner-opencode.spec.md`
@@ -224,13 +224,13 @@ Write / implement in this order unless a dependency forces a skip. Update status
 | 12 | `[x]` | `12-stage-orchestration.spec.md` | Stage pipeline + observability + resume — **landed** |
 | 13 | `[x]` | `13-runner-cursor-sdk.spec.md` | Cursor adapter behind the interface |
 | 14 | `[x]` | `14-spec-editor.spec.md` | Hosted editor/environment |
-| 15 | `[ ]` | `15-hermes-integration.spec.md` | Hermes as orchestrator / delegate |
+| 15 | `[x]` | `15-hermes-integration.spec.md` | Hermes as orchestrator / delegate |
 | 16 | `[ ]` | `16-runner-opencode.spec.md` | OpenCode adapter |
 | 17 | `[ ]` | `17-multi-tenant-isolation.spec.md` | Isolation if shared host |
 | 18 | `[ ]` | `18-mcp-config.spec.md` | MCP servers per task/repo (deferred to future backlog) |
 | 19 | `[x]` | `19-event-gateway.spec.md` | Standardized Event Ingestion Gateway (`POST /events`) |
 
-**Suggested immediate next step:** `15-hermes-integration.spec.md` (Hermes orchestration / delegate).
+**Suggested immediate next step:** `16-runner-opencode.spec.md` (OpenCode adapter).
 
 ---
 
@@ -255,6 +255,7 @@ Coarse record of what already counts as landed; detail stays in git history / ch
 | 2026-07-24 | Tailscale bind / client access docs | `.env.example`, README, `docs/docker.md`, AGENTS — Phase 1 |
 | 2026-07-24 | Task `agent` roles + `GET /agents` | `default` / `planner` / `implementer` / `plan+implementer`; unknown → `default` — Phase 0 |
 | 2026-07-25 | Spec editor UI + spec file IO | `GET /ui/spec-editor`; GET/PUT `/repos/:repo/specs/:file`; harness repo-name resolve — Phase 3 |
+| 2026-07-25 | HermesRunner harness adapter | `id: hermes`; injectable CLI/HTTP stub; StageOutput normalize — Phase 3 |
 
 ---
 
