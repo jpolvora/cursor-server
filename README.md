@@ -37,8 +37,8 @@ Example health check: `curl http://100.x.y.z:3000/health` (or your MagicDNS name
 
 | Phase | Focus |
 |-------|--------|
-| **Now** | Local task API, scheduler hook, SDK integration, Docker Compose packaging, Tailscale bind/client access docs |
-| **Next** | Client auth, repo validation |
+| **Now** | Local task API (incl. `agent` roles + `GET /agents`), scheduler hook, SDK integration, Docker Compose, Tailscale bind/client access docs |
+| **Next** | Client auth, repo validation, then workflow-skills `spec-to-pr*` runner (soon) |
 | **Hermes** | Integration with [Hermes Agent](https://github.com/NousResearch/hermes-agent) (Nous Research) for orchestration, scheduling, and delegation to specialized coding agents |
 | **Spec harness** | Hosted spec editor + qualified spec format; pipeline stages: **implement → build → test → deploy → review** |
 | **Pluggable runners** | Harness abstraction so OpenCode, Hermes Agent, or Cursor SDK can execute the same spec pipeline |
@@ -50,8 +50,10 @@ The spec harness is the flagship long-term feature: authors write complete, mach
 Early scaffold. Implemented today:
 
 - `GET /health` — liveness
-- `POST /tasks` — run a one-shot local agent task against a named repo under `REPOS_ROOT`
+- `GET /agents` — task role allowlist (`default`, `planner`, `implementer`, `plan+implementer`)
+- `POST /tasks` — run a local agent task against a named repo under `REPOS_ROOT` (optional `agent` / `model`)
 - Job scheduler hook (no default jobs registered yet)
+- Docker Compose packaging + Tailscale bind/client access docs
 
 ## Prerequisites
 
@@ -83,6 +85,16 @@ npm run dev
 
 ## API
 
+### `GET /agents`
+
+```json
+{
+  "agents": ["default", "planner", "implementer", "plan+implementer"],
+  "default": "default",
+  "aliases": { "generic": "default" }
+}
+```
+
 ### `GET /health`
 
 ```json
@@ -99,21 +111,47 @@ Run a prompt against a repo by name (relative to `REPOS_ROOT`).
 {
   "prompt": "Review uncommitted changes for security issues",
   "repo": "my-app",
-  "model": "composer-2"
+  "model": "composer-2",
+  "agent": "default"
 }
 ```
+
+| Field | Required | Notes |
+|-------|----------|--------|
+| `prompt` | yes | Task text |
+| `repo` | yes | Folder name under `REPOS_ROOT` |
+| `model` | no | Override `CURSOR_MODEL` |
+| `agent` | no | Role: `default` (generic), `planner`, `implementer`, `plan+implementer`. Unknown / missing → `default`. Alias: `generic` → `default`. |
+
+**Agents**
+
+| `agent` | Behavior |
+|---------|----------|
+| `default` | Single run with the prompt as-is (generic) |
+| `planner` | Plan only (no implement instruction) |
+| `implementer` | Implement-focused single run |
+| `plan+implementer` | Plan phase, then implement using that plan |
 
 **Response** `202 Accepted`
 
 ```json
 {
-  "agentId": "...",
-  "runId": "...",
+  "agent": "default",
   "status": "finished",
   "durationMs": 12345,
+  "run": {
+    "agentId": "...",
+    "runId": "...",
+    "status": "finished",
+    "durationMs": 12345,
+    "model": "composer-2",
+    "result": "..."
+  },
   "result": "..."
 }
 ```
+
+For `plan+implementer`, the body also includes a `plan` phase object alongside `run`.
 
 ## Environment
 
@@ -141,15 +179,14 @@ This repo consumes [jpolvora/agentic-code-reviewers](https://github.com/jpolvora
 | Workflow | File | Role |
 |----------|------|------|
 | **Agentic Code Review** | [`.github/workflows/code-review.yml`](.github/workflows/code-review.yml) | On PR: review with **opencode** / `opencode-go/deepseek-v4-flash`; fail if open bot threads remain |
-
-**Auto-fix is disabled** (no `auto-fix.yml`).
+| **Agentic Auto Fix** | [`.github/workflows/auto-fix.yml`](.github/workflows/auto-fix.yml) | After review: fix open threads with **opencode** / `opencode-go/laguna-s-2.1`, commit + push (re-triggers review) |
 
 **GitHub Actions secrets** (repo Settings → Secrets):
 
 | Secret | Required for | Notes |
 |--------|--------------|-------|
-| `OPENCODE_API_KEY` | review | OpenCode Go; `run.sh` installs CLI + writes `auth.json` in CI |
-| `AGENTIC_CODE_REVIEWERS_GITHUB_TOKEN` | optional | PAT with `repo` / PR write; `github.token` alone often cannot resolve threads |
+| `OPENCODE_API_KEY` | review + auto-fix | OpenCode Go; `run.sh` installs CLI + writes `auth.json` in CI |
+| `AGENTIC_CODE_REVIEWERS_GITHUB_TOKEN` | auto-fix (recommended) | PAT with `repo` / PR write; needed so push re-triggers `pull_request` workflows and threads resolve |
 
 Thread helpers live under [`.agents/skills/solve-pr/`](.agents/skills/solve-pr/) (vendored from the reviewer repo). Upstream docs: [workflows.md](https://github.com/jpolvora/agentic-code-reviewers/blob/main/docs/workflows.md).
 

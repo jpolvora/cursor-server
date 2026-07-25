@@ -2,7 +2,7 @@
 # Docs: https://github.com/jpolvora/agentic-code-reviewers/blob/main/docs/workflows.md
 #
 # Engine: opencode · Model: opencode-go/deepseek-v4-flash
-# Auto-fix: disabled (no auto-fix.yml)
+# Auto-fix: enabled (see auto-fix.yml · opencode-go/laguna-s-2.1)
 #
 # Required secrets:
 #   OPENCODE_API_KEY — OpenCode Go (run.sh installs CLI + auth in CI)

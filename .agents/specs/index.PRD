@@ -5,8 +5,8 @@ Living index of vision, features, roadmap, backlog, and done work.
 
 | Field | Value |
 |-------|-------|
-| Updated | 2026-07-24 (Tailscale bind/client access docs landed) |
-| Priority order | Homelab-ready first (Compose → Tailscale/docs → auth → repo validation → API depth → harness) |
+| Updated | 2026-07-24 (task `agent` roles: default / planner / implementer / plan+implementer) |
+| Priority order | Homelab-ready first (Compose → Tailscale/docs → auth → repo validation → **workflow-skills spec-to-pr*** → API depth → harness) |
 | Spec folder | `.agents/specs/` |
 
 ---
@@ -70,15 +70,16 @@ Long-term flagship: a hosted, machine-actionable spec environment and pluggable 
 
 ```text
 src/
-  index.ts              # Hono entry, routes + scheduler
+  index.ts              # Hono entry, routes + scheduler; GET /agents
   config.ts             # Zod env
+  agents.ts             # Task agent allowlist + resolveAgent (fallback default)
   routes/health.ts      # GET /health
-  routes/tasks.ts       # POST /tasks (sync wait)
-  services/agent-runner.ts  # Agent.create + send + wait + dispose
+  routes/tasks.ts       # POST /tasks (sync wait; optional agent)
+  services/agent-runner.ts  # Agent.create + send + wait + dispose (role prompts)
   jobs/scheduler.ts     # node-cron hook (no default jobs)
 ```
 
-Repos resolve as `{REPOS_ROOT}/{repo}` (default `./repos`).
+Repos resolve as `{REPOS_ROOT}/{repo}` (default `./repos`). Task `agent` roles: `default` (generic), `planner`, `implementer`, `plan+implementer` — unknown/missing → `default`.
 
 ---
 
@@ -93,7 +94,9 @@ Status: **partial** (usable sync API; not production-hardened).
   - [x] Env validation via Zod (`CURSOR_API_KEY`, `PORT`, `HOST`, `REPOS_ROOT`, `CURSOR_MODEL`)
   - [x] `.env.example` / setup docs in README
 - [x] Sync task API
-  - [x] `POST /tasks` with `prompt`, `repo`, optional `model`
+  - [x] `POST /tasks` with `prompt`, `repo`, optional `model`, optional `agent`
+  - [x] Task agent roles: `default` | `planner` | `implementer` | `plan+implementer` (allowlist; unknown → `default` / generic)
+  - [x] `GET /agents` — list roles + default + aliases
   - [x] Resolve repo under `REPOS_ROOT`
   - [x] Local SDK `Agent.create` + `send` + `wait`
   - [x] Always dispose agent (`asyncDispose`)
@@ -129,14 +132,14 @@ Status: **partial** (Compose + Tailscale docs landed; auth, repo validation stil
   - [x] Client reachability notes (no public exposure assumed)
   - **spec:** `tailscale-homelab-docs.spec.md` (mirror) · canonical `.agents/plans/tailscale-homelab-docs/step-00-tailscale-homelab-docs.spec.md`
   - **docs:** README Network access · `docs/docker.md` Network/Tailscale · `.env.example` HOST comment · AGENTS Deployment
-- [ ] Client authentication
-  - [ ] API key (or equivalent) for callers
-  - [ ] Reject unauthenticated task (and mutating) routes
+- [x] Client authentication
+  - [x] API key (or equivalent) for callers
+  - [x] Reject unauthenticated task (and mutating) routes
   - **spec:** `client-auth.spec.md`
-- [ ] Repo registration and validation
-  - [ ] Ensure `{REPOS_ROOT}/{repo}` exists
-  - [ ] Ensure path is a git working tree (or documented allowlist)
-  - [ ] Clear 4xx errors for unknown / invalid repos
+- [x] Repo registration and validation
+  - [x] Ensure `{REPOS_ROOT}/{repo}` exists
+  - [x] Ensure path is a git working tree (or documented allowlist)
+  - [x] Clear 4xx errors for unknown / invalid repos
   - **spec:** `repo-validation.spec.md`
 
 ---
@@ -145,14 +148,21 @@ Status: **partial** (Compose + Tailscale docs landed; auth, repo validation stil
 
 Status: **todo**. Goal: production-shaped task lifecycle and observability without yet building the full spec harness.
 
-- [ ] Async job queue
-  - [ ] Fire-and-forget accept (true async `202` + id)
-  - [ ] Status polling endpoint
-  - [ ] Optional webhooks on completion
+- [ ] Workflow-skills runners (`spec-to-pr` / `spec-to-pr-lite`) — **soon**
+  - [ ] Run installed [workflow-skills](https://github.com/jpolvora/workflow-skills) orchestrators already present under `.agents/skills/` in the target repo
+  - [ ] Dedicated (exclusive) agent profile that knows how to invoke and drive `spec-to-pr` and `spec-to-pr-lite` flows end-to-end
+  - [ ] Caller can choose the agent (exclusive spec-to-pr* agent vs default / other agents) — builds on landed `POST /tasks` `agent` allowlist
+  - [ ] Surface which flow ran (`spec-to-pr` vs `spec-to-pr-lite`) and basic outcome metadata
+  - **spec:** `workflow-skills-spec-to-pr.spec.md`
+  - **note:** Roadmap only for now; write the `*.spec.md` when starting implementation. Does not replace Phase 3 flagship harness. Distinct from Phase 0 task roles (`planner` / `implementer` / etc.).
+- [x] Async job queue
+  - [x] Fire-and-forget accept (true async `202` + id)
+  - [x] Status polling endpoint
+  - [x] Optional webhooks on completion
   - **spec:** `async-task-queue.spec.md`
-- [ ] Run history and persistence
-  - [ ] Store agentId, runId, status, timestamps, result summary
-  - [ ] List / get by id
+- [x] Run history and persistence
+  - [x] Store agentId, runId, status, timestamps, result summary
+  - [x] List / get by id
   - **spec:** `run-history.spec.md`
 - [ ] Streaming task output to clients
   - [ ] SSE and/or WebSocket
@@ -200,23 +210,24 @@ Write / implement in this order unless a dependency forces a skip. Update status
 |---|--------|-----------|----------------|
 | 1 | `[x]` | `docker-compose.spec.md` | Compose stack, env, `repos/` volume, Umbrel-friendly notes — **packaging landed** |
 | 2 | `[x]` | `tailscale-homelab-docs.spec.md` | Tailnet bind/defaults and client access docs — **docs landed** |
-| 3 | `[ ]` | `client-auth.spec.md` | API key (or equivalent) gate for client calls |
-| 4 | `[ ]` | `repo-validation.spec.md` | Exist + git-repo checks; safe errors before agent start |
-| 5 | `[ ]` | `async-task-queue.spec.md` | Accept/poll/(webhook) async task lifecycle |
-| 6 | `[ ]` | `run-history.spec.md` | Persist and query past runs |
-| 7 | `[ ]` | `task-streaming.spec.md` | Stream agent output to clients |
-| 8 | `[ ]` | `scheduled-review-jobs.spec.md` | First real cron jobs using the scheduler hook |
-| 9 | `[ ]` | `mcp-config.spec.md` | MCP servers per task/repo |
-| 10 | `[ ]` | `spec-schema.spec.md` | Qualified spec format for the harness |
-| 11 | `[ ]` | `harness-runner-interface.spec.md` | Pluggable runner contract |
-| 12 | `[ ]` | `stage-orchestration.spec.md` | Stage pipeline + observability + resume |
-| 13 | `[ ]` | `runner-cursor-sdk.spec.md` | Cursor adapter behind the interface |
-| 14 | `[ ]` | `spec-editor.spec.md` | Hosted editor/environment |
-| 15 | `[ ]` | `hermes-integration.spec.md` | Hermes as orchestrator / delegate |
-| 16 | `[ ]` | `runner-opencode.spec.md` | OpenCode adapter |
-| 17 | `[ ]` | `multi-tenant-isolation.spec.md` | Isolation if shared host |
+| 3 | `[x]` | `client-auth.spec.md` | API key (or equivalent) gate for client calls |
+| 4 | `[x]` | `repo-validation.spec.md` | Exist + git-repo checks; safe errors before agent start |
+| 5 | `[ ]` | `workflow-skills-spec-to-pr.spec.md` | **Soon:** run installed `spec-to-pr` / `spec-to-pr-lite`; exclusive agent; caller chooses agent |
+| 6 | `[x]` | `async-task-queue.spec.md` | Accept/poll/(webhook) async task lifecycle |
+| 7 | `[x]` | `run-history.spec.md` | Persist and query past runs |
+| 8 | `[ ]` | `task-streaming.spec.md` | Stream agent output to clients |
+| 9 | `[ ]` | `scheduled-review-jobs.spec.md` | First real cron jobs using the scheduler hook |
+| 10 | `[ ]` | `mcp-config.spec.md` | MCP servers per task/repo |
+| 11 | `[ ]` | `spec-schema.spec.md` | Qualified spec format for the harness |
+| 12 | `[ ]` | `harness-runner-interface.spec.md` | Pluggable runner contract |
+| 13 | `[ ]` | `stage-orchestration.spec.md` | Stage pipeline + observability + resume |
+| 14 | `[ ]` | `runner-cursor-sdk.spec.md` | Cursor adapter behind the interface |
+| 15 | `[ ]` | `spec-editor.spec.md` | Hosted editor/environment |
+| 16 | `[ ]` | `hermes-integration.spec.md` | Hermes as orchestrator / delegate |
+| 17 | `[ ]` | `runner-opencode.spec.md` | OpenCode adapter |
+| 18 | `[ ]` | `multi-tenant-isolation.spec.md` | Isolation if shared host |
 
-**Suggested immediate next step:** `client-auth.spec.md` or `repo-validation.spec.md`.
+**Suggested immediate next step:** finish Phase 1 (`client-auth` / `repo-validation`), then **`workflow-skills-spec-to-pr.spec.md`** (soon).
 
 ---
 
@@ -239,6 +250,7 @@ Coarse record of what already counts as landed; detail stays in git history / ch
 | 2026-07 | workflow-skills full package + shared config | Harness docs, not product API |
 | 2026-07-24 | Docker Compose packaging | `Dockerfile`, `docker-compose.yml`, `docs/docker.md` — Phase 1 |
 | 2026-07-24 | Tailscale bind / client access docs | `.env.example`, README, `docs/docker.md`, AGENTS — Phase 1 |
+| 2026-07-24 | Task `agent` roles + `GET /agents` | `default` / `planner` / `implementer` / `plan+implementer`; unknown → `default` — Phase 0 |
 
 ---
 

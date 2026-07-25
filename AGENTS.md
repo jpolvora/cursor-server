@@ -30,16 +30,30 @@ When adding deployment artifacts, favor Compose over bespoke scripts; keep Umbre
 
 ```text
 src/
-  index.ts              # Hono app entry, wires routes + scheduler
+  index.ts              # Hono app entry, routes + scheduler; GET /agents
   config.ts             # Env validation (zod)
+  agents.ts             # Task agent allowlist + resolveAgent (fallback → default)
   routes/
     health.ts           # GET /health
-    tasks.ts            # POST /tasks
+    tasks.ts            # POST /tasks (optional agent)
   services/
-    agent-runner.ts     # @cursor/sdk local Agent.create + send + wait
+    agent-runner.ts     # @cursor/sdk local Agent.create + send + wait (role prompts)
   jobs/
     scheduler.ts        # node-cron registration (jobs added later)
 ```
+
+### Task agent roles
+
+`POST /tasks` accepts optional `agent`. Allowlist in `src/agents.ts`; unknown / missing → `default` (alias `generic`).
+
+| Role | Behavior |
+|------|----------|
+| `default` | Single run; prompt as-is |
+| `planner` | Plan-only prompt (no implement) |
+| `implementer` | Implement-focused single run |
+| `plan+implementer` | Plan phase, then implement with that plan |
+
+List via `GET /agents`. Future workflow-skills exclusive agents (`spec-to-pr*`) are a separate Phase 2 roadmap item — do not conflate with these roles.
 
 ### Runtime choice
 

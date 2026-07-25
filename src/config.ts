@@ -6,6 +6,7 @@ const envSchema = z.object({
   HOST: z.string().default("0.0.0.0"),
   REPOS_ROOT: z.string().default("./repos"),
   CURSOR_MODEL: z.string().default("composer-2"),
+  SERVER_API_KEY: z.string().optional(),
 });
 
 export type Config = z.infer<typeof envSchema>;
