@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { Config } from "../config.js";
 import { runnerRegistry } from "../services/harness-runner.js";
+import "../services/hermes-runner.js";
 import { validateRepoPath } from "../services/repo-validator.js";
 import { validateSpecPayload } from "../services/spec-schema.js";
 import { stageOrchestrator } from "../services/stage-orchestrator.js";
