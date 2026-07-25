@@ -1,4 +1,5 @@
 import { runnerRegistry, type HarnessStage } from "./harness-runner.js";
+import "./opencode-runner.js";
 import "./hermes-runner.js";
 import { stageStore, type PipelineRunRecord } from "./stage-store.js";
 import type { QualifiedSpec } from "./spec-schema.js";
