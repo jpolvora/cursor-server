@@ -178,12 +178,14 @@ function execHermesCli(request: HermesExecRequest): Promise<HermesExecResult> {
   args.push(request.prompt);
 
   return new Promise((resolve, reject) => {
+    const env: NodeJS.ProcessEnv = { ...process.env };
+    if (request.skills.length) {
+      env.HERMES_SKILLS = request.skills.join(",");
+    }
+
     const child = spawn(bin, args, {
       cwd: request.repoPath,
-      env: {
-        ...process.env,
-        HERMES_SKILLS: request.skills.join(","),
-      },
+      env,
       stdio: ["ignore", "pipe", "pipe"],
     });
 
