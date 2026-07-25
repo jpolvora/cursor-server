@@ -105,49 +105,49 @@ flowchart TD
 ## 4. FSM Steps 0–9 Breakdown
 
 ### Step 0: Spec Creation
-*   **Executor**: Orchestrator (dispatches provider skill or `00-write-spec`).
+*   **Executor**: Orchestrator (dispatches provider skill or `ws-write-spec`).
 *   **Role**: Resolves the input description or ticket ID into a canonical spec:
     *   **GitHub ID**: Dispatches [`github-provider`](../../github-provider/SKILL.md) to fetch issue and write `step-00-{slug}.spec.md`.
     *   **Azure DevOps ID**: Dispatches [`azure-devops-provider`](../../azure-devops-provider/SKILL.md) to fetch work item and write `step-00-{slug}.spec.md`.
     *   **Local Spec**: Normalizes spec format using [`local-spec-provider`](../../local-spec-provider/SKILL.md).
-    *   **Free-text**: Invokes `00-write-spec` to brainstorm and draft the spec.
+    *   **Free-text**: Invokes `ws-write-spec` to brainstorm and draft the spec.
 
 ### Step 1: Planning and Brainstorm
-*   **Executor**: Planner subagent (`ws-write-plan` / `01-write-plan`).
+*   **Executor**: Planner subagent (`ws-write-plan` / `ws-write-plan`).
 *   **Role**: Analyzes the spec and codebase to write a plan file: `step-01-{slug}.plan.md`. This plan covers design, files to modify/create, and acceptance criteria checks.
 
 ### Step 2: Plan Refinement (Interview)
-*   **Executor**: Planner subagent (`ws-interview` / `02-interview`).
+*   **Executor**: Planner subagent (`ws-interview` / `ws-interview`).
 *   **Role**: Audits the plan against the spec and codebase. If there are ambiguities, escalates to the user for confirmation (max 3 rounds) and outputs `step-02-{slug}.plan.refined.md`.
 *   **Conditional Skip**: Skipped automatically if complexity is simple, no open questions exist in the plan, and no blocking gaps are detected.
 
 ### Step 3: Execution Plan and DAG
-*   **Executor**: Planner subagent (`ws-plan-to-tasks` / `03-plan-to-tasks`).
+*   **Executor**: Planner subagent (`ws-plan-to-tasks` / `ws-plan-to-tasks`).
 *   **Role**: Parses the plan and splits it into atomic implementation tasks:
     *   **Small plan**: flat list of sequential tasks (`execMode: sequential`).
     *   **Large plan**: directed acyclic graph (`execMode: parallel`), outputting `step-03-{slug}.exec.dag.json`.
 
 ### Step 4: Implementation
-*   **Executor**: Coder subagent (`ws-implement-tasks` / `04-implement-tasks`).
+*   **Executor**: Coder subagent (`ws-implement-tasks` / `ws-implement-tasks`).
 *   **Role**: Writes code to target paths inside a git worktree (if enabled) or directly on the branch. If parallel, spins up up to 3 parallel subagents per DAG level. No commits are made yet.
 
 ### Step 5: Check-implementation
-*   **Executor**: Verifier subagent (read-only) (`ws-verify-plan` / `05-verify-plan`).
+*   **Executor**: Verifier subagent (read-only) (`ws-verify-plan` / `ws-verify-plan`).
 *   **Role**: Evaluates the written code against the spec/plan and publishes an integer score (0–10).
     *   **Score ≥ 7**: Passes gate.
     *   **Score < 7**: Halts. Requires manual repair, replanning, or explicit override.
 
 ### Step 6: Code Review
-*   **Executor**: Reviewer subagent (`ws-code-review` / `06-code-review`).
+*   **Executor**: Reviewer subagent (`ws-code-review` / `ws-code-review`).
 *   **Role**: Runs local static analysis on changed code compared to the base branch.
     *   **Fix Substep**: If Critical or Warning findings are present, runs a coder subagent in `mode: fix` to address the findings before moving forward.
 
 ### Step 7: Testing
-*   **Executor**: Verifier subagent (`ws-testing` / `07-testing`).
+*   **Executor**: Verifier subagent (`ws-testing` / `ws-testing`).
 *   **Role**: Writes a test plan and executes unit, integration, and optionally browser verification.
 
 ### Step 8: Ship
-*   **Executor**: Orchestrator + ship subagent (`ws-ship-pr` / `08-ship-pr`).
+*   **Executor**: Orchestrator + ship subagent (`ws-ship-pr` / `ws-ship-pr`).
 *   **Role**: Compiles the delivery summary in `step-08-{slug}.result.md` (including benchmark telemetry) and presents the **Combined Ship Gate**:
     1.  Commit plan + result, then create PR
     2.  Commit plan + result, push only

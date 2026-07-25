@@ -4,8 +4,7 @@ description: >
   Adversarial verification of finished work. Diff Ground Truth against claims, re-run verifications,
   and detect the 4 classic frauds (weakened checks, false completion claims, scope creep, unauthorized action).
   Delivers an evidence-based verdict (VERIFIED, VERIFIED WITH CAVEATS, REFUTED).
-upstream: jpolvora/workflow-skills — improvements must be submitted upstream to https://github.com/jpolvora/workflow-skills
-version: 1.0
+version: 0.0.82
 invocation_names:
   - fable-judge
   - /fable-judge

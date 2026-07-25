@@ -1,6 +1,6 @@
 # Spec-to-PR — Diagrams (FSM 0–9)
 
-> **Architecture:** Steps 0–9. Pipeline skills live under `.agents/skills/00`–`09` (+ unprefixed `goal-fix-pr`, `update-plan-implementation`). Dual-mode with [`spec-to-pr-lite`](../spec-to-pr-lite/SKILL.md) (lite steps 0–5). Canonical artifacts: [`ARTIFACTS.md`](ARTIFACTS.md). Gates/config: [`gates.md`](../shared/gates.md), [`config-resolution.md`](../shared/config-resolution.md). Agent contract: [`SKILL.md`](SKILL.md).
+> **Architecture:** Steps 0–9. Pipeline skills live under `.agents/skills/ws-*` (`ws-write-spec`…`ws-fix-pr`, `ws-goal-fix-pr`, `ws-update-plan-implementation`; folder == `name:`). Dual-mode with [`spec-to-pr-lite`](../spec-to-pr-lite/SKILL.md) (lite steps 0–5). Canonical artifacts: [`ARTIFACTS.md`](ARTIFACTS.md). Gates/config: [`gates.md`](../shared/gates.md), [`config-resolution.md`](../shared/config-resolution.md). Agent contract: [`SKILL.md`](SKILL.md).
 
 ---
 
@@ -59,17 +59,17 @@ flowchart TD
 
 | Step (standard) | Skill `name:` | Folder |
 |-----------------|---------------|--------|
-| 0 | `ws-write-spec` | `00-write-spec` |
-| 1 | `ws-write-plan` | `01-write-plan` |
-| 2 | `ws-interview` | `02-interview` |
-| 3 | `ws-plan-to-tasks` | `03-plan-to-tasks` |
-| 4 / 6-fix | `ws-implement-tasks` | `04-implement-tasks` |
-| 5 | `ws-verify-plan` | `05-verify-plan` |
-| 6 | `ws-code-review` | `06-code-review` |
-| 7 | `ws-testing` | `07-testing` |
-| 8 | `ws-ship-pr` | `08-ship-pr` |
-| 9 | `ws-fix-pr` / `ws-goal-fix-pr` | `09-fix-pr` / `goal-fix-pr` |
-| Post | `ws-update-plan-implementation` | `update-plan-implementation` |
+| 0 | `ws-write-spec` | `ws-write-spec` |
+| 1 | `ws-write-plan` | `ws-write-plan` |
+| 2 | `ws-interview` | `ws-interview` |
+| 3 | `ws-plan-to-tasks` | `ws-plan-to-tasks` |
+| 4 / 6-fix | `ws-implement-tasks` | `ws-implement-tasks` |
+| 5 | `ws-verify-plan` | `ws-verify-plan` |
+| 6 | `ws-code-review` | `ws-code-review` |
+| 7 | `ws-testing` | `ws-testing` |
+| 8 | `ws-ship-pr` | `ws-ship-pr` |
+| 9 | `ws-fix-pr` / `ws-goal-fix-pr` | `ws-fix-pr` / `ws-goal-fix-pr` |
+| Post | `ws-update-plan-implementation` | `ws-update-plan-implementation` |
 
 ---
 

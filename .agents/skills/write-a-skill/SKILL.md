@@ -4,8 +4,7 @@ description: >
   Creates, edits, or audits agent skills for predictability — structure, progressive disclosure,
   descriptions, and pruning. Use when the user wants to create, write, build, rewrite, or optimize
   a skill, or mentions skill authoring.
-upstream: jpolvora/workflow-skills
-version: 2.0
+version: 0.0.82
 invocation_names:
   - write-a-skill
 ---
@@ -25,8 +24,8 @@ Root virtue: **predictability** (same process every run, not the same tokens). B
 3. **Decide invocation** — Model-invoked (keep `description`, pay **context load**) only if the agent or another skill must reach it. Otherwise user-invoked (`disable-model-invocation: true`, human-facing one-line description).
    - Done when: invocation mode is set and justified.
 
-4. **Draft** — Create `skill-name/SKILL.md` (plus scripts/reference files only when earned). Prefer **steps** with checkable **Done when** criteria; push rare detail behind a **context pointer**. Recipes must use explicit `python` / `node` / `bash` launchers ([`tools.md`](../shared/tools.md) § Script launchers). `.sh` files: LF only.
-   - Done when: frontmatter + body exist; every step has a Done when; description matches mode (triggers if model-invoked).
+4. **Draft** — Create `skill-name/SKILL.md` (plus scripts/reference files only when earned). Prefer **steps** with checkable **Done when** criteria; push rare detail behind a **context pointer**. Recipes must use explicit `python` / `node` / `bash` launchers ([`tools.md`](../shared/tools.md) § Script launchers). `.sh` files: LF only. Frontmatter `version:` must match package `package.json` / `{sharedDir}/skill-dependencies.json` → `packageVersion`. Do **not** put per-skill `upstream:` — ownership lives once in `skill-dependencies.json` → `upstream`.
+   - Done when: frontmatter + body exist; every step has a Done when; description matches mode (triggers if model-invoked); version matches package.
 
 5. **Prune** — Single source of truth; cut **no-ops**, **duplication**, **sediment**; hunt **leading words**; collapse synonym **branches** in the description.
    - Done when: checklist below passes.
@@ -39,9 +38,11 @@ Root virtue: **predictability** (same process every run, not the same tokens). B
 ```
 skill-name/
 ├── SKILL.md        # required (prefer ≤100 lines)
+├── evals/
+│   └── evals.json  # recommended — 2–3 prompts + assertions per agentskills.io
 ├── GLOSSARY.md     # or REFERENCE.md — disclosed reference
 ├── EXAMPLES.md     # optional
-└── scripts/        # deterministic helpers only
+└── scripts/        # deterministic helpers only (when earned)
 ```
 
 ## Description (model-invoked)

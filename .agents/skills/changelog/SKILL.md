@@ -1,5 +1,6 @@
 ---
 name: changelog
+version: 0.0.82
 description: >
   Write a summarized historical record of the task into the configured changelog file
   (default `.agents/skills/shared/CHANGELOG.md`). Use at the very end of every implementation task.

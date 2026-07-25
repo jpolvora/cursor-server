@@ -76,15 +76,15 @@ Verify the spec-to-pr FSM executes without error in simulated mode, covering pha
 | Step | Label | Expected action |
 |------|-------|-----------------|
 | **0** | Spec Creation | Skipped — spec file provided directly |
-| **1** | Planning | Complexity gate; if simple → stub plan + jump to 4; else `01-write-plan` |
-| **2** | Plan Refinement | Conditional skip or `02-interview` (End refinement auto-confirms 2e) |
-| **3** | Execution Plan & DAG | `03-plan-to-tasks` — sequential may skip empty DAG artifacts |
-| **4** | Implementation | `04-implement-tasks` mode build |
-| **5** | Check-implementation | `05-verify-plan` quick-score; auto pauses if score &lt; 7 |
-| **6** | Code Review (+ fix) | `06-code-review`; fix substep only if Critical/Warning |
-| **7** | Testing | May auto-skip (`skipTesting` / no surface); else `07-testing` without browser |
-| **8** | Ship | Delivery result + combined gate → simulate plan+result commit + PR (`08-ship-pr`) |
-| **9** | Fix-PR | `goal-fix-pr` / `09-fix-pr` when PR created (`full`) |
+| **1** | Planning | Complexity gate; if simple → stub plan + jump to 4; else `ws-write-plan` |
+| **2** | Plan Refinement | Conditional skip or `ws-interview` (End refinement auto-confirms 2e) |
+| **3** | Execution Plan & DAG | `ws-plan-to-tasks` — sequential may skip empty DAG artifacts |
+| **4** | Implementation | `ws-implement-tasks` mode build |
+| **5** | Check-implementation | `ws-verify-plan` quick-score; auto pauses if score &lt; 7 |
+| **6** | Code Review (+ fix) | `ws-code-review`; fix substep only if Critical/Warning |
+| **7** | Testing | May auto-skip (`skipTesting` / no surface); else `ws-testing` without browser |
+| **8** | Ship | Delivery result + combined gate → simulate plan+result commit + PR (`ws-ship-pr`) |
+| **9** | Fix-PR | `ws-goal-fix-pr` / `ws-fix-pr` when PR created (`full`) |
 
 ## Verification Points
 

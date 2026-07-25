@@ -125,7 +125,7 @@
         "dir": {
           "type": "string",
           "default": ".agents/codereviews",
-          "description": "Root for local PR review round reports (fix-pr / goal-fix-pr)"
+          "description": "Root for local PR review round reports (fix-pr / ws-goal-fix-pr)"
         }
       }
     },

@@ -2,11 +2,11 @@
 
 **Sole source of truth** for **`spec-to-pr` (standard)** step 0–9 dispatch actions, post-mutating merge notes, and Step 8/9 gate protocols. Load from `SKILL.md` only when advancing or dispatching a step. FSM, invariants, and gates overview stay in `SKILL.md`.
 
-**Dual-mode (mandatory):** This file is **not** the lite step index. [`spec-to-pr-lite`](../spec-to-pr-lite/SKILL.md) keeps its own Steps 0–5 table. Shared gate/ship UX and artifact names stay in [`gates.md`](../shared/gates.md) / [`config-resolution.md`](../shared/config-resolution.md). Pipeline skills `00`–`09` (+ unprefixed `goal-fix-pr`, `update-plan-implementation`) stay orch-agnostic: never assume full vs lite step numbers; orch passes `workflowType`, paths, and flags.
+**Dual-mode (mandatory):** This file is **not** the lite step index. [`spec-to-pr-lite`](../spec-to-pr-lite/SKILL.md) keeps its own Steps 0–5 table. Shared gate/ship UX and artifact names stay in [`gates.md`](../shared/gates.md) / [`config-resolution.md`](../shared/config-resolution.md). Pipeline `ws-*` folders (folder == frontmatter `name:`; FSM steps stay 0–9 / Post) stay orch-agnostic: never assume full vs lite step numbers; orch passes `workflowType`, paths, and flags.
 
 ## Step instructions
 
-> **Consistency:** the Skill map in `SKILL.md` (`05-verify-plan` → Step 5, etc.) is authoritative. Keep this table aligned — never dispatch retired ids (`05-verify-sync-plan-us`, `implement-plan`, `plan-us`, …).
+> **Consistency:** the Skill map in `SKILL.md` (`ws-verify-plan` → Step 5, etc.) is authoritative. Keep this table aligned — never dispatch retired ids (`05-verify-sync-plan-us`, `implement-plan`, `plan-us`, …).
 
 | Step | Action | Artifact |
 |------|--------|----------|

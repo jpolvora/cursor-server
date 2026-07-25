@@ -12,7 +12,7 @@ Config preference:
   2. Legacy `.agents/skills/azure-devops/azure-devops.config.json` (+ optional `.secret`)
 
 Usage:
-  python .agents/skills/azure-devops-provider/scripts/fix_pr_azure_context.py collect --pr-id 592 --output .agents/skills/09-fix-pr/runs/pr-592/context.json
+  python .agents/skills/azure-devops-provider/scripts/fix_pr_azure_context.py collect --pr-id 592 --output .agents/skills/ws-fix-pr/runs/pr-592/context.json
   python .agents/skills/azure-devops-provider/scripts/fix_pr_azure_context.py resolve-thread --pr-id 592 --thread-id 4001 --model composer-2.5 --comment "Justification..."
   python .agents/skills/azure-devops-provider/scripts/fix_pr_azure_context.py resolve-thread --dry-run --pr-id 592 --thread-id 4001 --model composer-2.5 --comment "Justification..."
 """

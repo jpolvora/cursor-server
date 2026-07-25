@@ -134,7 +134,7 @@
   },
 
   "reviews": {
-    "_comment": "Optional local review artifact root (fix-pr / goal-fix-pr round reports).",
+    "_comment": "Optional local review artifact root (fix-pr / ws-goal-fix-pr round reports).",
     "dir": ".agents/codereviews"
   },
 

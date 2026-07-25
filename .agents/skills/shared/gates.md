@@ -12,9 +12,9 @@ Config: [`.agents/skills/shared/config.json`](config.json) only — see [`config
 
 | Rule | Detail |
 |------|--------|
-| **Shared skills are workflow-agnostic** | Skills `00`–`09` (+ unprefixed `goal-fix-pr`, `update-plan-implementation`), providers, `goal-loop` never assume full vs lite step numbers. Orch passes mode, paths, and flags. |
+| **Shared skills are workflow-agnostic** | Pipeline `ws-*` skills (`ws-write-spec`…`ws-fix-pr`, `ws-goal-fix-pr`, `ws-update-plan-implementation`), providers, `goal-loop` never assume full vs lite step numbers. Orch passes mode, paths, and flags. |
 | **`workflowType`** | `standard` (full) or `lite`. Resume filters by type — never cross-resume. |
-| **One combined delivery + ship ask** | Orchestrator presents the combined gate once at standard Step 8 / lite Step 4. [`08-ship-pr`](../08-ship-pr/SKILL.md) in workflow mode **executes** the chosen option — does **not** re-ask at user-gate. Standalone `/ship-pr` may ask. |
+| **One combined delivery + ship ask** | Orchestrator presents the combined gate once at standard Step 8 / lite Step 4. [`ws-ship-pr`](../ws-ship-pr/SKILL.md) in workflow mode **executes** the chosen option — does **not** re-ask at user-gate. Standalone `/ship-pr` may ask. |
 | **Fix-PR is separate** | Standard Step 9 / lite Step 5 — **not** inside ship. `ws-ship-pr` receives `stopBeforeFixPr: true`. |
 | **Artifact names** | Delivery result is `step-08-{slug}.result.md` for **both** workflows. Plan is `step-01-{slug}.plan.md`. |
 | **Step ranges** | Standard: Steps 0–9. Lite: Steps 0–5. |
@@ -110,7 +110,7 @@ Skip Step 2 (mark skipped, log) when **all** hold:
 - Plan Open Questions section empty or all marked resolved
 - No `blocking` gaps from a 30s orch skim / prior step-output
 
-Otherwise run `02-interview`. Choosing **End refinement and advance** at 2c **auto-sets** `shared_understanding: confirmed` (skip separate 2e). Only show 2e when 2c was not used to exit.
+Otherwise run `ws-interview`. Choosing **End refinement and advance** at 2c **auto-sets** `shared_understanding: confirmed` (skip separate 2e). Only show 2e when 2c was not used to exit.
 
 ---
 
@@ -143,7 +143,7 @@ G2-delivery stages `step-02-{slug}.plan.refined.md` if present, else `step-01-{s
 
 MEMORY.md / self-learning sweep runs automatically after a successful delivery commit (no separate §Doc gate).
 
-Pass the selected ship intent into `08-ship-pr` as `shipAction: create-pr|push-only|skip` with `workflowMode: true`, `stopBeforeFixPr: true`.
+Pass the selected ship intent into `ws-ship-pr` as `shipAction: create-pr|push-only|skip` with `workflowMode: true`, `stopBeforeFixPr: true`.
 
 ---
 

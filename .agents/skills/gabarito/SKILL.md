@@ -1,5 +1,6 @@
 ---
 name: gabarito
+version: 0.0.82
 description: >
   Gabarito — operational response guidelines (accountability, anti-sycophancy,
   systematization, clarification, effort scaffolding, self-eval, step-back, chain-of-verification,

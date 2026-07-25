@@ -1,5 +1,11 @@
 {
   "version": 1,
+  "packageVersion": "0.0.82",
+  "upstream": {
+    "repo": "jpolvora/workflow-skills",
+    "url": "https://github.com/jpolvora/workflow-skills",
+    "note": "Managed skills ship from this upstream. Lasting improvements must be submitted as PRs there; consumer copies are overwritten on update."
+  },
   "hub": {
     "dir": "shared",
     "ensureWhen": [
@@ -19,18 +25,18 @@
       "skills": [
         "spec-to-pr",
         "spec-to-pr-lite",
-        "00-write-spec",
-        "01-write-plan",
-        "02-interview",
-        "03-plan-to-tasks",
-        "04-implement-tasks",
-        "05-verify-plan",
-        "06-code-review",
-        "07-testing",
-        "08-ship-pr",
-        "09-fix-pr",
-        "goal-fix-pr",
-        "update-plan-implementation",
+        "ws-write-spec",
+        "ws-write-plan",
+        "ws-interview",
+        "ws-plan-to-tasks",
+        "ws-implement-tasks",
+        "ws-verify-plan",
+        "ws-code-review",
+        "ws-testing",
+        "ws-ship-pr",
+        "ws-fix-pr",
+        "ws-goal-fix-pr",
+        "ws-update-plan-implementation",
         "github-provider",
         "azure-devops-provider",
         "local-spec-provider",
@@ -44,7 +50,10 @@
         "self-learning",
         "changelog",
         "secrets-leak-review",
-        "configure-project"
+        "configure-project",
+        "fable-method",
+        "fable-judge",
+        "fable-domain"
       ],
       "ensureHub": true,
       "shortcut": "w",
@@ -62,18 +71,18 @@
   },
   "dependencies": {
     "spec-to-pr": [
-      "00-write-spec",
-      "01-write-plan",
-      "02-interview",
-      "03-plan-to-tasks",
-      "04-implement-tasks",
-      "05-verify-plan",
-      "06-code-review",
-      "07-testing",
-      "08-ship-pr",
-      "09-fix-pr",
-      "goal-fix-pr",
-      "update-plan-implementation",
+      "ws-write-spec",
+      "ws-write-plan",
+      "ws-interview",
+      "ws-plan-to-tasks",
+      "ws-implement-tasks",
+      "ws-verify-plan",
+      "ws-code-review",
+      "ws-testing",
+      "ws-ship-pr",
+      "ws-fix-pr",
+      "ws-goal-fix-pr",
+      "ws-update-plan-implementation",
       "github-provider",
       "azure-devops-provider",
       "local-spec-provider",
@@ -89,13 +98,13 @@
       "configure-project"
     ],
     "spec-to-pr-lite": [
-      "00-write-spec",
-      "01-write-plan",
-      "04-implement-tasks",
-      "06-code-review",
-      "08-ship-pr",
-      "09-fix-pr",
-      "goal-fix-pr",
+      "ws-write-spec",
+      "ws-write-plan",
+      "ws-implement-tasks",
+      "ws-code-review",
+      "ws-ship-pr",
+      "ws-fix-pr",
+      "ws-goal-fix-pr",
       "github-provider",
       "azure-devops-provider",
       "local-spec-provider",
@@ -107,7 +116,7 @@
       "changelog",
       "configure-project"
     ],
-    "00-write-spec": [
+    "ws-write-spec": [
       "spec-format"
     ],
     "github-provider": [
@@ -119,18 +128,39 @@
     "local-spec-provider": [
       "spec-format"
     ],
-    "goal-fix-pr": [
-      "09-fix-pr",
+    "ws-goal-fix-pr": [
+      "ws-fix-pr",
       "goal-loop"
     ],
-    "08-ship-pr": [
-      "secrets-leak-review"
+    "ws-write-plan": [
+      "fable-domain"
     ],
-    "06-code-review": [
+    "ws-verify-plan": [
+      "fable-judge"
+    ],
+    "ws-ship-pr": [
+      "secrets-leak-review",
+      "fable-judge"
+    ],
+    "ws-code-review": [
       "karpathy-guidelines",
       "caveman",
       "gabarito",
+      "self-learning",
+      "fable-judge"
+    ],
+    "fable-method": [
+      "fable-judge",
+      "fable-domain",
+      "caveman",
+      "gabarito",
+      "karpathy-guidelines",
       "self-learning"
+    ],
+    "fable-judge": [
+      "caveman",
+      "gabarito",
+      "karpathy-guidelines"
     ]
   },
   "autoloadOnly": [],

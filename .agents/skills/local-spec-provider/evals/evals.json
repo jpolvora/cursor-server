@@ -1,0 +1,25 @@
+{
+  "skill_name": "local-spec-provider",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Register specs/features/oauth.spec.md into the workflow artifact tree.",
+      "expected_output": "register_local_spec.py mirrors to step-00-{slug}.spec.md under {plansDir}.",
+      "assertions": [
+        "Agent loads local-spec-provider",
+        "Uses detect_specs_dir.py or register_local_spec.py with python",
+        "Respects plans.specsDir from config"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "where should specs live in this repo?",
+      "expected_output": "detect_specs_dir guidance; prefers existing repo-root specs/ when present.",
+      "assertions": [
+        "Does not invent hardcoded specs path",
+        "References config.json plans.specsDir",
+        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+      ]
+    }
+  ]
+}
