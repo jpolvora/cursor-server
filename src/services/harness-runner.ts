@@ -1,3 +1,4 @@
+import { resolveAgent } from "../agents.js";
 import { loadConfig, type Config } from "../config.js";
 import { runTask } from "./agent-runner.js";
 
@@ -43,8 +44,10 @@ export class LocalCursorRunner implements HarnessRunner {
       }
 
       // Delegate implementation/spec/review execution to runTask when available
-      const agentRole = (input.options?.agent as any) || 'default';
-      const config: Config = (input.options?.config as Config) || loadConfig();
+      const agentRole = resolveAgent(input.options?.agent);
+      const config: Config = input.options?.config && typeof input.options.config === "object"
+        ? Object.assign({}, loadConfig(), input.options.config)
+        : loadConfig();
 
       const result = await runTask(config, {
         prompt: input.prompt,

@@ -66,28 +66,29 @@ export function createPrDiffReviewJob(config: Config): ScheduledJob {
         return;
       }
 
-      const repoPath = path.join(config.REPOS_ROOT, repos[0]);
-      try {
-        const reviewResult = await runScheduledReview(config, {
-          prompt: "Perform a PR diff review and branch synchronization check on the current working tree. Report any uncommitted changes, merge conflicts, or code issues.",
-          repoPath,
-        });
+      for (const repo of repos) {
+        const repoPath = path.join(config.REPOS_ROOT, repo);
+        try {
+          const reviewResult = await runScheduledReview(config, {
+            prompt: "Perform a PR diff review and branch synchronization check on the current working tree. Report any uncommitted changes, merge conflicts, or code issues.",
+            repoPath,
+          });
 
-        recordJobExecution({
-          jobName: "pr-diff-review",
-          status: reviewResult.status === "error" ? "error" : "success",
-          details: `Completed review for ${repos[0]}: ${reviewResult.result?.slice(0, 100) ?? reviewResult.status}`,
-          durationMs: Date.now() - started,
-        });
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        recordJobExecution({
-          jobName: "pr-diff-review",
-          status: "error",
-          details: msg,
-          durationMs: Date.now() - started,
-        });
-        throw err;
+          recordJobExecution({
+            jobName: "pr-diff-review",
+            status: reviewResult.status === "error" ? "error" : "success",
+            details: `Completed review for ${repo}: ${reviewResult.result?.slice(0, 100) ?? reviewResult.status}`,
+            durationMs: Date.now() - started,
+          });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          recordJobExecution({
+            jobName: "pr-diff-review",
+            status: "error",
+            details: `Failed review for ${repo}: ${msg}`,
+            durationMs: Date.now() - started,
+          });
+        }
       }
     },
   };
@@ -112,8 +113,8 @@ export function createRepoHygieneJob(config: Config): ScheduledJob {
 
       recordJobExecution({
         jobName: "repo-hygiene-check",
-        status: "success",
-        details: `Scanned REPOS_ROOT successfully.`,
+        status: "skipped",
+        details: "Placeholder: hygiene scanning not yet implemented.",
         durationMs: Date.now() - started,
       });
     },

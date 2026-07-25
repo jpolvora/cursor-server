@@ -9,7 +9,7 @@ import { processTaskInBackground } from "../services/task-worker.js";
 const createEventSchema = z.object({
   event: z.string().min(1),
   source: z.enum(["hermes", "umbrel", "ide", "api"]).default("api"),
-  prompt: z.string().min(1),
+  prompt: z.string().min(1).max(100_000),
   repo: z.string().min(1),
   model: z.string().optional(),
   agent: z.unknown().optional(),

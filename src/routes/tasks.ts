@@ -9,7 +9,7 @@ import { taskStore } from "../services/task-store.js";
 import { processTaskInBackground } from "../services/task-worker.js";
 
 const createTaskSchema = z.object({
-  prompt: z.string().min(1),
+  prompt: z.string().min(1).max(100_000),
   repo: z.string().min(1),
   model: z.string().optional(),
   /** Agent role; unknown values fall back to `default` (generic). */
