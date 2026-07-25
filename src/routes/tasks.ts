@@ -54,24 +54,32 @@ export function createTaskRoutes(config: Config) {
 
       const onStatus = async (data: { id: string; status: string; record: any }) => {
         if (data.id === id) {
-          await stream.writeSSE({
-            event: "status",
-            data: JSON.stringify({ id: data.id, status: data.status, result: data.record.result, error: data.record.error }),
-          });
-          if (data.status === "completed" || data.status === "failed" || data.status === "cancelled") {
-            await stream.writeSSE({ event: "done", data: JSON.stringify({ id: data.id, status: data.status }) });
+          try {
+            await stream.writeSSE({
+              event: "status",
+              data: JSON.stringify({ id: data.id, status: data.status, result: data.record.result, error: data.record.error }),
+            });
+            if (data.status === "completed" || data.status === "failed" || data.status === "cancelled") {
+              await stream.writeSSE({ event: "done", data: JSON.stringify({ id: data.id, status: data.status }) });
+              cleanup();
+              stream.close();
+            }
+          } catch {
             cleanup();
-            stream.close();
           }
         }
       };
 
       const onOutput = async (data: { id: string; chunk: string }) => {
         if (data.id === id) {
-          await stream.writeSSE({
-            event: "output",
-            data: JSON.stringify({ id: data.id, chunk: data.chunk }),
-          });
+          try {
+            await stream.writeSSE({
+              event: "output",
+              data: JSON.stringify({ id: data.id, chunk: data.chunk }),
+            });
+          } catch {
+            cleanup();
+          }
         }
       };
 
@@ -147,6 +155,7 @@ export function createTaskRoutes(config: Config) {
         status: "running",
         startedAt: new Date().toISOString(),
       });
+      taskStore.emitOutput(task.id, `[${new Date().toISOString()}] Sync task started: role=${task.agent}, model=${task.model}\n`);
 
       try {
         const result = await runTask(config, {
@@ -163,6 +172,7 @@ export function createTaskRoutes(config: Config) {
           durationMs: endTime - startTime,
           result,
         });
+        taskStore.emitOutput(task.id, `[${new Date().toISOString()}] Sync task completed in ${endTime - startTime}ms\n`);
 
         return c.json(updated ?? result, 200);
       } catch (err) {
@@ -174,6 +184,7 @@ export function createTaskRoutes(config: Config) {
           durationMs: endTime - startTime,
           error: errorMessage,
         });
+        taskStore.emitOutput(task.id, `[${new Date().toISOString()}] Sync task failed: ${errorMessage}\n`);
         return c.json({ error: errorMessage }, 500);
       }
     }

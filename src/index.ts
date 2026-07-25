@@ -7,6 +7,7 @@ import { healthRoutes } from "./routes/health.js";
 import { createTaskRoutes } from "./routes/tasks.js";
 import { createEventRoutes } from "./routes/events.js";
 import { createJobsRoutes } from "./routes/jobs.js";
+import { createSpecRoutes, createRepoSpecRoutes } from "./routes/specs.js";
 import { authMiddleware } from "./middleware/auth.js";
 import { taskStore } from "./services/task-store.js";
 
@@ -41,6 +42,14 @@ app.route("/events", createEventRoutes(config));
 app.use("/jobs", authMiddleware(config));
 app.use("/jobs/*", authMiddleware(config));
 app.route("/jobs", createJobsRoutes(config));
+
+app.use("/specs", authMiddleware(config));
+app.use("/specs/*", authMiddleware(config));
+app.route("/specs", createSpecRoutes(config));
+
+app.use("/repos", authMiddleware(config));
+app.use("/repos/*", authMiddleware(config));
+app.route("/repos", createRepoSpecRoutes(config));
 
 startScheduler(config);
 

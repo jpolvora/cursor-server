@@ -21,8 +21,17 @@ export function validateRepoPath(reposRoot: string, repoName: string): RepoValid
     };
   }
 
-  // Check directory existence
-  if (!fs.existsSync(targetPath) || !fs.statSync(targetPath).isDirectory()) {
+  // Check directory existence and type
+  try {
+    const stat = fs.statSync(targetPath);
+    if (!stat.isDirectory()) {
+      return {
+        valid: false,
+        error: `Repository '${repoName}' is not a directory`,
+        status: 404,
+      };
+    }
+  } catch {
     return {
       valid: false,
       error: `Repository '${repoName}' not found`,

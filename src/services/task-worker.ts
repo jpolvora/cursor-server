@@ -4,13 +4,24 @@ import { taskStore } from "./task-store.js";
 
 async function sendWebhookNotification(webhookUrl: string, payload: unknown): Promise<void> {
   try {
-    await fetch(webhookUrl, {
+    const url = new URL(webhookUrl);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      console.warn(`Blocked invalid webhook protocol: ${url.protocol}`);
+      return;
+    }
+
+    const response = await fetch(webhookUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(5000),
     });
+
+    if (!response.ok) {
+      console.warn(`Webhook to ${webhookUrl} returned HTTP ${response.status}`);
+    }
   } catch (err) {
     console.error(`Failed to send webhook notification to ${webhookUrl}:`, err);
   }

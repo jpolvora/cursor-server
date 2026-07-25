@@ -180,7 +180,7 @@ Status: **todo**. Goal: production-shaped task lifecycle and observability witho
 
 Status: **todo**. Goal: qualified specs drive staged, observable, resumable pipelines; runners are swappable.
 
-- [ ] Spec schema (machine-actionable: IDs, AC, dependencies)
+- [x] Spec schema (machine-actionable: IDs, AC, dependencies)
   - **spec:** `spec-schema.spec.md`
 - [ ] Spec editor / served environment (UI TBD)
   - **spec:** `spec-editor.spec.md`
@@ -188,9 +188,9 @@ Status: **todo**. Goal: qualified specs drive staged, observable, resumable pipe
   - [ ] Stages: implement → build → test → deploy → review
   - [ ] Per-stage logs, artifacts, pass/fail; resumable; tied to spec sections
   - **spec:** `stage-orchestration.spec.md`
-- [ ] Runner interface (do not hard-couple to `@cursor/sdk`)
+- [x] Runner interface (do not hard-couple to `@cursor/sdk`)
   - **spec:** `harness-runner-interface.spec.md`
-- [ ] Cursor SDK runner adapter (default)
+- [x] Cursor SDK runner adapter (default)
   - **spec:** `runner-cursor-sdk.spec.md`
 - [ ] Hermes Agent integration (orchestration, schedule, memory/skills, delegation)
   - **spec:** `hermes-integration.spec.md`
@@ -216,17 +216,17 @@ Write / implement in this order unless a dependency forces a skip. Update status
 | 7 | `[x]` | `run-history.spec.md` | Persist and query past runs |
 | 8 | `[x]` | `task-streaming.spec.md` | Stream agent output to clients via SSE |
 | 9 | `[x]` | `scheduled-review-jobs.spec.md` | First real cron jobs using the scheduler hook |
-| 10 | `[ ]` | `mcp-config.spec.md` | MCP servers per task/repo |
-| 11 | `[ ]` | `spec-schema.spec.md` | Qualified spec format for the harness |
-| 12 | `[ ]` | `harness-runner-interface.spec.md` | Pluggable runner contract |
-| 13 | `[ ]` | `stage-orchestration.spec.md` | Stage pipeline + observability + resume |
-| 14 | `[ ]` | `runner-cursor-sdk.spec.md` | Cursor adapter behind the interface |
-| 15 | `[ ]` | `spec-editor.spec.md` | Hosted editor/environment |
-| 16 | `[ ]` | `hermes-integration.spec.md` | Hermes as orchestrator / delegate |
-| 17 | `[ ]` | `runner-opencode.spec.md` | OpenCode adapter |
-| 18 | `[ ]` | `multi-tenant-isolation.spec.md` | Isolation if shared host |
+| 10 | `[x]` | `spec-schema.spec.md` | Qualified spec format & Zod schema for the harness engine — **landed** |
+| 11 | `[x]` | `harness-runner-interface.spec.md` | Pluggable runner contract (Cursor SDK, Hermes, OpenCode) — **landed** |
+| 12 | `[ ]` | `stage-orchestration.spec.md` | Stage pipeline + observability + resume |
+| 13 | `[ ]` | `runner-cursor-sdk.spec.md` | Cursor adapter behind the interface |
+| 14 | `[ ]` | `spec-editor.spec.md` | Hosted editor/environment |
+| 15 | `[ ]` | `hermes-integration.spec.md` | Hermes as orchestrator / delegate |
+| 16 | `[ ]` | `runner-opencode.spec.md` | OpenCode adapter |
+| 17 | `[ ]` | `multi-tenant-isolation.spec.md` | Isolation if shared host |
+| 18 | `[ ]` | `mcp-config.spec.md` | MCP servers per task/repo (deferred to future backlog) |
 
-**Suggested immediate next step:** `scheduled-review-jobs.spec.md` (first real cron jobs using scheduler hook).
+**Suggested immediate next step:** `harness-runner-interface.spec.md` (Pluggable runner interface for Phase 3 Flagship Harness).
 
 ---
 
