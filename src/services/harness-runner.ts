@@ -1,5 +1,5 @@
 import { resolveAgent, type AgentId } from "../agents.js";
-import { loadConfig, type Config } from "../config.js";
+import { resolveConfig, type Config } from "../config.js";
 import { runTask, type RunTaskInput, type RunTaskResult } from "./agent-runner.js";
 
 export type HarnessStage = 'spec' | 'implement' | 'build' | 'test' | 'deploy' | 'review';
@@ -91,6 +91,13 @@ export function resolveStageAgent(
   return defaultAgentForStage(stage);
 }
 
+export function resolveStageModel(
+  options?: Record<string, unknown>,
+): string | undefined {
+  const raw = options?.model;
+  return typeof raw === "string" ? raw : undefined;
+}
+
 function collectArtifacts(result: RunTaskResult): string[] {
   const artifacts: string[] = [];
   if (result.result && result.result.trim() !== "") {
@@ -119,15 +126,13 @@ export class LocalCursorRunner implements HarnessRunner {
 
       // Delegate implementation/spec/review execution to runTask when available
       const agentRole = resolveAgent(input.options?.agent);
-      const config: Config = input.options?.config && typeof input.options.config === "object"
-        ? Object.assign({}, loadConfig(), input.options.config)
-        : loadConfig();
+      const config: Config = resolveConfig(input.options?.config);
 
       const result = await runTask(config, {
         prompt: input.prompt,
         repoPath: input.repoPath,
         agent: agentRole,
-        model: input.options?.model as string | undefined,
+        model: resolveStageModel(input.options),
       });
 
       const durationMs = Date.now() - startTime;
@@ -188,10 +193,7 @@ export class CursorSdkRunner implements HarnessRunner {
       const agent = resolveStageAgent(input.stage, input.options);
       const prompt = wrapStagePrompt(input.stage, input.prompt);
       const timeoutMs = resolveTimeoutMs(input.options);
-      const config: Config =
-        input.options?.config && typeof input.options.config === "object"
-          ? Object.assign({}, loadConfig(), input.options.config)
-          : loadConfig();
+      const config: Config = resolveConfig(input.options?.config);
 
       logs.push(`Resolved agent=${agent}, timeoutMs=${timeoutMs}`);
 
@@ -199,7 +201,7 @@ export class CursorSdkRunner implements HarnessRunner {
         prompt,
         repoPath: input.repoPath,
         agent,
-        model: input.options?.model as string | undefined,
+        model: resolveStageModel(input.options),
       });
 
       let timer: ReturnType<typeof setTimeout> | undefined;
