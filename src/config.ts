@@ -14,3 +14,11 @@ export type Config = z.infer<typeof envSchema>;
 export function loadConfig(): Config {
   return envSchema.parse(process.env);
 }
+
+/** Merge optional overrides onto env config and re-validate with Zod. */
+export function resolveConfig(overrides?: unknown): Config {
+  if (overrides == null || typeof overrides !== "object" || Array.isArray(overrides)) {
+    return loadConfig();
+  }
+  return envSchema.parse({ ...loadConfig(), ...overrides });
+}
