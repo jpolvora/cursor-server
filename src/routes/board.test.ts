@@ -133,6 +133,13 @@ Test spec for board import/export.
     }
   });
 
+  it("rejects path traversal in secret_ref", () => {
+    const traversal = resolveSecretRef("../etc/passwd", secretsDir);
+    assert.strictEqual(traversal.ok, false);
+    const absolute = resolveSecretRef("/etc/passwd", secretsDir);
+    assert.strictEqual(absolute.ok, false);
+  });
+
   it("CRUD cards with lane filter and default backlog", async () => {
     const reposRes = await app.request("/board/repos", { headers: authHeaders });
     const repos = (await reposRes.json()) as { repos: Array<{ id: number }> };
