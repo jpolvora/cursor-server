@@ -143,9 +143,7 @@ spec (qualified) → implement → build → test → review
 
 (`deploy` is optional per spec frontmatter; default stage list omits it.)
 
-**Landed:** `GET /ui/spec-editor`, QualifiedSpec parse/validate, stage orchestration, resumable runs (`POST /harness/runs`, stage store), and pluggable runners. Each stage is observable (logs, artifacts, pass/fail).
-
-**Still open:** Aspirational UI (AC builder, dependency graph, stage designer) beyond MVP Markdown editor.
+**Landed:** `GET /ui/spec-editor`, QualifiedSpec parse/validate, stage orchestration, resumable runs (`POST /harness/runs`, stage store), and pluggable runners. Each stage is observable (logs, artifacts, pass/fail). Aspirational UI panels (AC builder, dependency graph, stage designer — spec `36`) shipped as progressive enhancement on the editor.
 
 ### Pluggable harness abstraction (landed)
 
