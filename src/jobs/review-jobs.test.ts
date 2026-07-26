@@ -1,6 +1,7 @@
-import { describe, it, beforeEach } from "node:test";
+import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 import { execFile } from "node:child_process";
+import fs from "node:fs";
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -31,8 +32,17 @@ function baseConfig(overrides: Partial<Config> = {}): Config {
 }
 
 describe("review-jobs", () => {
+  const tempDirs: string[] = [];
+
   beforeEach(() => {
     _resetJobExecutionHistoryForTest();
+  });
+
+  afterEach(() => {
+    for (const dir of tempDirs) {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+    tempDirs.length = 0;
   });
 
   it("returns no default jobs when SCHEDULED_REVIEW_JOBS is false", () => {
@@ -49,6 +59,7 @@ describe("review-jobs", () => {
 
   it("records hygiene findings for dirty worktrees", async () => {
     const reposRoot = await mkdtemp(path.join(os.tmpdir(), "hygiene-repos-"));
+    tempDirs.push(reposRoot);
     const repoPath = path.join(reposRoot, "dirty-repo");
     await mkdir(repoPath, { recursive: true });
     await execFileAsync("git", ["init"], { cwd: repoPath });
@@ -67,6 +78,7 @@ describe("review-jobs", () => {
 
   it("records hygiene scan for committed repo without dirty worktree", async () => {
     const reposRoot = await mkdtemp(path.join(os.tmpdir(), "hygiene-clean-"));
+    tempDirs.push(reposRoot);
     const repoPath = path.join(reposRoot, "clean-repo");
     await mkdir(repoPath, { recursive: true });
     await execFileAsync("git", ["init"], { cwd: repoPath });
@@ -85,6 +97,7 @@ describe("review-jobs", () => {
 
   it("skips hygiene job when REPOS_ROOT is empty", async () => {
     const reposRoot = await mkdtemp(path.join(os.tmpdir(), "hygiene-empty-"));
+    tempDirs.push(reposRoot);
     const job = createRepoHygieneJob(baseConfig({ REPOS_ROOT: reposRoot }));
     await job.handler();
 

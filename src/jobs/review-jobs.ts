@@ -58,7 +58,6 @@ export function createPrDiffReviewJob(config: Config, options?: ReviewJobOptions
     schedule: "0 */6 * * *",
     handler: async () => {
       console.log("[review-job:pr-diff-review] Starting automated PR diff review job...");
-      const started = Date.now();
       const resumeAgentId = resolveResumeAgentId(config, options);
 
       if (!fs.existsSync(config.REPOS_ROOT)) {
@@ -83,6 +82,7 @@ export function createPrDiffReviewJob(config: Config, options?: ReviewJobOptions
 
       for (const repo of repos) {
         const repoPath = path.join(config.REPOS_ROOT, repo);
+        const repoStarted = Date.now();
         try {
           const reviewResult = await runScheduledReview(config, {
             prompt:
@@ -95,7 +95,7 @@ export function createPrDiffReviewJob(config: Config, options?: ReviewJobOptions
             jobName: "pr-diff-review",
             status: reviewResult.status === "error" ? "error" : "success",
             details: `Completed review for ${repo}${reviewResult.resumed ? " (resumed agent)" : ""}: ${reviewResult.result?.slice(0, 100) ?? reviewResult.status}`,
-            durationMs: Date.now() - started,
+            durationMs: Date.now() - repoStarted,
           });
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
@@ -103,7 +103,7 @@ export function createPrDiffReviewJob(config: Config, options?: ReviewJobOptions
             jobName: "pr-diff-review",
             status: "error",
             details: `Failed review for ${repo}: ${msg}`,
-            durationMs: Date.now() - started,
+            durationMs: Date.now() - repoStarted,
           });
         }
       }
@@ -117,7 +117,6 @@ export function createRepoHygieneJob(config: Config): ScheduledJob {
     schedule: "0 0 * * *",
     handler: async () => {
       console.log("[review-job:repo-hygiene-check] Starting repo hygiene check job...");
-      const started = Date.now();
 
       if (!fs.existsSync(config.REPOS_ROOT)) {
         recordJobExecution({
@@ -141,6 +140,7 @@ export function createRepoHygieneJob(config: Config): ScheduledJob {
 
       for (const repo of repos) {
         const repoPath = path.join(config.REPOS_ROOT, repo);
+        const repoStarted = Date.now();
         try {
           const scan = await scanRepoHygiene(repoPath, repo);
           const hasErrors = scan.issues.some((issue) => issue.kind === "scan_error");
@@ -149,7 +149,7 @@ export function createRepoHygieneJob(config: Config): ScheduledJob {
             jobName: "repo-hygiene-check",
             status: hasErrors ? "error" : "success",
             details: formatHygieneFindings(scan),
-            durationMs: Date.now() - started,
+            durationMs: Date.now() - repoStarted,
           });
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
@@ -157,7 +157,7 @@ export function createRepoHygieneJob(config: Config): ScheduledJob {
             jobName: "repo-hygiene-check",
             status: "error",
             details: `Failed hygiene scan for ${repo}: ${msg}`,
-            durationMs: Date.now() - started,
+            durationMs: Date.now() - repoStarted,
           });
         }
       }
