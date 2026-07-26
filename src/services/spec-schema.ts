@@ -13,12 +13,15 @@ export const AcceptanceCriterionSchema = z.object({
 
 export type AcceptanceCriterion = z.infer<typeof AcceptanceCriterionSchema>;
 
+/** Default pipeline stages when a spec does not declare `stages`. Excludes `deploy` (unsupported by default runners). */
+export const DEFAULT_SPEC_STAGES = ["implement", "build", "test", "review"] as const;
+
 export const QualifiedSpecSchema = z.object({
   id: z.string(),
   title: z.string(),
   version: z.string().default("1.0.0"),
   description: z.string().default(""),
-  stages: z.array(z.string()).default(["implement", "build", "test", "deploy", "review"]),
+  stages: z.array(z.string()).default([...DEFAULT_SPEC_STAGES]),
   acceptanceCriteria: z.array(AcceptanceCriterionSchema).default([]),
   dependencies: z.array(z.string()).default([]),
   rawContent: z.string().optional(),
@@ -138,7 +141,7 @@ export function parseSpecMarkdown(content: string): QualifiedSpec {
     title,
     version,
     description,
-    stages: ["implement", "build", "test", "deploy", "review"],
+    stages: [...DEFAULT_SPEC_STAGES],
     acceptanceCriteria,
     dependencies: [],
     rawContent: content,

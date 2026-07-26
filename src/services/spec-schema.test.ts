@@ -5,12 +5,14 @@ import os from "node:os";
 import path from "node:path";
 import {
   assertSafeSpecFilename,
+  DEFAULT_SPEC_STAGES,
   listRepoSpecs,
   parseSpecMarkdown,
   readRepoSpecFile,
   validateSpecPayload,
   writeRepoSpecFile,
 } from "./spec-schema.js";
+import { LocalCursorRunner } from "./harness-runner.js";
 
 describe("spec-schema", () => {
   it("parses markdown frontmatter and acceptance criteria", () => {
@@ -48,6 +50,20 @@ This is a test description.
     assert.strictEqual(spec.acceptanceCriteria[0].given, "user is logged in");
     assert.strictEqual(spec.acceptanceCriteria[0].when, "button is clicked");
     assert.strictEqual(spec.acceptanceCriteria[0].then, "modal opens");
+    assert.deepStrictEqual(spec.stages, [...DEFAULT_SPEC_STAGES]);
+  });
+
+  it("default stages are supported by the default Cursor runner", () => {
+    const runner = new LocalCursorRunner();
+    const result = validateSpecPayload({ id: "defaults", title: "Defaults" });
+    assert.strictEqual(result.valid, true);
+    assert.ok(result.spec);
+    for (const stage of result.spec!.stages) {
+      assert.ok(
+        runner.supportedStages.includes(stage as (typeof runner.supportedStages)[number]),
+        `default stage '${stage}' must be supported by ${runner.id}`,
+      );
+    }
   });
 
   it("validates spec Markdown payload", () => {
