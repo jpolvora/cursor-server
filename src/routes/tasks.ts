@@ -8,7 +8,7 @@ import { validateRepoPath } from "../services/repo-validator.js";
 import { taskStore } from "../services/task-store.js";
 import { processTaskInBackground } from "../services/task-worker.js";
 import { resolveMcpForTask, type McpServers } from "../services/mcp-config.js";
-import { checkRepoAccess } from "../services/tenant-context.js";
+import { checkRepoAccess, canAccessTenantResource, listTenantFilter } from "../services/tenant-context.js";
 
 const mcpServerSchema = z.record(
   z.string(),
@@ -44,7 +44,7 @@ export function createTaskRoutes(config: Config) {
     const status = c.req.query("status");
     const repo = c.req.query("repo");
     const source = c.req.query("source");
-    const tenantId = c.get("tenantId") as string | undefined;
+    const tenantId = listTenantFilter(c.get("tenantId") as string | undefined);
 
     const list = taskStore.listTasks({ status, repo, source, tenantId });
     return c.json({ tasks: list });
@@ -56,6 +56,11 @@ export function createTaskRoutes(config: Config) {
     const task = taskStore.getTask(id);
 
     if (!task) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+
+    const requestTenantId = c.get("tenantId") as string;
+    if (!canAccessTenantResource(requestTenantId, task.tenantId)) {
       return c.json({ error: "Task not found" }, 404);
     }
 
@@ -130,6 +135,11 @@ export function createTaskRoutes(config: Config) {
     const task = taskStore.getTask(id);
 
     if (!task) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+
+    const requestTenantId = c.get("tenantId") as string;
+    if (!canAccessTenantResource(requestTenantId, task.tenantId)) {
       return c.json({ error: "Task not found" }, 404);
     }
 

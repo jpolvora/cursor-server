@@ -142,7 +142,10 @@ Treat these as design placeholders — confirm with the owner before building:
 - MCP server configuration per task or per repo
 - Spec editor aspirational UI (AC builder, dependency graph, stage designer) beyond MVP Markdown editor
 - Hermes and OpenCode harness adapters
-- Multi-tenant isolation if multiple clients share one host
+
+### Multi-tenant isolation (shipped)
+
+When `SERVER_API_KEY` and/or `TENANTS` are configured, requests are scoped by tenant API key. Repo allowlists apply to task/harness create; get-by-id and stream endpoints return **404** for cross-tenant resources (master key sees all). Agent runs set `CURSOR_TENANT_ID`, `CURSOR_TENANT_REPO_PATH`, and optional resource-limit env vars (`CURSOR_TENANT_CPU_LIMIT`, `CURSOR_TENANT_MEMORY_LIMIT_MB`) for the phase duration. Configure defaults via `TENANT_CPU_LIMIT` / `TENANT_MEMORY_LIMIT_MB` or per-tenant fields in `TENANTS` JSON; OS-level enforcement is best-effort (prefer Docker `deploy.resources` for hard caps).
 
 ## Testing changes
 
