@@ -214,6 +214,7 @@ export const SPEC_EDITOR_CLIENT_JS = `
 
   let syncing = false;
   let knownSpecIds = [];
+  let knownSpecIdsPopulated = false;
   let debounceTimer = null;
 
   el.apiKey.value = sessionStorage.getItem(KEY_STORAGE) || "";
@@ -299,8 +300,7 @@ export const SPEC_EDITOR_CLIENT_JS = `
       if (colonIdx === -1) continue;
       const key = trimmed.slice(0, colonIdx).trim();
       const rawVal = trimmed.slice(colonIdx + 1).trim();
-      if (rawVal === "" || rawVal === "null" || rawVal === "undefined") {
-        if (rawVal === "null" || rawVal === "undefined") continue;
+      if (rawVal === "") {
         currentArrayKey = key;
         frontmatter[key] = [];
         continue;
@@ -332,7 +332,9 @@ export const SPEC_EDITOR_CLIENT_JS = `
           lines.push(key + ":");
           val.forEach(function (item) { lines.push("  - " + item); });
         }
-      } else if (val !== undefined && val !== null && val !== "") {
+      } else if (val === null) {
+        lines.push(key + ": null");
+      } else if (val !== undefined && val !== "") {
         const s = String(val);
         lines.push(key + ": " + (s.match(/[:#\\n]/) ? JSON.stringify(s) : s));
       }
@@ -531,9 +533,10 @@ export const SPEC_EDITOR_CLIENT_JS = `
     deps.forEach(function (dep) {
       const id = String(dep).trim();
       if (!id) return;
-      nodes.push({ id: id, kind: knownSpecIds.indexOf(id) >= 0 ? "dep" : "missing" });
+      const kind = !knownSpecIdsPopulated ? "unknown" : knownSpecIds.indexOf(id) >= 0 ? "dep" : "missing";
+      nodes.push({ id: id, kind: kind });
       edges.push({ from: selfId, to: id });
-      if (knownSpecIds.indexOf(id) < 0 && knownSpecIds.length > 0) missing.push(id);
+      if (knownSpecIdsPopulated && knownSpecIds.indexOf(id) < 0) missing.push(id);
     });
     const cycles = detectCycles(edges);
     const svg = el.depGraph;
@@ -576,8 +579,8 @@ export const SPEC_EDITOR_CLIENT_JS = `
       circle.setAttribute("cx", String(pos.x));
       circle.setAttribute("cy", String(pos.y));
       circle.setAttribute("r", n.kind === "self" ? "28" : "22");
-      circle.setAttribute("fill", n.kind === "missing" ? "#5c2b2f" : n.kind === "self" ? "#1e4a8a" : "#1a2332");
-      circle.setAttribute("stroke", n.kind === "missing" ? "#f07178" : "#3d8bfd");
+      circle.setAttribute("fill", n.kind === "missing" ? "#5c2b2f" : n.kind === "unknown" ? "#2a3544" : n.kind === "self" ? "#1e4a8a" : "#1a2332");
+      circle.setAttribute("stroke", n.kind === "missing" ? "#f07178" : n.kind === "unknown" ? "#8b9bb4" : "#3d8bfd");
       circle.setAttribute("stroke-width", "2");
       g.appendChild(circle);
       const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -591,6 +594,7 @@ export const SPEC_EDITOR_CLIENT_JS = `
       svg.appendChild(g);
     });
     const issues = [];
+    if (!knownSpecIdsPopulated) issues.push('<span class="warn">List specs to validate dependency targets.</span>');
     if (missing.length) issues.push('<span class="bad">Missing targets: ' + missing.join(", ") + "</span>");
     if (cycles.length) issues.push('<span class="warn">Cycle detected: ' + cycles.map(function (c) { return c.join(" → "); }).join("; ") + "</span>");
     if (!deps.length) issues.push('<span class="warn">No dependencies declared in frontmatter.</span>');
@@ -637,6 +641,7 @@ export const SPEC_EDITOR_CLIENT_JS = `
       return;
     }
     knownSpecIds = (body.specs || []).map(function (s) { return s.id; }).filter(Boolean);
+    knownSpecIdsPopulated = true;
     el.list.innerHTML = "";
     (body.specs || []).forEach(function (s) {
       const li = document.createElement("li");
@@ -814,7 +819,7 @@ export function renderSpecEditorPageHtml(): string {
       <div class="se-panel se-tool-panel" data-panel="deps">
         <svg id="dep-graph" role="img" aria-label="Dependency graph"></svg>
         <div id="dep-issues" class="dep-issues"></div>
-        <p class="dep-legend">Declare <code>dependencies:</code> in frontmatter. Red nodes = missing spec in repo.</p>
+        <p class="dep-legend">Declare <code>dependencies:</code> in frontmatter. Gray = not yet validated; red = missing spec in repo.</p>
       </div>
       <div id="status" role="status">Idle — edit to validate</div>
       <div class="row">
