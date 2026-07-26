@@ -228,6 +228,13 @@ export function createBoardRoutes(config: Config) {
     const accessError = checkRepoTenantAccess(c, existing.name);
     if (accessError) return c.json({ error: accessError }, 403);
 
+    try {
+      const localPath = resolveRepoLocalPath(config.REPOS_ROOT, existing.name, existing.local_path);
+      cleanupClone(localPath);
+    } catch {
+      // ignore invalid stored paths during delete
+    }
+
     boardDb.deleteRepo(id);
     return c.json({ ok: true });
   });

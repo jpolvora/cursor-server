@@ -83,15 +83,18 @@ export function isCloneMissingOrEmpty(localPath: string): boolean {
   }
 }
 
-function buildCloneEnv(token: string): NodeJS.ProcessEnv {
+function buildCloneGitArgs(remoteUrl: string, token: string): string[] {
   const authHeader = `Authorization: Basic ${Buffer.from(`x-access-token:${token}`).toString("base64")}`;
-  return {
-    ...process.env,
-    GIT_TERMINAL_PROMPT: "0",
-    GIT_CONFIG_COUNT: "1",
-    GIT_CONFIG_KEY_0: "http.extraHeader",
-    GIT_CONFIG_VALUE_0: authHeader,
-  };
+  let configKey = "http.extraHeader";
+  try {
+    const parsed = new URL(remoteUrl);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      configKey = `http.${parsed.protocol}//${parsed.host}/.extraHeader`;
+    }
+  } catch {
+    // fall back to generic key
+  }
+  return ["-c", `${configKey}=${authHeader}`];
 }
 
 export async function ensureClone(
@@ -124,8 +127,8 @@ export async function ensureClone(
     try {
       await execFileAsync(
         "git",
-        ["clone", "--depth", "1", remoteUrl, localPath],
-        { env: buildCloneEnv(token) },
+        [...buildCloneGitArgs(remoteUrl, token), "clone", "--depth", "1", remoteUrl, localPath],
+        { env: { ...process.env, GIT_TERMINAL_PROMPT: "0" } },
       );
       return { ok: true };
     } catch (err: unknown) {
