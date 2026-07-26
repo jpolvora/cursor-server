@@ -208,11 +208,13 @@ export class CursorSdkRunner implements HarnessRunner {
 
       logs.push(`Resolved agent=${agent}, timeoutMs=${timeoutMs}`);
 
+      const abortController = new AbortController();
       const runPromise = this.runTaskFn(config, {
         prompt,
         repoPath: input.repoPath,
         agent,
         model: resolveStageModel(input.options),
+        signal: abortController.signal,
       });
 
       let timer: ReturnType<typeof setTimeout> | undefined;
@@ -225,6 +227,7 @@ export class CursorSdkRunner implements HarnessRunner {
         ]);
 
         if (raced.kind === "timeout") {
+          abortController.abort();
           void runPromise.catch(() => {});
           const durationMs = Date.now() - startTime;
           const errorMsg = `Stage timed out after ${timeoutMs}ms`;
