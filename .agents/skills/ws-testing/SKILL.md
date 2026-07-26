@@ -1,7 +1,9 @@
 ---
+
+
 name: ws-testing
 description: Plans and executes pre-PR testing — unit tests, integration/E2E, coverage, testing quality, and feature quality.
-version: 0.0.82
+version: 0.0.91
 disable-model-invocation: true
 invocation_names:
   - testing
@@ -22,7 +24,7 @@ Standalone:
 /testing <plan-path> [spec=<spec-path>] [skip-browser]
 ```
 
-Workflow (spec-to-pr Step 7): dispatched with `planPath` and `specPath` from orchestrator state. The orchestrator, not this skill, decides skip when `skipTesting` is set or when there is no meaningful test surface and unit tests are already green. UI browser testing requires explicit authorization.
+Workflow (ws-spec-to-pr Step 7): dispatched with `planPath` and `specPath` from orchestrator state. The orchestrator, not this skill, decides skip when `skipTesting` is set or when there is no meaningful test surface and unit tests are already green. UI browser testing requires explicit authorization.
 
 | Parameter | Default | Notes |
 |-----------|---------|-------|

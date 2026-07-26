@@ -2,12 +2,14 @@
 id: harness-runner-interface
 title: Pluggable Harness Runner Interface Abstraction
 version: 1.0.0
-status: draft
+status: completed
 createdAt: "2026-07-25T20:47:30Z"
 updatedAt: "2026-07-25T20:47:30Z"
 author: jpolvora
 domain: harness-execution
 type: feature
+slug: 11-harness-runner-interface
+source: local
 ---
 
 # Harness Runner Interface Abstraction Specification

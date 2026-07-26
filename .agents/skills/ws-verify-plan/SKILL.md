@@ -1,7 +1,9 @@
 ---
+
+
 name: ws-verify-plan
 description: Compares implementation quality and code deliverables against the spec (or plan when no spec) and acceptance criteria. Publishes a 0–10 score.
-version: 0.0.82
+version: 0.0.91
 disable-model-invocation: true
 invocation_names:
   - verify-plan
@@ -24,7 +26,7 @@ Standalone:
 /verify-plan [spec-input] [plan-dir=<path>]
 ```
 
-Workflow (spec-to-pr Step 5): orchestrator passes `specPath`, `planDir`, optional `mode=quick|full`. Default `mode=quick`; escalate to `full` when quick score < 7, orchestrator passes `mode=full`, or user passed `--strict`.
+Workflow (ws-spec-to-pr Step 5): orchestrator passes `specPath`, `planDir`, optional `mode=quick|full`. Default `mode=quick`; escalate to `full` when quick score < 7, orchestrator passes `mode=full`, or user passed `--strict`.
 
 | Parameter | Default | Notes |
 |-----------|---------|-------|
@@ -38,11 +40,11 @@ Workflow (spec-to-pr Step 5): orchestrator passes `specPath`, `planDir`, optiona
    - Done when: the resolved plan (and, in full mode, spec) path is known.
 
 2. **Evaluate**: Quick Score scores Completeness (40%), Correctness & Style (35%), Tests (25%), each 0-10. US Verification maps every plan feature and acceptance criterion to **Implemented**, **Not implemented**, or **Implemented differently**, each with file:line evidence.
-   - Optional `fable` integration: If `config.json.fable.enabled` and `autoAudit` are `true`, run [`fable-judge`](../fable-judge/SKILL.md) against `git diff` ground truth. Record verdict (`VERIFIED`, `VERIFIED WITH CAVEATS`, `REFUTED`) and fraud findings in the report.
+   - Optional `fable` integration: If `config.json.fable.enabled` and `autoAudit` are `true`, run [`ws-fable-judge`](../ws-fable-judge/SKILL.md) against `git diff` ground truth. Record verdict (`VERIFIED`, `VERIFIED WITH CAVEATS`, `REFUTED`) and fraud findings in the report.
    - Done when: every planned feature/AC has a situation and evidence, and Quick Score's three metrics are each scored.
 
 3. **Score**: compute the integer **0-10** score (weighted average for Quick Score; overall adherence for US Verification).
-   - Optional `fable` integration: If `fable-judge` returned `REFUTED` and `config.json.fable.auditVerdictsBlockShip` is `true`, cap score at < 7 to require remediation.
+   - Optional `fable` integration: If `ws-fable-judge` returned `REFUTED` and `config.json.fable.auditVerdictsBlockShip` is `true`, cap score at < 7 to require remediation.
    - Done when: an integer score 0-10 is set.
 
 4. **Write report**: save `{us-dir}/step-05-{slug}.plan.report.md` matching this format exactly:

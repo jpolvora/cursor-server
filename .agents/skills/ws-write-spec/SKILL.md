@@ -1,7 +1,9 @@
 ---
+
+
 name: ws-write-spec
-description: Drafts a canonical step-00-{slug}.spec.md from a free-text feature description (spec-to-pr Step 0 brainstorm).
-version: 0.0.82
+description: Drafts a canonical step-00-{slug}.spec.md from a free-text feature description (ws-spec-to-pr Step 0 brainstorm).
+version: 0.0.91
 disable-model-invocation: true
 invocation_names:
   - write-spec
@@ -12,9 +14,9 @@ invocation_names:
 
 Draft a **canonical** local spec from free-text. Act as a Product Manager: clear scope, testable acceptance criteria.
 
-**Canonical path:** `{us-dir}/step-00-{slug}.spec.md` (`{us-dir}` = `{plansDir}/{slug}/`). Human-browsable mirrors under `plans.specsDir` are owned by [local-spec-provider](../local-spec-provider/SKILL.md) — never copy them yourself.
+**Canonical path:** `{us-dir}/step-00-{slug}.spec.md` (`{us-dir}` = `{plansDir}/{slug}/`). Human-browsable mirrors under `plans.specsDir` are owned by [ws-local-spec-provider](../ws-local-spec-provider/SKILL.md) — never copy them yourself.
 
-**Format:** load [spec-format](../spec-format/SKILL.md) and follow it. Set `source: local` and `id: null`.
+**Format:** load [ws-spec-format](../ws-spec-format/SKILL.md) and follow it. Set `source: local` and `id: null`.
 
 ## Invocation
 
@@ -24,21 +26,21 @@ Standalone:
 /write-spec "<description>" [slug=<slug>] [output-dir=<path>] [--mirror]
 ```
 
-Workflow (spec-to-pr / lite Step 0): orchestrator passes `description` and optional `slug`; optional mirror when requested or when mirroring is policy for local brainstorms.
+Workflow (ws-spec-to-pr / lite Step 0): orchestrator passes `description` and optional `slug`; optional mirror when requested or when mirroring is policy for local brainstorms.
 
 | Parameter | Default | Notes |
 |-----------|---------|-------|
 | `<description>` | required | Raw feature / business text |
 | `slug` | inferred | URL-safe id from title/description |
 | `output-dir` | `{us-dir}` | Optional override for destination `{us-dir}` (`{plansDir}/{slug}/`) |
-| `--mirror` | false | After write, register via local-spec-provider |
+| `--mirror` | false | After write, register via ws-local-spec-provider |
 
 ## Steps
 
 1. **Parse** — Infer title and url-safe `slug` from the description (or use provided `slug`).
    - Done when: title and `slug` are set.
 
-2. **Draft** — Build the spec per [spec-format](../spec-format/SKILL.md).
+2. **Draft** — Build the spec per [ws-spec-format](../ws-spec-format/SKILL.md).
    - Done when: frontmatter has `source: local`, `id: null`, `slug`, `title`, `specDate`; body has Description, Acceptance Criteria (each AC specific and testable), and Notes as needed; every stated requirement maps to ≥1 AC or an explicit out-of-scope note in Notes.
 
 3. **Write** — Save `{us-dir}/step-00-{slug}.spec.md`.
@@ -47,7 +49,7 @@ Workflow (spec-to-pr / lite Step 0): orchestrator passes `description` and optio
 4. **Optional mirror** — Only if `--mirror` or the orchestrator requests a human-browsable copy. Delegate; do not copy files yourself:
 
    ```bash
-   python .agents/skills/local-spec-provider/scripts/register_local_spec.py \
+   python .agents/skills/ws-local-spec-provider/scripts/register_local_spec.py \
      --input "{us-dir}/step-00-{slug}.spec.md" \
      --mirror
    ```

@@ -1,3 +1,11 @@
+---
+id: null
+slug: 31-fix-event-gateway-contract
+title: "Fix Event Gateway Contract"
+source: local
+status: completed
+---
+
 # Spec: Fix Event Gateway Contract (`31-fix-event-gateway-contract`)
 
 ## Context
@@ -9,7 +17,7 @@ Some external clients (Hermes, Umbrel webhooks) send `POST /events` payloads wit
 3. Add route-level tests covering defaulting and webhook passthrough.
 
 ## Acceptance Criteria
-- [ ] `POST /events` accepts payloads without `event` and responds with `event: "task"` (default generic task).
-- [ ] Explicit `event` values are echoed in the `202` response.
-- [ ] `webhookUrl` is stored on the queued task for completion callbacks.
-- [ ] `npm run typecheck`, `npm run build`, and `npm test` pass.
+- [x] `POST /events` accepts payloads without `event` and responds with `event: "task"` (default generic task).
+- [x] Explicit `event` values are echoed in the `202` response.
+- [x] `webhookUrl` is stored on the queued task for completion callbacks.
+- [x] `npm run typecheck`, `npm run build`, and `npm test` pass.

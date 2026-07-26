@@ -1,7 +1,9 @@
 ---
+
+
 name: ws-fix-pr
 description: Cooperatively resolve active PR code review threads on GitHub or Azure DevOps with structured validation and reports.
-version: 0.0.82
+version: 0.0.91
 disable-model-invocation: true
 invocation_names:
   - fix-pr
@@ -43,8 +45,8 @@ Resolve per [config-resolution.md](../shared/config-resolution.md): read `provid
 
 | `providers.scm` | Skill | Intents used here |
 |-----------------|-------|-------------------|
-| `github` | [github-provider](../github-provider/SKILL.md) | `list-threads`, `resolve-thread` |
-| `azure-devops` | [azure-devops-provider](../azure-devops-provider/SKILL.md) | `list-threads`, `resolve-thread` |
+| `github` | [ws-github-provider](../ws-github-provider/SKILL.md) | `list-threads`, `resolve-thread` |
+| `azure-devops` | [ws-azure-devops-provider](../ws-azure-devops-provider/SKILL.md) | `list-threads`, `resolve-thread` |
 
 ## Steps
 

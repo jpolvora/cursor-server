@@ -4,7 +4,7 @@ title: Served Spec Editor & Interactive Environment
 slug: 14-spec-editor
 source: local
 specDate: 2026-07-25
-status: draft
+status: completed
 version: 0.1.0
 ---
 

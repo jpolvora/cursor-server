@@ -357,14 +357,18 @@ describe("CursorSdkRunner", () => {
     assert.ok(output.logs.some((l) => l.includes("startup failed")));
   });
 
-  it("should return error on timeout", async () => {
+  it("should return error on timeout and abort hung run", async () => {
     ensureTestApiKey();
+    let capturedSignal: AbortSignal | undefined;
     let rejectLate: ((err: Error) => void) | undefined;
     const late = new Promise<RunTaskResult>((_resolve, reject) => {
       rejectLate = reject;
     });
 
-    const runner = new CursorSdkRunner(() => late);
+    const runner = new CursorSdkRunner((_config, input) => {
+      capturedSignal = input.signal;
+      return late;
+    });
 
     const unhandled: unknown[] = [];
     const onUnhandled = (reason: unknown) => {
@@ -383,6 +387,7 @@ describe("CursorSdkRunner", () => {
       assert.strictEqual(output.status, "error");
       assert.ok(output.error?.includes("timed out"));
       assert.ok(output.logs.some((l) => l.includes("timed out")));
+      assert.strictEqual(capturedSignal?.aborted, true);
 
       rejectLate?.(new Error("late rejection"));
       await new Promise((r) => setTimeout(r, 20));

@@ -4,6 +4,7 @@ slug: task-streaming
 title: "Streaming Task Output to Clients (task-streaming)"
 source: local
 specDate: 2026-07-25
+status: completed
 ---
 
 # Specification — Streaming Task Output to Clients (`task-streaming`)

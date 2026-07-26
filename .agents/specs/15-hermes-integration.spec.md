@@ -4,7 +4,7 @@ title: Hermes Agent Orchestration & Subagent Delegation
 slug: 15-hermes-integration
 source: local
 specDate: 2026-07-25
-status: draft
+status: completed
 version: 0.1.0
 ---
 

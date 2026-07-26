@@ -1,3 +1,11 @@
+---
+id: null
+slug: 04-repo-validation
+title: "Repository Registration and Validation"
+source: local
+status: completed
+---
+
 # Spec: Repository Registration and Validation (`repo-validation`)
 
 ## Context

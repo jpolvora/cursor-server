@@ -4,7 +4,7 @@ title: Cursor SDK Runner Adapter
 slug: 13-runner-cursor-sdk
 source: local
 specDate: 2026-07-25
-status: draft
+status: completed
 version: 0.1.0
 ---
 

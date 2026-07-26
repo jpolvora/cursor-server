@@ -1,0 +1,52 @@
+{
+  "name": "ws-spec-index evals",
+  "evals": [
+    {
+      "id": "init-spec-index",
+      "prompt": "Initialize a project spec index from README.md for this workspace using /ws-spec-index init",
+      "expected": {
+        "filesCreated": [
+          ".agents/specs/index.PRD"
+        ],
+        "assertions": [
+          "index.PRD contains standard sections: How to use, Status legend, Goal, Problems, Feature map by phase, Next specs, Inbox, Done log",
+          "no full acceptance criteria bodies are fabricated in index.PRD"
+        ]
+      }
+    },
+    {
+      "id": "sync-spec-index-unmapped-skip",
+      "prompt": "Run /ws-spec-index sync for a non-existent slug with no ship evidence",
+      "expected": {
+        "filesModified": [],
+        "assertions": [
+          "returns updated empty list",
+          "returns skipped reason indicating unmapped or missing evidence",
+          "no file edits are made to index.PRD"
+        ]
+      }
+    },
+    {
+      "id": "sync-spec-index-mapped-update",
+      "prompt": "Run /ws-spec-index sync with valid ship evidence for slug 01-feature-a",
+      "expected": {
+        "assertions": [
+          "updates checkbox from [ ] to [x] for matching row",
+          "adds completed entry to Done log",
+          "never auto-writes Verified: field"
+        ]
+      }
+    },
+    {
+      "id": "sync-spec-index-consumer-dialect",
+      "prompt": "Run /ws-spec-index sync with valid ship evidence on an index.PRD using non-template headers (Status | Spec file)",
+      "expected": {
+        "assertions": [
+          "matches slug and updates status checkbox in non-template dialect table",
+          "updates matching feature map bullet",
+          "appends completed entry to Done log"
+        ]
+      }
+    }
+  ]
+}

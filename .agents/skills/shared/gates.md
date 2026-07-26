@@ -1,9 +1,9 @@
 # Shared Gate Contract — Dual-Mode
 
-Canonical gate UX for [`spec-to-pr`](../spec-to-pr/SKILL.md) and [`spec-to-pr-lite`](../spec-to-pr-lite/SKILL.md).
+Canonical gate UX for [`ws-spec-to-pr`](../ws-spec-to-pr/SKILL.md) and [`ws-spec-to-pr-lite`](../ws-spec-to-pr-lite/SKILL.md).
 Both orchestrators MUST follow this file so shared pipeline skills stay interchangeable.
 
-Artifact paths: [`../spec-to-pr/ARTIFACTS.md`](../spec-to-pr/ARTIFACTS.md).
+Artifact paths: [`../ws-spec-to-pr/ARTIFACTS.md`](../ws-spec-to-pr/ARTIFACTS.md).
 Config: [`.agents/skills/shared/config.json`](config.json) only — see [`config-resolution.md`](config-resolution.md).
 
 ---
@@ -12,13 +12,13 @@ Config: [`.agents/skills/shared/config.json`](config.json) only — see [`config
 
 | Rule | Detail |
 |------|--------|
-| **Shared skills are workflow-agnostic** | Pipeline `ws-*` skills (`ws-write-spec`…`ws-fix-pr`, `ws-goal-fix-pr`, `ws-update-plan-implementation`), providers, `goal-loop` never assume full vs lite step numbers. Orch passes mode, paths, and flags. |
+| **Shared skills are workflow-agnostic** | Pipeline `ws-*` skills (`ws-write-spec`…`ws-fix-pr`, `ws-goal-fix-pr`, `ws-update-plan-implementation`), providers, `ws-goal-loop` never assume full vs lite step numbers. Orch passes mode, paths, and flags. |
 | **`workflowType`** | `standard` (full) or `lite`. Resume filters by type — never cross-resume. |
 | **One combined delivery + ship ask** | Orchestrator presents the combined gate once at standard Step 8 / lite Step 4. [`ws-ship-pr`](../ws-ship-pr/SKILL.md) in workflow mode **executes** the chosen option — does **not** re-ask at user-gate. Standalone `/ship-pr` may ask. |
 | **Fix-PR is separate** | Standard Step 9 / lite Step 5 — **not** inside ship. `ws-ship-pr` receives `stopBeforeFixPr: true`. |
 | **Artifact names** | Delivery result is `step-08-{slug}.result.md` for **both** workflows. Plan is `step-01-{slug}.plan.md`. |
 | **Step ranges** | Standard: Steps 0–9. Lite: Steps 0–5. |
-| **Config** | Only `.agents/skills/shared/config.json`. No `spec-to-pr/config.json` / `spec-to-pr-lite/config.json`. |
+| **Config** | Only `.agents/skills/shared/config.json`. No `ws-spec-to-pr/config.json` / `ws-spec-to-pr-lite/config.json`. |
 | **User gates** | Prefer native structured choice UI when available; markdown fallback when not; HS-1 on cancel. |
 
 ---
@@ -80,11 +80,11 @@ After bootstrap / resume, when starting a **new** workflow (not resume), present
 
 | Option | Effect |
 |--------|--------|
-| **Full pipeline** (spec-to-pr default) | Steps 0–9 |
-| **Fast (lite-like)** | Prefer `/spec-to-pr-lite` or, inside full orch, complexity gate that skips 1–2–3 when eligible |
+| **Full pipeline** (ws-spec-to-pr default) | Steps 0–9 |
+| **Fast (lite-like)** | Prefer `/ws-spec-to-pr-lite` or, inside full orch, complexity gate that skips 1–2–3 when eligible |
 | **Auto** | `autoMode` — auto-gate index 0 |
 
-If user invoked `/spec-to-pr-lite`, skip Full vs Fast — already Fast. If `--full` / `auto` / `dry-run` already parsed, do not re-ask density.
+If user invoked `/ws-spec-to-pr-lite`, skip Full vs Fast — already Fast. If `--full` / `auto` / `dry-run` already parsed, do not re-ask density.
 
 ---
 
@@ -141,7 +141,7 @@ When `fullMode` is false, Recommended = **Skip delivery commit and skip shipping
 
 G2-delivery stages `step-02-{slug}.plan.refined.md` if present, else `step-01-{slug}.plan.md`, plus `step-08-{slug}.result.md` only.
 
-MEMORY.md / self-learning sweep runs automatically after a successful delivery commit (no separate §Doc gate).
+MEMORY.md / ws-self-learning sweep runs automatically after a successful delivery commit (no separate §Doc gate).
 
 Pass the selected ship intent into `ws-ship-pr` as `shipAction: create-pr|push-only|skip` with `workflowMode: true`, `stopBeforeFixPr: true`.
 

@@ -4,6 +4,7 @@ slug: docker-compose
 title: "Docker Compose packaging for cursor-server"
 source: local
 specDate: 2026-07-24
+status: completed
 ---
 
 # Specification — Docker Compose packaging for cursor-server

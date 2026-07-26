@@ -4,7 +4,7 @@ title: Stage Pipeline Orchestration & Observability Service
 slug: 12-stage-orchestration
 source: local
 specDate: 2026-07-25
-status: draft
+status: completed
 version: 0.1.0
 ---
 

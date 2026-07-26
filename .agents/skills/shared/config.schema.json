@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/jpolvora/workflow-skills/spec-to-pr/config.schema.json",
-  "title": "spec-to-pr project config",
+  "$id": "https://github.com/jpolvora/workflow-skills/ws-spec-to-pr/config.schema.json",
+  "title": "ws-spec-to-pr project config",
   "type": "object",
   "additionalProperties": true,
   "required": ["project", "verification", "plans"],
@@ -105,7 +105,7 @@
         "specsDir": {
           "type": "string",
           "default": ".agents/specs",
-          "description": "Repo-relative directory for human-facing local specs (default: .agents/specs). Prefer existing repo-root specs/ when already present. Used by local-spec-provider detect/configure and optional mirrors; canonical workflow copy remains {us-dir}/step-00-{slug}.spec.md"
+          "description": "Repo-relative directory for human-facing local specs (default: .agents/specs). Prefer existing repo-root specs/ when already present. Used by ws-local-spec-provider detect/configure and optional mirrors; canonical workflow copy remains {us-dir}/step-00-{slug}.spec.md"
         },
         "worktreesDir": {
           "type": "string",

@@ -1,7 +1,7 @@
 # Config & SCM Resolution — Dual-Mode
 
 Canonical config and SCM resolution for **all** workflow skills.
-Used by `spec-to-pr`, `spec-to-pr-lite`, providers, `ws-fix-pr`, `ws-goal-fix-pr`, `ws-ship-pr`.
+Used by `ws-spec-to-pr`, `ws-spec-to-pr-lite`, providers, `ws-fix-pr`, `ws-goal-fix-pr`, `ws-ship-pr`.
 
 ---
 
@@ -15,8 +15,8 @@ Template: [`config.json.example`](config.json.example). Schema: [`config.schema.
 
 **Forbidden as primary runtime config:**
 
-- `.agents/skills/spec-to-pr/config.json`
-- `.agents/skills/spec-to-pr-lite/config.json`
+- `.agents/skills/ws-spec-to-pr/config.json`
+- `.agents/skills/ws-spec-to-pr-lite/config.json`
 
 Scripts and skills that still mention those paths are **bugs** — fix to `{sharedDir}/config.json` (expand per [tools.md](tools.md) § Path tokens; default `.agents/skills/shared/config.json`). Lite and full always share this file (dual-mode).
 
@@ -47,8 +47,8 @@ Expand before tool calls. `{skillsRoot}` / `{sharedDir}` are **fixed install lay
 
 | `providers.scm` | Skill |
 |-----------------|-------|
-| `github` | [`github-provider`](../github-provider/SKILL.md) |
-| `azure-devops` | [`azure-devops-provider`](../azure-devops-provider/SKILL.md) |
+| `github` | [`ws-github-provider`](../ws-github-provider/SKILL.md) |
+| `azure-devops` | [`ws-azure-devops-provider`](../ws-azure-devops-provider/SKILL.md) |
 
 ---
 
@@ -69,11 +69,11 @@ Standalone invokes omit these; skills may present their own gates.
 
 ## Fable integration resolution (`fable`)
 
-Optional integration block for `fable-*` skills in `spec-to-pr` / `spec-to-pr-lite` workflows.
+Optional integration block for `fable-*` skills in `ws-spec-to-pr` / `ws-spec-to-pr-lite` workflows.
 
 1. Read `fable` object from `.agents/skills/shared/config.json`.
 2. Default in fresh `config.json.example`: `enabled: true`. Default if absent in legacy config: `enabled: false` (strictly opt-in).
 3. When `fable.enabled: true`:
-   - `autoAudit` (default `true`): `ws-code-review` (Step 6) and `ws-verify-plan` (Step 5) run adversarial audit via `fable-judge`.
-   - `autoDetectDomain` (default `true`): `ws-write-plan` (Step 1) auto-detects specialized stack files and applies `fable-domain` evidence rules.
-   - `auditVerdictsBlockShip` (default `true`): `REFUTED` verdict from `fable-judge` caps verification scores and blocks `ws-ship-pr` (Step 8) PR creation until resolved via fix loop.
+   - `autoAudit` (default `true`): `ws-code-review` (Step 6) and `ws-verify-plan` (Step 5) run adversarial audit via `ws-fable-judge`.
+   - `autoDetectDomain` (default `true`): `ws-write-plan` (Step 1) auto-detects specialized stack files and applies `ws-fable-domain` evidence rules.
+   - `auditVerdictsBlockShip` (default `true`): `REFUTED` verdict from `ws-fable-judge` caps verification scores and blocks `ws-ship-pr` (Step 8) PR creation until resolved via fix loop.

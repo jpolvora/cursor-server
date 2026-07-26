@@ -4,7 +4,7 @@ title: MCP Server Configuration per Repo and Task
 slug: mcp-config
 source: local
 specDate: 2026-07-25
-status: draft
+status: completed
 version: 0.1.0
 ---
 

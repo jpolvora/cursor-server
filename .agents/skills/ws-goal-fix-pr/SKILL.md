@@ -1,7 +1,9 @@
 ---
+
+
 name: ws-goal-fix-pr
 description: Convergence loop — runs fix-pr rounds until all PR threads are resolved or the max iteration cap is reached.
-version: 0.0.82
+version: 0.0.91
 disable-model-invocation: true
 invocation_names:
   - goal-fix-pr
@@ -10,7 +12,7 @@ invocation_names:
 
 # ws-goal-fix-pr
 
-Drive PR review threads to zero by wrapping [ws-fix-pr](../ws-fix-pr/SKILL.md) in a [goal-loop](../goal-loop/SKILL.md): auto-approve cooperative gates and re-check threads after every push until `activeThreads == 0`.
+Drive PR review threads to zero by wrapping [ws-fix-pr](../ws-fix-pr/SKILL.md) in a [ws-goal-loop](../ws-goal-loop/SKILL.md): auto-approve cooperative gates and re-check threads after every push until `activeThreads == 0`.
 
 Act as a **Principal Engineer** coordinating fix iterations and driving open threads to zero. Thread-count probes and fix rounds are SCM-aware: resolve `providers.scm`, then delegate platform I/O: never hardcode a GitHub-only or ADO-only recipe here. See [examples.md](examples.md) for worked scenarios.
 
@@ -22,7 +24,7 @@ Standalone:
 /ws-goal-fix-pr <PR-NUMBER> [dry-run] [max <n>] [wait <n>]
 ```
 
-Workflow (Step 9 of spec-to-pr / Step 5 of spec-to-pr-lite): dispatched by the orchestrator after ship creates a PR (`stopBeforeFixPr: true`); receives `PR-NUMBER` and `max` from orchestrator state.
+Workflow (Step 9 of ws-spec-to-pr / Step 5 of ws-spec-to-pr-lite): dispatched by the orchestrator after ship creates a PR (`stopBeforeFixPr: true`); receives `PR-NUMBER` and `max` from orchestrator state.
 
 | Parameter | Default | Notes |
 |-----------|---------|-------|
@@ -39,8 +41,8 @@ Resolve per [config-resolution.md](../shared/config-resolution.md).
 
 | `providers.scm` | Provider skill | Intent used here |
 |-----------------|----------------|-------------------|
-| `github` | [github-provider](../github-provider/SKILL.md) | `list-threads` |
-| `azure-devops` | [azure-devops-provider](../azure-devops-provider/SKILL.md) | `list-threads` |
+| `github` | [ws-github-provider](../ws-github-provider/SKILL.md) | `list-threads` |
+| `azure-devops` | [ws-azure-devops-provider](../ws-azure-devops-provider/SKILL.md) | `list-threads` |
 
 Success criterion: `len(activeThreads) == 0` from a `list-threads` call, using the provider's normalized status: never a raw `gh pr view … jq` or ADO collect command inlined here.
 
@@ -58,7 +60,7 @@ Success criterion: `len(activeThreads) == 0` from a `list-threads` call, using t
 1. **Initialize**: restate parameters (above) and resolve `providers.scm`.
    - Done when: PR number, mode, and provider are confirmed.
 
-2. **Initial heartbeat check**: call `list-threads`. If `activeThreads == 0` on this first check, do not exit: arm the goal-loop 300s heartbeat timer, wait, and re-collect once.
+2. **Initial heartbeat check**: call `list-threads`. If `activeThreads == 0` on this first check, do not exit: arm the ws-goal-loop 300s heartbeat timer, wait, and re-collect once.
    - Done when: `activeThreads` is confirmed either still 0 (stop, converged) or > 0 (proceed to Act).
 
 3. **Act round**: dispatch [ws-fix-pr](../ws-fix-pr/SKILL.md) for `<PR-NUMBER>` with overrides active. Commit as `fix(#<PR-NUMBER>): fix issues from review threads [<threadId>, ...]`, resolve fixed threads, and `git push origin HEAD` (skip push when `dry-run`).

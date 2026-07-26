@@ -9,9 +9,11 @@ describe("tenant-resource-limits", () => {
     PORT: 3000,
     HOST: "0.0.0.0",
     REPOS_ROOT: "./repos",
+    BOARD_DB_PATH: "./data/test-board.db",
     CURSOR_MODEL: "composer-2",
     TENANT_CPU_LIMIT: 0.5,
     TENANT_MEMORY_LIMIT_MB: 512,
+    SCHEDULED_REVIEW_JOBS: false,
     TENANTS: [
       {
         id: "tenant-a",

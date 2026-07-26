@@ -1,3 +1,11 @@
+---
+id: null
+slug: 06-async-task-queue
+title: "Async Task Queue"
+source: local
+status: completed
+---
+
 # Spec: Async Task Queue (`async-task-queue`)
 
 ## Context

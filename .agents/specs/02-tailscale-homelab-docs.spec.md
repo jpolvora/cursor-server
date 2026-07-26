@@ -4,6 +4,7 @@ slug: tailscale-homelab-docs
 title: "Tailscale-oriented bind defaults and client access docs"
 source: local
 specDate: 2026-07-24
+status: completed
 ---
 
 # Specification — Tailscale-oriented bind defaults and client access docs

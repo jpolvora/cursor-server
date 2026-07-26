@@ -9,7 +9,7 @@
         "Scans config.plans.specsDir (default .agents/specs) for *.spec.md",
         "Creates state under {plansDir}/ws-multi-spec/",
         "Auto-detects spec complexity (lite vs standard workflow selection)",
-        "Dispatches at most one spec-to-pr or spec-to-pr-lite worker at a time",
+        "Dispatches at most one ws-spec-to-pr or ws-spec-to-pr-lite worker at a time",
         "Does not start implementing before selection gate completes"
       ]
     },
@@ -20,7 +20,7 @@
       "assertions": [
         "Creates state from explicit spec list without blank-list scan",
         "Runs already-implemented probe before each worker",
-        "Selects spec-to-pr-lite for simple specs and spec-to-pr for complex specs",
+        "Selects ws-spec-to-pr-lite for simple specs and ws-spec-to-pr for complex specs",
         "Pauses with user-gate on worker failure instead of silently continuing"
       ]
     },
@@ -32,6 +32,17 @@
         "Opens existing state file rather than creating a new run",
         "Skips shipped and skipped rows",
         "Offers Resume / Skip / Abort when status is failed"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "/ws-multi-spec with specs requiring PR thread convergence — verify queue does not advance while PR is open or activeThreads > 0.",
+      "expected_output": "Worker creates PR; master enforces Phase 4b convergence (runs ws-goal-fix-pr, waits for activeThreads == 0, merges PR) before dispatching next spec.",
+      "assertions": [
+        "Blocks next spec dispatch while prior spec PR is open or unmerged",
+        "Dispatches ws-goal-fix-pr thread resolution loop until activeThreads == 0",
+        "Merges PR via SCM provider (ws-ship-pr merge step) before recording terminal shipped status",
+        "Re-enters convergence gate on resume if state row contains an unmerged PR"
       ]
     }
   ]

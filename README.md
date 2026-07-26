@@ -11,7 +11,7 @@ This server is the execution layer for a remote client IDE workflow:
 - **Task delegation** — clients send prompts; the server runs Cursor agents in the appropriate local repo directory and returns run metadata and results.
 - **Scheduled jobs** — cron-driven automation for recurring work (triage, hygiene, nightly reviews).
 - **Continuous reviews** — deliver / deploy / exec review loops that keep remote clients aligned with repo state without running agents locally.
-- **Spec-driven development** — a hosted spec editor and environment where fully qualified, detailed specifications drive an implementation harness end-to-end: implement → build → test → deploy → review. The harness is pluggable — Cursor SDK agents today, with room for other runners (e.g. [OpenCode](https://opencode.ai), [Hermes Agent](https://hermes-agent.nousresearch.com)).
+- **Spec-driven development** — a hosted spec editor and environment where fully qualified, detailed specifications drive an implementation harness end-to-end: implement → build → test → review (`deploy` optional). The harness is pluggable — Cursor SDK agents today, with room for other runners (e.g. [OpenCode](https://opencode.ai), [Hermes Agent](https://hermes-agent.nousresearch.com)).
 
 Feature scope and API design are still open — see [AGENTS.md](./AGENTS.md) for architecture notes, roadmap, and conventions.
 
@@ -35,28 +35,34 @@ Example health check: `curl http://100.x.y.z:3000/health` (or your MagicDNS name
 
 ## Roadmap
 
+Living detail: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD).
+
 | Phase | Focus | Status |
 |-------|--------|--------|
 | **Homelab-ready** | Docker Compose, Tailscale docs, client auth (`SERVER_API_KEY` / `TENANTS`), repo validation | **Landed** |
-| **API depth** | Async tasks (`202` + poll), run history, SSE streaming, event gateway, scheduled review jobs | **Landed** (see caveats below) |
+| **API depth** | Async tasks (`202` + poll), run history, SSE + WebSocket streaming, event gateway, MCP merge, `spec-to-pr*` agent roles, scheduled review jobs (opt-in) | **Landed** |
 | **Spec harness** | Qualified spec schema, stage orchestration, spec editor UI, pluggable runners | **MVP landed** |
 | **Runners** | Cursor SDK (default), Hermes (`hermes`), OpenCode (`opencode`) | **Registered** — CLIs must be installed |
-| **Next** | workflow-skills `spec-to-pr*` exclusive server agent; WebSocket streaming; spec-editor aspirational UI | Open |
+| **Ops UI** | Homelab Kanban board (`32`→`34`); agent prompt widget (`35`); spec-editor aspirational UI (`36`) | **Landed** |
+| **Next** | Umbrel App Store (`38`) | Open |
 
-**Caveats (honest gaps):** Hermes/OpenCode adapters require external CLIs on PATH; health checks and CLI edge cases are still being hardened. MCP merge into live agent runs, multi-tenant isolation, task-streaming progress semantics, and scheduled-review robustness have open fix specs (`20`–`25` in `.agents/specs/`). See [AGENTS.md](./AGENTS.md) for the full remaining-gaps list.
+**Caveats (honest gaps):** Hermes/OpenCode adapters require external CLIs on PATH. Scheduled review jobs are **off by default** — set `SCHEDULED_REVIEW_JOBS=true` to register cron handlers. Inbox (not active): richer MCP diagnostics (only if new gaps). See [AGENTS.md](./AGENTS.md) and [`index.PRD`](./.agents/specs/index.PRD).
 
-The spec harness is the flagship long-term feature: authors write complete, machine-actionable specs in a served environment; the server executes them through specialized stage agents with full traceability from spec item to review outcome.
+The spec harness is the flagship long-term feature: authors write complete, machine-actionable specs in a served environment; the server executes them through specialized stage agents (`implement → build → test → review`; `deploy` optional) with full traceability from spec item to review outcome.
 
 ## Status
 
 Homelab-ready API with spec harness MVP. Implemented today:
 
 - `GET /health` — liveness
-- `GET /agents` — task role allowlist (`default`, `planner`, `implementer`, `plan+implementer`)
-- `GET /ui/spec-editor` — hosted Markdown spec editor (validate / save / Save & Run)
+- `GET /agents` — task role allowlist (`default`, `planner`, `implementer`, `plan+implementer`, `spec-to-pr`, `spec-to-pr-lite`)
+- `GET /ui/spec-editor` — hosted Markdown spec editor (AC builder, stage designer, dependency graph; validate / save / Save & Run)
+- `GET /ui/board` — Kanban ops UI (cards, lanes, Start/Pause/Finish)
+- `GET /ui/prompt` — agent prompt widget (submit / stream / query tasks)
 - `POST /tasks` — async task execution (default `async: true` → `202` + `taskId`; `async: false` for sync wait)
 - `GET /tasks`, `GET /tasks/:id` — list / fetch task history (persisted under `REPOS_ROOT`)
 - `GET /tasks/:id/stream` — SSE status and log output while a task runs
+- `GET /tasks/:id/ws` — WebSocket stream with the same `status`, `output`, and `done` events as SSE
 - `POST /events` — event gateway (Hermes/Umbrel/IDE → async task)
 - `GET /jobs` — registered cron jobs + review execution history
 - `POST /specs/validate`, `GET/PUT /repos/:repo/specs[/:file]` — qualified spec IO
@@ -64,7 +70,7 @@ Homelab-ready API with spec harness MVP. Implemented today:
 - Client auth — `SERVER_API_KEY` and/or `TENANTS` JSON; `X-API-Key` or `Authorization: Bearer` (disabled when neither is set)
 - Repo validation — exist + git working tree checks before agent start
 - Docker Compose packaging + Tailscale bind/client access docs
-- Scheduled review jobs — `pr-diff-review` and `branch-sync-check` register at startup
+- Scheduled review jobs — `pr-diff-review` and `repo-hygiene-check` when `SCHEDULED_REVIEW_JOBS=true` (default off)
 
 ## Prerequisites
 
@@ -114,7 +120,7 @@ npm run dev
 
 ### `GET /ui/spec-editor`
 
-Interactive Markdown spec editor (no auth on the page). Lists/opens specs under a repo, live-validates via `POST /specs/validate`, saves to `{repo}/.agents/specs/`, and **Save & Run** dispatches `POST /harness/runs`. When `SERVER_API_KEY` is set, enter it in the page so API calls send `X-API-Key`.
+Interactive Markdown spec editor (no auth on the page). Lists/opens specs under a repo, live-validates via `POST /specs/validate`, saves to `{repo}/.agents/specs/`, and **Save & Run** dispatches `POST /harness/runs`. Structured panels (AC builder, stage designer, dependency graph) sync bidirectionally with the Markdown source. When `SERVER_API_KEY` is set, enter it in the page so API calls send `X-API-Key`.
 
 ### `POST /tasks`
 
@@ -223,6 +229,34 @@ curl -N -H "X-API-Key: $SERVER_API_KEY" "http://localhost:3000/tasks/task_…/st
 # new EventSource(`/tasks/${taskId}/stream?apiKey=${encodeURIComponent(key)}`)
 ```
 
+### `GET /tasks/:id/ws`
+
+WebSocket alternative to SSE for task lifecycle and live output. Same auth and event semantics as `GET /tasks/:id/stream`.
+
+**URL:** `ws://<host>:<port>/tasks/<taskId>/ws` (use `wss://` when TLS terminates in front of the server).
+
+**Auth** (when `SERVER_API_KEY` or `TENANTS` are configured): `X-API-Key`, `Authorization: Bearer <key>`, or query `apiKey` / `access_token` (query form is required for browser `WebSocket`, which cannot set custom headers on the handshake).
+
+**Messages** — each WebSocket frame is JSON: `{ "event": "<name>", "data": <payload> }`
+
+| Event | Payload | When |
+|-------|---------|------|
+| `status` | `{ id, status, result?, error? }` | On connect and on status change |
+| `output` | `{ id, chunk }` | Worker lifecycle lines and agent run stream chunks |
+| `done` | `{ id, status }` | Task reaches `completed`, `failed`, or `cancelled`; server closes the socket |
+
+Example (browser):
+
+```js
+const ws = new WebSocket(
+  `ws://localhost:3000/tasks/${taskId}/ws?apiKey=${encodeURIComponent(apiKey)}`
+);
+ws.onmessage = (evt) => {
+  const { event, data } = JSON.parse(evt.data);
+  // same handlers as SSE: status | output | done
+};
+```
+
 ## Environment
 
 | Variable | Description | Default |
@@ -238,6 +272,8 @@ curl -N -H "X-API-Key: $SERVER_API_KEY" "http://localhost:3000/tasks/task_…/st
 | `HERMES_BIN` | Hermes CLI binary for `hermes` runner | `hermes` |
 | `OPENCODE_BIN` | OpenCode CLI binary for `opencode` runner | `opencode` |
 | `OPENCODE_API_KEY` | OpenCode API key (CI / agentic-code-reviewers) | — |
+| `SCHEDULED_REVIEW_JOBS` | Register `pr-diff-review` and `repo-hygiene-check` cron jobs at startup | `false` |
+| `SCHEDULED_REVIEW_RESUME_AGENT_ID` | Optional Cursor agent id for `Agent.resume` on scheduled pr-diff-review | — |
 
 ## Scripts
 

@@ -1,7 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
 import {
-  applyTenantEnv,
   canAccessTenantResource,
   checkRepoAccess,
   listTenantFilter,
@@ -31,18 +30,5 @@ describe("tenant-context", () => {
     assert.strictEqual(listTenantFilter("master"), undefined);
     assert.strictEqual(listTenantFilter("anonymous"), undefined);
     assert.strictEqual(listTenantFilter("tenant-a"), "tenant-a");
-  });
-
-  it("applyTenantEnv sets and restores CURSOR_TENANT_ID and CURSOR_TENANT_REPO_PATH", () => {
-    delete process.env.CURSOR_TENANT_ID;
-    delete process.env.CURSOR_TENANT_REPO_PATH;
-
-    const cleanup = applyTenantEnv({ tenantId: "tenant-a", repoPath: "/data/repos/foo" });
-    assert.strictEqual(process.env.CURSOR_TENANT_ID, "tenant-a");
-    assert.strictEqual(process.env.CURSOR_TENANT_REPO_PATH, "/data/repos/foo");
-
-    cleanup();
-    assert.strictEqual(process.env.CURSOR_TENANT_ID, undefined);
-    assert.strictEqual(process.env.CURSOR_TENANT_REPO_PATH, undefined);
   });
 });

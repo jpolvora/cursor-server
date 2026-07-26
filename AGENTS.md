@@ -13,6 +13,8 @@ Primary use cases (shipped; see caveats below for rough edges):
 3. **Continuous review loops** — scheduled review runner + `POST /events` gateway for Hermes/Umbrel/IDE triggers.
 4. **Spec-driven pipeline** — `GET /ui/spec-editor`, qualified spec schema, stage orchestration, and `POST /harness/runs`.
 5. **Pluggable harnesses** — runner registry with Cursor SDK (`cursor-local`, `cursor-sdk`), [Hermes Agent](https://github.com/NousResearch/hermes-agent) (`hermes`), and OpenCode (`opencode`).
+6. **Ops Kanban** — SQLite board data plane, `GET /ui/board`, Start/Pause/Finish for `spec-to-pr*`.
+7. **Agent prompt widget** — `GET /ui/prompt` (standalone + embeddable).
 
 Prefer small, reviewable increments; confirm major new roadmap items with the owner before building.
 
@@ -36,7 +38,7 @@ src/
   middleware/auth.ts    # SERVER_API_KEY / TENANTS / X-API-Key gate
   routes/
     health.ts           # GET /health
-    tasks.ts            # POST/GET /tasks; GET /tasks/:id/stream (SSE)
+    tasks.ts            # POST/GET /tasks; GET /tasks/:id/stream (SSE); GET /tasks/:id/ws (WebSocket)
     events.ts           # POST /events — event gateway
     jobs.ts             # GET /jobs — scheduler + review job history
     ui.ts               # GET /ui/spec-editor (public HTML editor)
@@ -70,10 +72,12 @@ src/
 | `planner` | Plan-only prompt (no implement) |
 | `implementer` | Implement-focused single run |
 | `plan+implementer` | Plan phase, then implement with that plan |
+| `spec-to-pr` | Drive installed `ws-spec-to-pr` / `spec-to-pr` skill in the target repo |
+| `spec-to-pr-lite` | Drive installed lite orchestrator in the target repo |
 
-List via `GET /agents`. Future workflow-skills exclusive agents (`spec-to-pr*`) are a separate Phase 2 roadmap item — do not conflate with these roles.
+List via `GET /agents`.
 
-`GET /tasks/:id/stream` emits SSE `status`, `output`, and `done` events for async tasks. Auth accepts `X-API-Key`, `Authorization: Bearer`, or query `apiKey` / `access_token` (for `EventSource`).
+`GET /tasks/:id/stream` emits SSE `status`, `output`, and `done` events for async tasks. `GET /tasks/:id/ws` provides the same events over WebSocket (JSON frames). Auth accepts `X-API-Key`, `Authorization: Bearer`, or query `apiKey` / `access_token` (query form required for browser `EventSource` / `WebSocket`).
 
 ### Runtime choice
 
@@ -153,16 +157,14 @@ New runners plug in via `runnerRegistry.register()` behind the same spec → sta
 
 ## Planned areas (remaining gaps)
 
-Treat these as design placeholders or partial implementations — confirm with the owner before expanding scope:
+Living feature map: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD). Confirm major new items with the owner before expanding scope:
 
-- **WebSocket streaming** — task output streams via SSE (`GET /tasks/:id/stream`); WebSocket not implemented
-- **MCP wiring polish** — `mcp-config.ts` merges global/repo/task overrides; end-to-end merge into agent runs may have gaps (see `23-fix-mcp-merge-wiring`)
-- **Multi-tenant hardening** — `TENANTS` JSON + per-tenant `allowedRepos` scoping exists; stronger isolation if multiple clients share one host is partial (see `22-fix-multi-tenant-isolation`)
-- **Scheduled review robustness** — default cron jobs register at startup; operational edge cases tracked in `25-fix-scheduled-review-jobs`
-- **Task streaming progress** — SSE status/output events exist; richer progress semantics tracked in `24-fix-task-streaming-progress`
-- **Spec editor aspirational UI** — AC builder, dependency graph, stage designer beyond MVP Markdown editor
-- **Umbrel App Store manifest** — Compose path documented; store listing not built
-- **workflow-skills `spec-to-pr*` exclusive agents** — installed skills present; dedicated server agent profile for driving orchestrators end-to-end is a separate Phase 2 item
+- **WebSocket streaming** — alongside SSE (`37-websocket-streaming`) — **Landed**
+- **Umbrel App Store manifest** — store listing on existing Compose path (`38-umbrel-app-store`)
+
+Inbox (not scheduled): richer MCP diagnostics beyond fix-23 (only if new gaps appear).
+
+Shipped recently (do not re-open as gaps): spec-editor aspirational UI (`36` — AC builder, dependency graph, stage designer), Kanban board (`32`–`34`), agent prompt widget (`35`), scheduled review jobs (`25` — hygiene scan, `SCHEDULED_REVIEW_JOBS` gate, `Agent.resume`), MCP merge (`23`), multi-tenant ACL (`22`), SSE progress/auth (`24`), Hermes CLI/health (`20`), OpenCode stream/git (`21`), harness default stages (`26`), frontmatter stages (`27`), `spec-to-pr*` agent roles (`05`).
 
 ## Testing changes
 
@@ -178,7 +180,7 @@ For task endpoints, a real `CURSOR_API_KEY` and a clone under `repos/` are requi
 
 - Do not switch to cloud runtime without an explicit requirement (this server is local-first / homelab-first).
 - Do not add large frameworks or ORMs for the initial API surface.
-- Do not expand remaining roadmap gaps (Umbrel App Store manifest, aspirational spec-editor UI, WebSocket streaming, workflow-skills exclusive agents) without explicit owner go-ahead — but **do** keep README/AGENTS roadmap sections updated when shipped code or vision changes.
+- Do not expand beyond Next specs / Inbox without explicit owner go-ahead — but **do** keep README/AGENTS/`index.PRD` updated when shipped code or vision changes. Prefer `/ws-spec-index` for feature-map edits.
 
 ---
 
@@ -200,11 +202,16 @@ This repo consumes the **full** package. Skills live under `.agents/skills/`. Do
 
 ### How to use
 
+**Portable contract:** this root `AGENTS.md` is the single source of truth for skill autoload and completion gates. It applies to any agent host that reads project instructions (Cursor, OpenCode, Antigravity, VS Code Copilot, Claude Code, Codex, etc.). Do **not** rely on IDE-vendor rule folders (e.g. `.cursor/rules`) for these gates.
+
 1. Load the shared hub first for routing: [`.agents/skills/shared/AGENTS.md`](.agents/skills/shared/AGENTS.md).
-2. Autoload Layer 0 from the hub (`caveman`, `gabarito`, `karpathy-guidelines`, plus `changelog` / `self-learning` on completion).
-3. Invoke orchestrators by intent: `/spec-to-pr`, `/spec-to-pr-lite`, `/fable-method`, `/configure-project`, `/check-harness`, `/ship-pr`, `/fix-pr`, etc.
-4. Expand path tokens (`{skillsRoot}`, `{sharedDir}`, `{plansDir}`) from `config.json` per `shared/tools.md` before file ops.
-5. Never invent alternate pipeline folder ids; dispatch steps via the orchestrator (`00`–`09`, `goal-fix-pr`, `update-plan-implementation`).
+2. **Autoload every prompt (Layer 0):** `caveman`, `gabarito`, `karpathy-guidelines` from the hub (paths under `.agents/skills/`).
+3. **Autoload after implementation / vibe-coding turns:** [`ws-sync-spec`](.agents/skills/ws-sync-spec/SKILL.md) — keep matching `.agents/specs/*.spec.md` aligned with code; propose updates and **wait for approval** before writing. If no matching spec, report and continue.
+4. Invoke orchestrators by intent: `/spec-to-pr`, `/spec-to-pr-lite`, `/fable-method`, `/configure-project`, `/check-harness`, `/ship-pr`, `/fix-pr`, etc.
+5. Expand path tokens (`{skillsRoot}`, `{sharedDir}`, `{plansDir}`) from `config.json` per `shared/tools.md` before file ops.
+6. Never invent alternate pipeline folder ids; dispatch steps via the orchestrator (`00`–`09`, `goal-fix-pr`, `update-plan-implementation`).
+7. **Mandatory completion gate (every task ready):** `ws-sync-spec` → `self-learning` → `changelog`.
+8. **On-demand only (not every vibe turn):** [`ws-spec-index`](.agents/skills/ws-spec-index/SKILL.md) for ship/delivery (`sync`), Inbox → planned (`promote`), or index bootstrap (`init`). Use when editing `index.PRD` / README Roadmap / AGENTS Planned areas — not for AC content drift (that is `ws-sync-spec`).
 
 ### Install / update / uninstall
 
@@ -272,8 +279,8 @@ Task endpoint smoke requires `CURSOR_API_KEY` and a clone under `repos/`. For **
 
 ## Precedence
 
-1. User explicit instructions (this file, direct requests)
-2. [Shared hub](.agents/skills/shared/AGENTS.md) + invoked skills
+1. User explicit instructions (this root `AGENTS.md`, direct requests) — portable across agent hosts; do not require IDE-specific rule files
+2. [Shared hub](.agents/skills/shared/AGENTS.md) + invoked skills under `.agents/skills/`
 3. Default agent behavior
 
 Karpathy wins on diff size; project architecture / `senior-developer` (when configured) wins on structure.

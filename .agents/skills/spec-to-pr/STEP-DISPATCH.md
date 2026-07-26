@@ -61,6 +61,7 @@ Telemetry/`--elapsed` still required under `autoMode`/`fullMode` (State Hygiene 
 G2-delivery stages plan (refined if present) + `step-08-{slug}.result.md` only.
 
 Dispatch `ws-ship-pr` with `workflowMode: true`, `shipAction`, `stopBeforeFixPr: true` — **no goal-fix loop inside ship**; orch Advance to 9 when PR created.
+After delivery commit / PR creation, auto-run [`ws-spec-index`](../ws-spec-index/SKILL.md) `sync` with `{slug}` and `shipEvidence`.
 
 ### Step 9 — Fix-PR
 

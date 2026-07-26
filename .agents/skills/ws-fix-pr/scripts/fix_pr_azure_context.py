@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Thin shim — forwards to azure-devops-provider canonical script."""
+"""Thin shim — forwards to ws-azure-devops-provider canonical script."""
 from __future__ import annotations
 
 import runpy
@@ -8,7 +8,7 @@ from pathlib import Path
 
 _TARGET = (
     Path(__file__).resolve().parents[2]
-    / "azure-devops-provider"
+    / "ws-azure-devops-provider"
     / "scripts"
     / "fix_pr_azure_context.py"
 )

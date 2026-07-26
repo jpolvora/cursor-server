@@ -43,6 +43,10 @@ export const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   HOST: z.string().default("0.0.0.0"),
   REPOS_ROOT: z.string().default("./repos"),
+  /** SQLite database path for the Kanban board data plane. */
+  BOARD_DB_PATH: z.string().default("./data/board.db"),
+  /** Optional directory for secret_ref file lookups (env vars checked first). */
+  SECRETS_DIR: z.string().optional(),
   CURSOR_MODEL: z.string().default("composer-2"),
   SERVER_API_KEY: z.string().optional(),
   MCP_CONFIG_PATH: z.string().optional(),
@@ -50,6 +54,12 @@ export const envSchema = z.object({
   TENANT_CPU_LIMIT: z.coerce.number().positive().optional(),
   /** Default memory limit for tenant agent runs (MB). Overridable per tenant in TENANTS JSON. */
   TENANT_MEMORY_LIMIT_MB: z.coerce.number().positive().optional(),
+  /** When true, register pr-diff-review and repo-hygiene-check cron jobs at startup. Default off. */
+  SCHEDULED_REVIEW_JOBS: z
+    .preprocess((val) => val === true || val === "true" || val === "1", z.boolean())
+    .default(false),
+  /** Optional agent id for Agent.resume on scheduled pr-diff-review runs. */
+  SCHEDULED_REVIEW_RESUME_AGENT_ID: z.string().min(1).optional(),
 });
 
 export type Config = z.infer<typeof envSchema> & { TENANTS: TenantConfig[] };

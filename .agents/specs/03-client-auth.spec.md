@@ -1,3 +1,11 @@
+---
+id: null
+slug: 03-client-auth
+title: "Client Authentication"
+source: local
+status: completed
+---
+
 # Spec: Client Authentication (`client-auth`)
 
 ## Context

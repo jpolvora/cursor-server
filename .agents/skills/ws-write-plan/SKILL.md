@@ -1,7 +1,9 @@
 ---
+
+
 name: ws-write-plan
 description: Generates the implementation plan (step-01-{slug}.plan.md) from the specification.
-version: 0.0.82
+version: 0.0.91
 disable-model-invocation: true
 invocation_names:
   - write-plan
@@ -24,7 +26,7 @@ Standalone:
 /write-plan <spec-input> [slug=<slug>] [output-dir=<path>]
 ```
 
-Workflow (spec-to-pr Step 1): orchestrator passes `specInput` (path to `step-00-*.spec.md`, GitHub issue id, or Azure DevOps id) from state.
+Workflow (ws-spec-to-pr Step 1): orchestrator passes `specInput` (path to `step-00-*.spec.md`, GitHub issue id, or Azure DevOps id) from state.
 
 | Parameter | Default | Notes |
 |-----------|---------|-------|
@@ -35,7 +37,7 @@ Workflow (spec-to-pr Step 1): orchestrator passes `specInput` (path to `step-00-
 ## Steps
 
 1. **Load spec and stack context** — Read the spec input and `config.json` layers/invariants.
-   - Optional `fable` integration: If `config.json.fable.enabled` and `autoDetectDomain` are `true`, check for domain signals (IaC `*.tf`, K8s `*.yaml`, Docker, DB migrations, Data scripts). If matched, consult [`fable-domain`](../fable-domain/SKILL.md) to append binding primary sources & observation rules into section 2/6.
+   - Optional `fable` integration: If `config.json.fable.enabled` and `autoDetectDomain` are `true`, check for domain signals (IaC `*.tf`, K8s `*.yaml`, Docker, DB migrations, Data scripts). If matched, consult [`ws-fable-domain`](../ws-fable-domain/SKILL.md) to append binding primary sources & observation rules into section 2/6.
    - Done when: stack (layers, db/ORM, frontend framework) is identified, or the step stops to ask for clarification when undetectable.
 
 2. **Draft plan** — Write `{us-dir}/step-01-{slug}.plan.md` following the template below.

@@ -1,6 +1,6 @@
 {
   "$schema": "./config.schema.json",
-  "_comment": "Fresh install seeds this file as config.json (gitignored — never commit). Fill via configure-project. toolsFile points to the tool vocabulary all agents use.",
+  "_comment": "Fresh install seeds this file as config.json (gitignored — never commit). Fill via ws-configure-project. toolsFile points to the tool vocabulary all agents use.",
   "toolsFile": "tools.md",
 
   "pathTokens": {
@@ -86,7 +86,7 @@
       "owner": "<GITHUB_ORG>",
       "repo": "<GITHUB_REPO>",
       "cli": "gh",
-      "issueToSpecScript": ".agents/skills/github-provider/scripts/github-issue-to-spec.py"
+      "issueToSpecScript": ".agents/skills/ws-github-provider/scripts/github-issue-to-spec.py"
     },
     "azureDevOps": {
       "enabled": false,
@@ -95,7 +95,7 @@
       "project": "",
       "patEnvVar": "ADO_PAT",
       "apiBase": "https://dev.azure.com",
-      "workItemToSpecScript": ".agents/skills/azure-devops-provider/scripts/ado-workitem-to-spec.py"
+      "workItemToSpecScript": ".agents/skills/ws-azure-devops-provider/scripts/ado-workitem-to-spec.py"
     }
   },
 
@@ -142,7 +142,7 @@
     "_comment": "Guardrails paths. Resolve per shared/AGENTS.md External dependencies (first match). seniorDeveloper = Code review proof checklist source; karpathyGuidelines = surgical-change skill; stackFile = stack companion; changelogFile = append-only history (default under shared/); other keys optional consumer rule paths — leave empty when unused.",
     "harness": ".agents/skills/shared/AGENTS.md",
     "seniorDeveloper": "",
-    "karpathyGuidelines": ".agents/skills/karpathy-guidelines/SKILL.md",
+    "karpathyGuidelines": ".agents/skills/ws-karpathy-guidelines/SKILL.md",
     "viewPatterns": "",
     "efMigrations": "",
     "stackFile": ".agents/skills/shared/STACK.md",
@@ -159,7 +159,7 @@
   },
 
   "fable": {
-    "_comment": "Opt-in integration for fable-* skills within spec-to-pr / spec-to-pr-lite workflows. Master toggle must be true to enable automatic calls.",
+    "_comment": "Opt-in integration for fable-* skills within ws-spec-to-pr / ws-spec-to-pr-lite workflows. Master toggle must be true to enable automatic calls.",
     "enabled": true,
     "autoAudit": true,
     "autoDetectDomain": true,
