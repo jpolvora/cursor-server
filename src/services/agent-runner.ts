@@ -1,4 +1,4 @@
-import { Agent, CursorAgentError, type Run, type SDKMessage } from "@cursor/sdk";
+import { Agent, CursorAgentError, type Run } from "@cursor/sdk";
 import type { AgentId } from "../agents.js";
 import type { Config } from "../config.js";
 import type { McpServers } from "./mcp-config.js";
