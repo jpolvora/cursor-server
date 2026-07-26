@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { AgentId } from "../agents.js";
 import type { RunTaskResult } from "./agent-runner.js";
+import type { McpServers } from "./mcp-config.js";
 
 export type TaskSource = "ide" | "hermes" | "umbrel" | "api";
 export type TaskStatus = "queued" | "running" | "completed" | "failed" | "cancelled";
@@ -24,6 +25,7 @@ export interface TaskRecord {
   result?: RunTaskResult;
   error?: string;
   webhookUrl?: string;
+  mcpServers?: McpServers;
 }
 
 export interface CreateTaskOptions {
@@ -35,6 +37,7 @@ export interface CreateTaskOptions {
   model: string;
   source?: TaskSource;
   webhookUrl?: string;
+  mcpServers?: McpServers;
 }
 
 class TaskStore {
@@ -92,6 +95,7 @@ class TaskStore {
       status: "queued",
       createdAt: new Date().toISOString(),
       webhookUrl: options.webhookUrl,
+      mcpServers: options.mcpServers,
     };
 
     this.tasks.set(id, record);

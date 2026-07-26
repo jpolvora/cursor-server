@@ -49,6 +49,7 @@ export function processTaskInBackground(config: Config, taskId: string): void {
         model: task.model,
         agent: task.agent,
         tenantId: task.tenantId,
+        mcpServers: task.mcpServers,
       });
 
       const endTime = Date.now();

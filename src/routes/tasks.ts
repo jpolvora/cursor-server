@@ -7,6 +7,20 @@ import { runTask } from "../services/agent-runner.js";
 import { validateRepoPath } from "../services/repo-validator.js";
 import { taskStore } from "../services/task-store.js";
 import { processTaskInBackground } from "../services/task-worker.js";
+import type { McpServers } from "../services/mcp-config.js";
+
+const mcpServerSchema = z.record(
+  z.string(),
+  z.object({
+    command: z.string().optional(),
+    args: z.array(z.string()).optional(),
+    env: z.record(z.string()).optional(),
+    url: z.string().optional(),
+    headers: z.record(z.string()).optional(),
+    type: z.string().optional(),
+    cwd: z.string().optional(),
+  }),
+);
 
 const createTaskSchema = z.object({
   prompt: z.string().min(1).max(100_000),
@@ -17,6 +31,8 @@ const createTaskSchema = z.object({
   async: z.boolean().optional().default(true),
   source: z.enum(["ide", "hermes", "umbrel", "api"]).optional().default("api"),
   webhookUrl: z.string().url().optional(),
+  /** MCP server overrides per task */
+  mcpServers: mcpServerSchema.optional(),
 });
 
 export function createTaskRoutes(config: Config) {
@@ -154,6 +170,7 @@ export function createTaskRoutes(config: Config) {
       model,
       source: parsed.data.source,
       webhookUrl: parsed.data.webhookUrl,
+      mcpServers: parsed.data.mcpServers as McpServers | undefined,
     });
 
     if (parsed.data.async === false) {
@@ -174,6 +191,7 @@ export function createTaskRoutes(config: Config) {
           agent,
           tenantId,
           allowedRepos,
+          mcpServers: parsed.data.mcpServers as McpServers | undefined,
         });
 
         const endTime = Date.now();

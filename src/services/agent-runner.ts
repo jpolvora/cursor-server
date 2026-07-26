@@ -1,6 +1,7 @@
 import { Agent, CursorAgentError } from "@cursor/sdk";
 import type { AgentId } from "../agents.js";
 import type { Config } from "../config.js";
+import type { McpServers } from "./mcp-config.js";
 
 export type RunTaskInput = {
   prompt: string;
@@ -9,6 +10,7 @@ export type RunTaskInput = {
   agent: AgentId;
   tenantId?: string;
   allowedRepos?: string[];
+  mcpServers?: McpServers;
 };
 
 export type RunPhaseResult = {
@@ -121,18 +123,24 @@ function applyTenantEnv(input: { tenantId?: string; repoPath: string }) {
 
 async function runAgentPhase(
   _config: Config,
-  input: { prompt: string; repoPath: string; model: string; tenantId?: string; allowedRepos?: string[] },
+  input: { prompt: string; repoPath: string; model: string; tenantId?: string; allowedRepos?: string[]; mcpServers?: McpServers },
 ): Promise<RunPhaseResult> {
   applyTenantEnv(input);
 
-  const agent = await Agent.create({
+  const agentOptions: Parameters<typeof Agent.create>[0] = {
     apiKey: _config.CURSOR_API_KEY,
     model: { id: input.model },
     local: {
       cwd: input.repoPath,
       settingSources: [],
     },
-  });
+  };
+
+  if (input.mcpServers && Object.keys(input.mcpServers).length > 0) {
+    agentOptions.mcpServers = input.mcpServers as Record<string, import("@cursor/sdk").McpServerConfig>;
+  }
+
+  const agent = await Agent.create(agentOptions);
 
   try {
     const run = await agent.send(input.prompt);
@@ -169,6 +177,7 @@ export async function runTask(
       prompt: promptForAgent("planner", input.prompt),
       repoPath: input.repoPath,
       model,
+      mcpServers: input.mcpServers,
     });
 
     if (plan.status === "error") {
@@ -191,6 +200,7 @@ export async function runTask(
       prompt: promptForAgent("plan+implementer", input.prompt, plan.result),
       repoPath: input.repoPath,
       model,
+      mcpServers: input.mcpServers,
     });
 
     return {
@@ -207,6 +217,7 @@ export async function runTask(
     prompt: promptForAgent(agent, input.prompt),
     repoPath: input.repoPath,
     model,
+    mcpServers: input.mcpServers,
   });
 
   return {

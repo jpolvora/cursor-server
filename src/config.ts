@@ -28,6 +28,7 @@ export const envSchema = z.object({
   REPOS_ROOT: z.string().default("./repos"),
   CURSOR_MODEL: z.string().default("composer-2"),
   SERVER_API_KEY: z.string().optional(),
+  MCP_CONFIG_PATH: z.string().optional(),
 });
 
 export type Config = z.infer<typeof envSchema> & { TENANTS: TenantConfig[] };
