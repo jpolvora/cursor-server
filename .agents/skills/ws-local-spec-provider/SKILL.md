@@ -1,13 +1,16 @@
 ---
 
 
+
+
+
 name: ws-local-spec-provider
 description: >
   Local markdown spec provider for ws-spec-to-pr — detect/configure specsDir, register/normalize/mirror
   hand-written *.spec.md into canonical step-00 artifacts (source: local). PR intents delegate to
   providers.scm. Use when /ws-local-spec-provider, active provider is local, or registering a local
   *.spec.md path.
-version: 0.0.91
+version: 0.0.96
 disable-model-invocation: true
 ---
 

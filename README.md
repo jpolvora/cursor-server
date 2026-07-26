@@ -299,7 +299,7 @@ This repo consumes [jpolvora/agentic-code-reviewers](https://github.com/jpolvora
 |--------|--------------|-------|
 | `OPENCODE_API_KEY` | review | OpenCode Go; `run.sh` installs CLI + writes `auth.json` in CI |
 
-Thread helpers: [`.agents/skills/ws-fix-pr/`](.agents/skills/ws-fix-pr/) and [`github-provider/scripts/`](.agents/skills/github-provider/scripts/) (e.g. `fetch_threads.cjs`). Upstream docs: [workflows.md](https://github.com/jpolvora/agentic-code-reviewers/blob/main/docs/workflows.md).
+Thread helpers: [`.agents/skills/ws-fix-pr/`](.agents/skills/ws-fix-pr/) and [`ws-github-provider/scripts/`](.agents/skills/ws-github-provider/scripts/) (e.g. `fetch_threads.cjs`). Upstream docs: [workflows.md](https://github.com/jpolvora/agentic-code-reviewers/blob/main/docs/workflows.md).
 
 Local dry-run:
 

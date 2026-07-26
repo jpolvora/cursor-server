@@ -1,12 +1,15 @@
 ---
 
 
+
+
+
 name: ws-write-a-skill
 description: >
   Creates, edits, or audits agent skills for predictability — structure, progressive disclosure,
   descriptions, and pruning. Use when the user wants to create, write, build, rewrite, or optimize
   a skill, or mentions skill authoring.
-version: 0.0.91
+version: 0.0.96
 invocation_names:
   - ws-write-a-skill
 ---

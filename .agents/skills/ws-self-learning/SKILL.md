@@ -1,8 +1,11 @@
 ---
 
 
+
+
+
 name: ws-self-learning
-version: 0.0.91
+version: 0.0.96
 description: >
   Consult anti-regression MEMORY before planning or writing code, and record new traps
   into the shared memory hub after implementation. Use at session/task start (read)

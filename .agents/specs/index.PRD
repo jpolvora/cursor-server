@@ -172,9 +172,9 @@ Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 | 2026-07-26 | `34-board-execution-control` | Start/Pause/Resume/Finish | #25 |
 | 2026-07-26 | `35-agent-prompt-widget` | Agent prompt widget `/ui/prompt` | #26 |
 | 2026-07-26 | `36-spec-editor-aspirational-ui` | AC builder, dependency graph, stage designer | #27 |
-| 2026-07-26 | `37-websocket-streaming` | WebSocket task streaming alongside SSE | develop |
-| 2026-07-26 | `38-umbrel-app-store` | Umbrel App Store manifest `deploy/umbrel/` | TBD |
-| 2026-07-26 | `39-board-projects-management` | Board projects CRUD (dashboard Projects pane) | develop |
+| 2026-07-26 | `37-websocket-streaming` | WebSocket task streaming alongside SSE | #28 |
+| 2026-07-26 | `38-umbrel-app-store` | Umbrel App Store manifest `deploy/umbrel/` | #29 |
+| 2026-07-26 | `39-board-projects-management` | Board projects CRUD (dashboard Projects pane) | #33 |
 | 2026-07-26 | `40-main-page-dashboard` | Root ops dashboard shell `GET /` + `/settings` | #32 |
 
 ## 11. Maintenance checklist

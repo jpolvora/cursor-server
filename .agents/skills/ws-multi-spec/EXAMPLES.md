@@ -6,7 +6,7 @@
 /ws-multi-spec
 ```
 
-Scans `.agents/specs/**/*.spec.md`, prompts the user with a multi-select gate, creates `{plansDir}/ws-multi-spec/ms-20260725T220000Z.state.md`, evaluates each spec's complexity (lite vs standard), and dispatches workers sequentially.
+Scans `.agents/specs/**/*.spec.md`, prompts the user with a multi-select gate, creates `{plansDir}/ws-multi-spec/ms-20260725T220000Z.state.md` with auto-detected `baseBranch: develop`, syncs feature branches with `baseBranch` before worker dispatch, evaluates each spec's complexity (lite vs standard), and dispatches workers sequentially.
 
 ## 2. Explicit Spec List
 
@@ -14,7 +14,7 @@ Scans `.agents/specs/**/*.spec.md`, prompts the user with a multi-select gate, c
 /ws-multi-spec .agents/specs/13-runner.spec.md .agents/specs/14-editor.spec.md
 ```
 
-Initializes run queue with specified spec paths, auto-detects optimal flow (`lite` or `standard` per spec), and processes them sequentially.
+Initializes run queue with specified spec paths, records `baseBranch`, auto-detects optimal flow (`lite` or `standard` per spec), syncs feature branches with `baseBranch`, and processes them sequentially.
 
 ## 3. Resume Existing Run
 
@@ -22,7 +22,7 @@ Initializes run queue with specified spec paths, auto-detects optimal flow (`lit
 /ws-multi-spec .agents/plans/ws-multi-spec/ms-20260725T220000Z.state.md
 ```
 
-Loads existing state file and resumes from the first pending or failed item without re-running shipped items.
+Loads existing state file, reads recorded `baseBranch`, syncs feature branch for the next spec with `baseBranch` (`git merge {baseBranch}` or `git rebase {baseBranch}`), and resumes from the first pending or failed item without re-running shipped items.
 
 ## 4. Failure Recovery Gate
 
@@ -30,7 +30,7 @@ When a worker fails:
 ```text
 Worker for '14-editor' [flowMode: standard] failed.
 Options:
-1. Resume (Recommended) — Retry worker for 14-editor
+1. Resume (Recommended) — Re-sync feature branch with baseBranch and retry worker for 14-editor
 2. Skip — Mark skipped and continue to next spec
 3. Abort run — Pause execution and exit
 ```

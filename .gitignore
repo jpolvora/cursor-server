@@ -16,3 +16,7 @@ coverage/
 .agents/skills/shared/skill-integrity-local.json
 
 data/*.db
+
+# Runtime clones under REPOS_ROOT (keep placeholder only)
+repos/*
+!repos/.gitkeep

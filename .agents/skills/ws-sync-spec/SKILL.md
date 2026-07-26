@@ -1,11 +1,14 @@
 ---
 
 
+
+
+
 name: ws-sync-spec
 description: >
   Finds and auto-updates feature specs after prompt-driven code changes, bug fixes, or task completion to prevent spec drift.
   Use when feature business logic, views, controllers, API signatures, or acceptance criteria have evolved and existing specs must stay in sync with implemented code.
-version: 0.0.91
+version: 0.0.96
 invocation_names:
   - sync-spec
   - ws-sync-spec

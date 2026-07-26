@@ -73,8 +73,8 @@ function buildImplementPrompt(userPrompt: string, planText?: string): string {
 
 function buildSpecToPrPrompt(userPrompt: string, lite: boolean = false): string {
   const skillPath = lite
-    ? ".agents/skills/spec-to-pr-lite/SKILL.md"
-    : ".agents/skills/spec-to-pr/SKILL.md";
+    ? ".agents/skills/ws-spec-to-pr-lite/SKILL.md"
+    : ".agents/skills/ws-spec-to-pr/SKILL.md";
   const flowName = lite ? "Spec-to-PR Lite" : "Spec-to-PR";
 
   return [

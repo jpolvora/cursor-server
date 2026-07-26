@@ -1,0 +1,92 @@
+{
+  "execMode": "parallel",
+  "reason": "5 implementable steps, 7+ expected files, 2 layers — exceeds dagThresholds (maxImplementationSteps: 3, maxExpectedFiles: 6); L0 has three independent file sets",
+  "planPath": ".agents/plans/39-board-projects-management/step-02-39-board-projects-management.plan.refined.md",
+  "metrics": {
+    "implementationSteps": 5,
+    "expectedFiles": 7,
+    "layers": 2,
+    "thresholds": {
+      "maxImplementationSteps": 3,
+      "maxExpectedFiles": 6,
+      "maxLayers": 2
+    }
+  },
+  "targetModel": "coder",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Soft-block countCardsByRepo helper",
+      "parallelGroup": "L0",
+      "dependsOn": [],
+      "files": ["src/services/board-db.ts"],
+      "acceptance": "BoardDatabase.countCardsByRepo(repoId) returns SQL COUNT(*) of cards for repo_id; 0 when none. No route/UI changes.",
+      "coderPrompt": "In src/services/board-db.ts, add countCardsByRepo(repoId: number): number on BoardDatabase using SELECT COUNT(*) FROM cards WHERE repo_id = ? (not listCards().length). Return integer 0 when none. No route/UI/docs changes. No new table. No commit. Do not stage .agents/plans/. Maps plan Step 1 DB half / AC1 AC6 foundation."
+    },
+    {
+      "id": "T2",
+      "title": "Soft-block DELETE before cleanupClone",
+      "parallelGroup": "L1",
+      "dependsOn": ["T1"],
+      "files": ["src/routes/board.ts"],
+      "acceptance": "DELETE /board/repos/:id returns 409 { error: \"Cannot delete repository: N card(s) still reference it\" } when card count > 0, before cleanupClone/deleteRepo; empty repo still 200 { ok: true } after cleanup+delete; secret_ref-only responses unchanged.",
+      "coderPrompt": "In DELETE /board/repos/:id (src/routes/board.ts), after parse/getRepo/tenant checks: n = boardDb.countCardsByRepo(id); if n > 0 return 409 { error: \"Cannot delete repository: N card(s) still reference it\" } BEFORE cleanupClone / deleteRepo. Empty repo: keep cleanup + delete → 200 { ok: true }. Do not reorder check after cleanup. Keep repoResponse secret_ref-only. Thin route; no dashboard/UI edits. No commit. Maps plan Step 1 API / AC1 AC6. Depends on T1."
+    },
+    {
+      "id": "T3",
+      "title": "Board delete 409 + regression tests",
+      "parallelGroup": "L2",
+      "dependsOn": ["T2"],
+      "files": ["src/routes/board.test.ts"],
+      "acceptance": "board.test.ts: create repo+card → DELETE → 409 locked message, repo+cards remain; after card delete → DELETE → 200; existing CRUD/401/secret_ref asserts still pass; short API-key stubs only.",
+      "coderPrompt": "Extend src/routes/board.test.ts: (1) create repo + card → DELETE → 409 with locked error shape; list still has repo; cards remain; (2) delete card then DELETE → 200 { ok: true }. Keep existing CRUD / 401 / secret_ref non-leak asserts. Config stubs: CURSOR_API_KEY: \"test-key\" or \"fake-board-key\" (MEMORY scan-secrets). No product code beyond test. No commit. Maps plan Step 2 / AC1 AC6 AC7. Depends on T2."
+    },
+    {
+      "id": "T4",
+      "title": "Dashboard Projects CRUD modals",
+      "parallelGroup": "L0",
+      "dependsOn": [],
+      "files": ["src/routes/dashboard-page.ts"],
+      "acceptance": "Projects pane has #btn-project-new, #project-modal (name/remote_url/secret_ref), #project-delete-modal confirm dialog; stub/39 placeholder gone; POST/PUT/DELETE via /board/repos; Cancel discards; 409 shows body.error without navigation.",
+      "coderPrompt": "In src/routes/dashboard-page.ts, replace Projects stub / lands-in-39 copy with CRUD UX over /board/repos (response key repos; UI labels Projects). Add toolbar #btn-project-new; list rows with name, remote summary, Edit/Delete (data-id); create/edit modal #project-modal (role=dialog) fields name, remote_url, secret_ref only (no local_path); delete confirm #project-delete-modal (dedicated dialog, not window.confirm). Wire POST create, PUT update, DELETE with confirm; success → loadProjects(); 400/409 → show body.error without navigation; Cancel discards form. Keep escapeHtml, API-key sessionStorage, CSS tokens (--accent #3d8bfd; no purple-gradient). No ensure-clone/cleanup-clone buttons. No /board/projects aliases. No edits to board.ts or ui.ts. No commit. Maps plan Step 3 / AC3–AC6."
+    },
+    {
+      "id": "T5",
+      "title": "Dashboard UI marker tests",
+      "parallelGroup": "L1",
+      "dependsOn": ["T4"],
+      "files": ["src/routes/dashboard.test.ts"],
+      "acceptance": "dashboard.test.ts asserts btn-project-new, project-modal, delete-confirm marker; stub slug / lands-in-39 absent; GET / still 200 HTML.",
+      "coderPrompt": "Update src/routes/dashboard.test.ts: assert Projects pane has btn-project-new, project-modal, delete-confirm affordance (project-delete-modal or equivalent); assert stub slug / lands-in-39 string absent; keep GET / 200 HTML + existing shell markers; /ui/board still 200 if already asserted. No browser MCP. Short API-key stubs only. No product edits beyond test expectations. No commit. Maps plan Step 4 / AC4–AC7. Depends on T4."
+    },
+    {
+      "id": "T6",
+      "title": "Board header projects link",
+      "parallelGroup": "L0",
+      "dependsOn": [],
+      "files": ["src/routes/ui.ts", "src/routes/ui.test.ts"],
+      "acceptance": "/ui/board header.sub includes link to /#projects; ui.test.ts asserts href when cheap; no Kanban CRUD.",
+      "coderPrompt": "In src/routes/ui.ts board header .sub, add thin link <a href=\"/#projects\">projects</a> beside prompt / spec-editor. No Kanban CRUD. Extend src/routes/ui.test.ts to assert /#projects (or projects href) in board HTML if assertions exist / are cheap. Do not edit dashboard-page or board API. No commit. Maps plan Step 5 / AC4."
+    },
+    {
+      "id": "T7",
+      "title": "Docs status sync + verify gate",
+      "parallelGroup": "L3",
+      "dependsOn": ["T2", "T3", "T4", "T5", "T6"],
+      "files": [
+        "README.md",
+        "AGENTS.md",
+        ".agents/specs/index.PRD",
+        ".agents/specs/39-board-projects-management.spec.md"
+      ],
+      "acceptance": "README/AGENTS/index.PRD no longer claim Projects stub / 39 next; spec status updated; npm run typecheck, build, scan-secrets, and npm test pass; no OOS src churn; plansDir not staged.",
+      "coderPrompt": "Same turn as feature landing (MEMORY status-doc sync): remove Projects stub until 39 / next is 39 contradictions from README.md and AGENTS.md; move 39 Next→Done in .agents/specs/index.PRD; set human spec status to shipped/implemented. Run npm run typecheck, npm run build, npm run scan-secrets, npm test. Diff audit: no OOS src/ (MEMORY docs-implement scope-creep). Do not stage .agents/plans/. No commit unless orch/ship requests. Maps plan Steps 6–7 / AC7. Depends on T2–T6."
+    }
+  ],
+  "levels": [
+    ["T1", "T4", "T6"],
+    ["T2", "T5"],
+    ["T3"],
+    ["T7"]
+  ]
+}
