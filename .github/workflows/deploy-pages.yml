@@ -23,14 +23,14 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0
 
-      - name: Confirm release was created from main
+      - name: Confirm release was created from master
         shell: bash
         run: |
           set -euo pipefail
-          git fetch --no-tags origin main
+          git fetch --no-tags origin master
           release_commit="$(git rev-list -n 1 "${{ github.event.release.tag_name }}")"
-          if ! git merge-base --is-ancestor "$release_commit" origin/main; then
-            echo "::error::Release tag ${{ github.event.release.tag_name }} is not reachable from main."
+          if ! git merge-base --is-ancestor "$release_commit" origin/master; then
+            echo "::error::Release tag ${{ github.event.release.tag_name }} is not reachable from master."
             exit 1
           fi
 

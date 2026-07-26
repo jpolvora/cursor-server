@@ -295,7 +295,7 @@ rebuild its deployment output in `dist/pages/`; run `npm run test:pages` to veri
 output locally.
 
 The [Pages deployment workflow](./.github/workflows/deploy-pages.yml) runs when a GitHub
-Release is published. It checks that the release tag commit is reachable from `main`, runs
+Release is published. It checks that the release tag commit is reachable from `master`, runs
 the repository-owned build script, uploads `dist/pages/`, then deploys the artifact with
 GitHub's Pages deployment action. Configure the repository's Pages publishing source as
 **GitHub Actions** before publishing a release. The workflow, not browser-side JavaScript,
