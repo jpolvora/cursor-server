@@ -1,0 +1,26 @@
+{
+  "execMode": "sequential",
+  "reason": "Override: raw plan exceeds dagThresholds (5 steps, 7 files, 3 layers) but grouped into 3 sequential tasks with clear ownership; shared src/index.ts + useWorktrees=false (win32) forbid useful parallel levels",
+  "planPath": ".agents/plans/40-main-page-dashboard/step-02-40-main-page-dashboard.plan.refined.md",
+  "metrics": {
+    "implementationSteps": 5,
+    "expectedFiles": 7,
+    "layers": 3,
+    "groupedImplementationSteps": 3,
+    "thresholds": {
+      "maxImplementationSteps": 3,
+      "maxExpectedFiles": 6,
+      "maxLayers": 2
+    },
+    "override": {
+      "execMode": "sequential",
+      "why": [
+        "Grouped plan Steps 1–5 into T1→T2→T3 (≤3 sequential implementation steps)",
+        "src/index.ts shared by settings mount and GET / — sequential ownership only",
+        "plans.useWorktrees=false — orch prefers sequential on win32"
+      ]
+    }
+  },
+  "tasks": [],
+  "levels": []
+}

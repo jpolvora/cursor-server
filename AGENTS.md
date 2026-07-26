@@ -15,6 +15,7 @@ Primary use cases (shipped; see caveats below for rough edges):
 5. **Pluggable harnesses** — runner registry with Cursor SDK (`cursor-local`, `cursor-sdk`), [Hermes Agent](https://github.com/NousResearch/hermes-agent) (`hermes`), and OpenCode (`opencode`).
 6. **Ops Kanban** — SQLite board data plane, `GET /ui/board`, Start/Pause/Finish for `spec-to-pr*`.
 7. **Agent prompt widget** — `GET /ui/prompt` (standalone + embeddable).
+8. **Root ops dashboard** — `GET /` HTML shell (login gate, left nav, config); host prefs via `GET`/`PUT /settings` (`app_settings` in board DB). Projects pane is read-only stub until `39`.
 
 Prefer small, reviewable increments; confirm major new roadmap items with the owner before building.
 
@@ -32,16 +33,18 @@ When adding deployment artifacts, favor Compose over bespoke scripts; keep Umbre
 
 ```text
 src/
-  index.ts              # Hono app entry, routes + scheduler; GET /agents
+  index.ts              # Hono app entry, routes + scheduler; GET /agents; GET / HTML shell
   config.ts             # Env validation (zod); TENANTS parse
   agents.ts             # Task agent allowlist + resolveAgent (fallback → default)
   middleware/auth.ts    # SERVER_API_KEY / TENANTS / X-API-Key gate
   routes/
     health.ts           # GET /health
+    dashboard-page.ts   # GET / HTML shell (login gate, left nav, panes)
+    settings.ts         # GET/PUT /settings — host preference store (API key auth)
     tasks.ts            # POST/GET /tasks; GET /tasks/:id/stream (SSE); GET /tasks/:id/ws (WebSocket)
     events.ts           # POST /events — event gateway
     jobs.ts             # GET /jobs — scheduler + review job history
-    ui.ts               # GET /ui/spec-editor (public HTML editor)
+    ui.ts               # GET /ui/spec-editor, /ui/board, /ui/prompt (public HTML)
     specs.ts            # POST /specs/validate; GET/PUT /repos/:repo/specs[/:file]
     harness.ts          # POST /harness/runs — stage pipeline runs
   services/
@@ -53,6 +56,7 @@ src/
     harness-runner.ts   # RunnerRegistry + Cursor SDK adapters
     hermes-runner.ts    # Hermes CLI harness adapter (id: hermes)
     opencode-runner.ts  # OpenCode CLI harness adapter (id: opencode)
+    board-db.ts         # SQLite board + app_settings KV
     stage-orchestrator.ts / stage-store.ts
     mcp-config.ts       # Global/repo/task MCP merge resolver
     tenant-context.ts   # Per-tenant repo allowlist checks
@@ -159,7 +163,9 @@ New runners plug in via `runnerRegistry.register()` behind the same spec → sta
 
 Living feature map: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD). Confirm major new items with the owner before expanding scope:
 
-Shipped recently (do not re-open as gaps): Umbrel App Store manifest (`38` — `deploy/umbrel/`, docs/umbrel.md), WebSocket streaming (`37`), spec-editor aspirational UI (`36` — AC builder, dependency graph, stage designer), Kanban board (`32`–`34`), agent prompt widget (`35`), scheduled review jobs (`25` — hygiene scan, `SCHEDULED_REVIEW_JOBS` gate, `Agent.resume`), MCP merge (`23`), multi-tenant ACL (`22`), SSE progress/auth (`24`), Hermes CLI/health (`20`), OpenCode stream/git (`21`), harness default stages (`26`), frontmatter stages (`27`), `spec-to-pr*` agent roles (`05`).
+Shipped recently (do not re-open as gaps): Root ops dashboard shell (`40` — `GET /`, `GET`/`PUT /settings`, `app_settings`; Projects CRUD still `39`), Umbrel App Store manifest (`38` — `deploy/umbrel/`, docs/umbrel.md), WebSocket streaming (`37`), spec-editor aspirational UI (`36` — AC builder, dependency graph, stage designer), Kanban board (`32`–`34`), agent prompt widget (`35`), scheduled review jobs (`25` — hygiene scan, `SCHEDULED_REVIEW_JOBS` gate, `Agent.resume`), MCP merge (`23`), multi-tenant ACL (`22`), SSE progress/auth (`24`), Hermes CLI/health (`20`), OpenCode stream/git (`21`), harness default stages (`26`), frontmatter stages (`27`), `spec-to-pr*` agent roles (`05`).
+
+Next (not done): board projects management (`39`).
 
 ## Testing changes
 

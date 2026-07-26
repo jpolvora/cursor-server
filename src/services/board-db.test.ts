@@ -41,6 +41,28 @@ describe("board-db", () => {
     const cards = boardDb.listCards({ repoId: repo.id, lane: "backlog" });
     assert.strictEqual(cards.length, 1);
   });
+
+  it("seeds default settings keys on init", () => {
+    const settings = boardDb.listSettings();
+    assert.strictEqual(settings.default_agent, "default");
+    assert.strictEqual(settings.default_harness_runner, "cursor-local");
+    assert.strictEqual(settings.ui_theme, "dark");
+    assert.strictEqual(settings.ui_density, "comfortable");
+    assert.strictEqual(settings.board_default_lane, "backlog");
+    assert.strictEqual(boardDb.getSetting("ui_theme"), "dark");
+  });
+
+  it("persists settings across reopen", async () => {
+    boardDb.setSettings({ ui_theme: "light" });
+    assert.strictEqual(boardDb.listSettings().ui_theme, "light");
+
+    boardDb.close();
+    await boardDb.init(dbPath);
+
+    assert.strictEqual(boardDb.listSettings().ui_theme, "light");
+    assert.strictEqual(boardDb.getSetting("ui_theme"), "light");
+    assert.strictEqual(boardDb.listSettings().default_agent, "default");
+  });
 });
 
 describe("board-clone helpers", () => {

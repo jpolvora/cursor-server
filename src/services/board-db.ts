@@ -18,6 +18,21 @@ export type BoardLane = (typeof BOARD_LANES)[number];
 
 export const PLANNING_LANES: BoardLane[] = ["backlog", "refine", "ready", "blocked"];
 
+/** Host-level preference store defaults (seeded on init if missing). */
+export const APP_SETTING_DEFAULTS = {
+  default_agent: "default",
+  default_harness_runner: "cursor-local",
+  ui_theme: "dark",
+  ui_density: "comfortable",
+  board_default_lane: "backlog",
+} as const;
+
+export type AppSettingKey = keyof typeof APP_SETTING_DEFAULTS;
+
+export const APP_SETTING_KEYS = Object.keys(APP_SETTING_DEFAULTS) as AppSettingKey[];
+
+const APP_SETTING_KEY_SET = new Set<string>(APP_SETTING_KEYS);
+
 export interface BoardRepo {
   id: number;
   name: string;
@@ -105,6 +120,11 @@ const MIGRATIONS = [
   )`,
   `CREATE INDEX IF NOT EXISTS idx_cards_repo_lane ON cards(repo_id, lane)`,
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_cards_repo_title ON cards(repo_id, title)`,
+  `CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY NOT NULL,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
 ];
 
 function rowToRepo(row: Record<string, unknown>): BoardRepo {
@@ -152,6 +172,7 @@ export class BoardDatabase {
     }
 
     this.runMigrations();
+    this.seedSettings();
     this.getDb().run("PRAGMA foreign_keys = ON");
     this.persist();
   }
@@ -178,6 +199,52 @@ export class BoardDatabase {
     if (versionResult.length === 0 || versionResult[0].values.length === 0) {
       db.run("INSERT INTO schema_version (version) VALUES (1)");
     }
+  }
+
+  private seedSettings(): void {
+    const db = this.getDb();
+    for (const [key, value] of Object.entries(APP_SETTING_DEFAULTS)) {
+      db.run("INSERT OR IGNORE INTO app_settings (key, value) VALUES (?, ?)", [key, value]);
+    }
+  }
+
+  listSettings(): Record<string, string> {
+    const db = this.getDb();
+    const result = db.exec("SELECT key, value FROM app_settings ORDER BY key ASC");
+    const settings: Record<string, string> = {};
+    if (result.length === 0) return settings;
+    for (const row of result[0].values) {
+      settings[String(row[0])] = String(row[1]);
+    }
+    return settings;
+  }
+
+  getSetting(key: string): string | null {
+    const db = this.getDb();
+    const stmt = db.prepare("SELECT value FROM app_settings WHERE key = ?");
+    stmt.bind([key]);
+    if (!stmt.step()) {
+      stmt.free();
+      return null;
+    }
+    const row = stmt.getAsObject() as { value?: unknown };
+    stmt.free();
+    return row.value == null ? null : String(row.value);
+  }
+
+  setSettings(partial: Record<string, string>): Record<string, string> {
+    const db = this.getDb();
+    const now = new Date().toISOString();
+    for (const [key, value] of Object.entries(partial)) {
+      if (!APP_SETTING_KEY_SET.has(key)) continue;
+      db.run(
+        `INSERT INTO app_settings (key, value, updated_at) VALUES (?, ?, ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
+        [key, value, now],
+      );
+    }
+    this.persist();
+    return this.listSettings();
   }
 
   close(): void {

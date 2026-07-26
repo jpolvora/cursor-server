@@ -14,3 +14,5 @@ coverage/
 # workflow-skills consumer-owned / generated (never commit)
 .agents/skills/shared/config.json
 .agents/skills/shared/skill-integrity-local.json
+
+data/*.db

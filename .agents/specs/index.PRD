@@ -127,9 +127,10 @@ Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 
 | # | Spec | Status | Target Phase | Notes |
 |---|------|--------|--------------|-------|
-| — | — | — | — | No scheduled next specs |
+| 40 | `40-main-page-dashboard` | in progress | Ops UI | Root `GET /` shell + `/settings` implemented; ship sync pending |
+| 39 | `39-board-projects-management` | planned | Ops UI | Projects CRUD (dashboard Projects pane still stub) |
 
-**Immediate next:** Inbox only — promote via `/ws-spec-index promote` when ready.
+**Immediate next:** Finish/ship `40`, then `39` for Projects CRUD.
 
 ## 9. Inbox (unscheduled ideas)
 
