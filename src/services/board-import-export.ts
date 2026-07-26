@@ -14,8 +14,43 @@ export interface ImportResult {
   errors: Array<{ filename: string; errors: string[] }>;
 }
 
+function assertRegularFile(filePath: string): void {
+  const stat = fs.lstatSync(filePath);
+  if (stat.isSymbolicLink()) {
+    throw new Error("Symlinks are not allowed for spec files");
+  }
+  if (!stat.isFile()) {
+    throw new Error("Spec path must be a regular file");
+  }
+}
+
+function assertSpecsDirUnderClone(clonePath: string): string {
+  const specsDir = path.resolve(agentsSpecsDir(clonePath));
+  const cloneRoot = path.resolve(clonePath);
+  if (!specsDir.startsWith(cloneRoot + path.sep) && specsDir !== cloneRoot) {
+    throw new Error("Invalid specs directory path");
+  }
+  if (!fs.existsSync(specsDir)) {
+    return specsDir;
+  }
+  const stat = fs.lstatSync(specsDir);
+  if (stat.isSymbolicLink()) {
+    throw new Error("Symlinks are not allowed for specs directory");
+  }
+  if (!stat.isDirectory()) {
+    throw new Error("Specs path is not a directory");
+  }
+  return specsDir;
+}
+
 export function importSpecsFromClone(clonePath: string, repoId: number, upsert: (repoId: number, title: string, specMarkdown: string) => BoardCard): ImportResult {
-  const specsDir = agentsSpecsDir(clonePath);
+  let specsDir: string;
+  try {
+    specsDir = assertSpecsDirUnderClone(clonePath);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { imported: [], errors: [{ filename: ".agents/specs", errors: [message] }] };
+  }
   const result: ImportResult = { imported: [], errors: [] };
 
   if (!fs.existsSync(specsDir)) {
@@ -35,6 +70,7 @@ export function importSpecsFromClone(clonePath: string, repoId: number, upsert: 
     const fullPath = path.join(specsDir, filename);
     let content: string;
     try {
+      assertRegularFile(fullPath);
       content = fs.readFileSync(fullPath, "utf-8");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

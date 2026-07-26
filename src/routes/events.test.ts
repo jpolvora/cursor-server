@@ -23,6 +23,7 @@ describe("Event API Routes", () => {
     REPOS_ROOT: reposRoot,
     BOARD_DB_PATH: "./data/test-board.db",
     CURSOR_MODEL: "composer-2",
+    SCHEDULED_REVIEW_JOBS: false,
     TENANTS: [],
   };
 

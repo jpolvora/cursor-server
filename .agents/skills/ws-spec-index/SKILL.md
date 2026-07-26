@@ -1,11 +1,12 @@
 ---
 
+
 name: ws-spec-index
 description: >-
   Manage and sync progressive-disclosure project spec index (index.PRD) and feature specs for consumer repos.
   Use when initializing a project spec index (init), updating spec checkboxes and status after delivery or ship (sync),
   or promoting inbox ideas into planned specs (promote).
-version: 0.0.90
+version: 0.0.91
 ---
 
 # ws-spec-index

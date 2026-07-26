@@ -17,24 +17,36 @@ import {
 } from "../services/board-clone.js";
 import { exportCardSpec, importSpecsFromClone } from "../services/board-import-export.js";
 
+const remoteUrlSchema = z
+  .string()
+  .url()
+  .refine((value) => {
+    try {
+      const parsed = new URL(value);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }, "remote_url must use http or https");
+
 const CreateRepoSchema = z.object({
   name: z.string().min(1).max(128),
-  remote_url: z.string().url(),
+  remote_url: remoteUrlSchema,
   secret_ref: z.string().min(1),
   local_path: z.string().optional().nullable(),
 });
 
 const UpdateRepoSchema = z.object({
   name: z.string().min(1).max(128).optional(),
-  remote_url: z.string().url().optional(),
+  remote_url: remoteUrlSchema.optional(),
   secret_ref: z.string().min(1).optional(),
   local_path: z.string().optional().nullable(),
 });
 
 const CreateCardSchema = z.object({
   repo_id: z.number().int().positive(),
-  title: z.string().min(1),
-  spec_markdown: z.string().min(1),
+  title: z.string().min(1).max(256),
+  spec_markdown: z.string().min(1).max(512_000),
   lane: z.enum(BOARD_LANES as unknown as [string, ...string[]]).optional(),
   workflow: z.string().optional().nullable(),
   active_run_id: z.string().optional().nullable(),
@@ -43,12 +55,9 @@ const CreateCardSchema = z.object({
 });
 
 const UpdateCardSchema = z.object({
-  title: z.string().min(1).optional(),
-  spec_markdown: z.string().min(1).optional(),
+  title: z.string().min(1).max(256).optional(),
+  spec_markdown: z.string().min(1).max(512_000).optional(),
   lane: z.enum(BOARD_LANES as unknown as [string, ...string[]]).optional(),
-  workflow: z.string().optional().nullable(),
-  active_run_id: z.string().optional().nullable(),
-  step_label: z.string().optional().nullable(),
   sort_order: z.number().int().optional(),
 });
 
@@ -102,7 +111,9 @@ export function createBoardRoutes(config: Config) {
   // --- Repos ---
 
   board.get("/repos", (c) => {
-    const repos = boardDb.listRepos();
+    const repos = boardDb
+      .listRepos()
+      .filter((repo) => !checkRepoTenantAccess(c, repo.name));
     return c.json({ repos: repos.map((r) => repoResponse(r)) });
   });
 
@@ -122,15 +133,34 @@ export function createBoardRoutes(config: Config) {
       return c.json({ error: `Repository '${parsed.data.name}' already exists` }, 409);
     }
 
-    const localPath =
-      parsed.data.local_path ??
-      resolveRepoLocalPath(config.REPOS_ROOT, parsed.data.name);
+    const localPath = (() => {
+      try {
+        return resolveRepoLocalPath(
+          config.REPOS_ROOT,
+          parsed.data.name,
+          parsed.data.local_path,
+        );
+      } catch (err: unknown) {
+        return null;
+      }
+    })();
+    if (!localPath) {
+      return c.json({ error: "Invalid repository path (must stay under REPOS_ROOT)" }, 400);
+    }
 
-    const repo = boardDb.createRepo({
-      ...parsed.data,
-      local_path: localPath,
-    });
-    return c.json({ repo: repoResponse(repo) }, 201);
+    try {
+      const repo = boardDb.createRepo({
+        ...parsed.data,
+        local_path: localPath,
+      });
+      return c.json({ repo: repoResponse(repo) }, 201);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.toLowerCase().includes("unique") || message.toLowerCase().includes("constraint")) {
+        return c.json({ error: `Repository '${parsed.data.name}' already exists` }, 409);
+      }
+      throw err;
+    }
   });
 
   board.get("/repos/:id", (c) => {
@@ -170,6 +200,20 @@ export function createBoardRoutes(config: Config) {
       }
     }
 
+    if (parsed.data.local_path !== undefined) {
+      let resolvedPath: string;
+      try {
+        resolvedPath = resolveRepoLocalPath(
+          config.REPOS_ROOT,
+          parsed.data.name ?? existing.name,
+          parsed.data.local_path,
+        );
+      } catch {
+        return c.json({ error: "Invalid repository path (must stay under REPOS_ROOT)" }, 400);
+      }
+      parsed.data.local_path = resolvedPath;
+    }
+
     const repo = boardDb.updateRepo(id, parsed.data);
     return c.json({ repo: repoResponse(repo) });
   });
@@ -183,6 +227,13 @@ export function createBoardRoutes(config: Config) {
 
     const accessError = checkRepoTenantAccess(c, existing.name);
     if (accessError) return c.json({ error: accessError }, 403);
+
+    try {
+      const localPath = resolveRepoLocalPath(config.REPOS_ROOT, existing.name, existing.local_path);
+      cleanupClone(localPath);
+    } catch {
+      // ignore invalid stored paths during delete
+    }
 
     boardDb.deleteRepo(id);
     return c.json({ ok: true });
@@ -258,6 +309,10 @@ export function createBoardRoutes(config: Config) {
       return c.json({ error: "Import failed", ...result }, 422);
     }
 
+    if (result.errors.length > 0) {
+      return c.json({ ...result, partial: true }, 207);
+    }
+
     return c.json(result);
   });
 
@@ -282,7 +337,11 @@ export function createBoardRoutes(config: Config) {
       filters.lane = laneRaw as BoardLane;
     }
 
-    const cards = boardDb.listCards(filters);
+    const cards = boardDb.listCards(filters).filter((card) => {
+      const repo = boardDb.getRepo(card.repo_id);
+      if (!repo) return false;
+      return !checkRepoTenantAccess(c, repo.name);
+    });
     return c.json({ cards: cards.map(cardResponse) });
   });
 
@@ -348,10 +407,15 @@ export function createBoardRoutes(config: Config) {
 
     try {
       const card = boardDb.updateCard(id, {
-        ...parsed.data,
+        title: parsed.data.title,
+        spec_markdown: parsed.data.spec_markdown,
         lane: parsed.data.lane as BoardLane | undefined,
+        sort_order: parsed.data.sort_order,
       });
-      return c.json({ card: cardResponse(card!) });
+      if (!card) {
+        return c.json({ error: "Card not found" }, 404);
+      }
+      return c.json({ card: cardResponse(card) });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       return c.json({ error: message }, 400);
@@ -399,8 +463,7 @@ export function createBoardRoutes(config: Config) {
     }
 
     const targetLane = parsed.data.lane as BoardLane;
-    const allowedLanes = PLANNING_LANES.filter((lane) => lane !== "blocked" || !existing.active_run_id);
-    if (!allowedLanes.includes(targetLane)) {
+    if (!PLANNING_LANES.includes(targetLane)) {
       return c.json(
         { error: `Lane '${targetLane}' is not allowed for manual moves (planning lanes only)` },
         400,
@@ -408,7 +471,10 @@ export function createBoardRoutes(config: Config) {
     }
 
     const card = boardDb.updateCard(id, { lane: targetLane });
-    return c.json({ card: cardResponse(card!) });
+    if (!card) {
+      return c.json({ error: "Card not found" }, 404);
+    }
+    return c.json({ card: cardResponse(card) });
   });
 
   board.post("/cards/:id/export-spec", (c) => {

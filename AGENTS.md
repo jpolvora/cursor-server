@@ -157,14 +157,13 @@ New runners plug in via `runnerRegistry.register()` behind the same spec → sta
 
 Living feature map: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD). Confirm major new items with the owner before expanding scope:
 
-- **Scheduled review robustness** — cron jobs register at startup; hygiene + enable gate + `Agent.resume` tracked in `25-fix-scheduled-review-jobs` (re-land; PR #14 closed)
 - **Homelab Kanban board** — SQLite data plane, `/ui/board`, Start/Pause/Finish (`32` → `33` → `34`); design under `docs/superpowers/specs/`
 - **Agent prompt / TUI widget** — OpenCode-inspired, simpler prompt surface for submit/stream/query tasks; standalone + embeddable (`35-agent-prompt-widget`)
 - **WebSocket streaming** — SSE exists (`GET /tasks/:id/stream`); WebSocket not implemented (inbox)
 - **Spec editor aspirational UI** — AC builder, dependency graph, stage designer beyond MVP Markdown editor (inbox)
 - **Umbrel App Store manifest** — Compose path documented; store listing not built (inbox)
 
-Shipped recently (do not re-open as gaps): MCP merge (`23`), multi-tenant ACL (`22`), SSE progress/auth (`24`), Hermes CLI/health (`20`), OpenCode stream/git (`21`), harness default stages (`26`), frontmatter stages (`27`), `spec-to-pr*` agent roles (`05`).
+Shipped recently (do not re-open as gaps): scheduled review jobs (`25` — hygiene scan, `SCHEDULED_REVIEW_JOBS` gate, `Agent.resume`), MCP merge (`23`), multi-tenant ACL (`22`), SSE progress/auth (`24`), Hermes CLI/health (`20`), OpenCode stream/git (`21`), harness default stages (`26`), frontmatter stages (`27`), `spec-to-pr*` agent roles (`05`).
 
 ## Testing changes
 
