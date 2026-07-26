@@ -19,4 +19,18 @@ describe("UI routes", () => {
     assert.ok(body.includes("/specs/validate"));
     assert.ok(body.includes("/harness/runs"));
   });
+
+  it("serves board Kanban UI", async () => {
+    const res = await app.request("/ui/board");
+    assert.strictEqual(res.status, 200);
+    const contentType = res.headers.get("content-type") || "";
+    assert.ok(contentType.includes("text/html"));
+    const body = await res.text();
+    assert.ok(body.includes("Kanban Board"));
+    assert.ok(body.includes("/board/cards"));
+    assert.ok(body.includes("backlog") && body.includes("implementing"));
+    assert.ok(body.includes("dragstart") || body.includes("draggable"));
+    assert.ok(body.includes("/ui/spec-editor"));
+    assert.ok(body.includes("Open in spec-editor"));
+  });
 });
