@@ -20,8 +20,9 @@ const REVIEW_PATTERNS = [
   /\breview\b/i,
   /\bstep[- ]?06\b/i,
   /\bF4\b/,
-  /\bstep[- ]?03\b/i, // lite review
 ];
+
+const LITE_REVIEW_PATTERNS = [/\bstep[- ]?03\b/i];
 
 const IMPLEMENT_PATTERNS = [
   /\bimplement/i,
@@ -58,6 +59,14 @@ export function mapProgressHint(
   for (const pattern of REVIEW_PATTERNS) {
     if (pattern.test(text)) {
       return { lane: "review", stepLabel: text || "review" };
+    }
+  }
+
+  if (workflow === "lite") {
+    for (const pattern of LITE_REVIEW_PATTERNS) {
+      if (pattern.test(text)) {
+        return { lane: "review", stepLabel: text || "review" };
+      }
     }
   }
 

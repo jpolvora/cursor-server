@@ -15,6 +15,8 @@ describe("board-step-sync", () => {
   it("maps review hints to review lane", () => {
     const result = mapProgressHint("full", "step-06 review");
     assert.strictEqual(result.lane, "review");
+    assert.strictEqual(mapProgressHint("lite", "step-03 review").lane, "review");
+    assert.strictEqual(mapProgressHint("full", "step-03 plan").lane, "implementing");
   });
 
   it("maps ship and fix-pr hints to ship lane", () => {
