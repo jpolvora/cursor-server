@@ -1,7 +1,13 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
+import { mkdtemp, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { EventEmitter } from "node:events";
 import {
   OpenCodeRunner,
+  captureGitStatusPorcelain,
+  execOpenCodeCli,
   normalizeOpenCodeResult,
   type OpenCodeExecFn,
   type OpenCodeExecRequest,
@@ -66,6 +72,25 @@ describe("normalizeOpenCodeResult", () => {
       [],
     );
     assert.strictEqual(out.status, "error");
+  });
+
+  it("should attach git status porcelain to artifacts and rawResult", () => {
+    const out = normalizeOpenCodeResult(
+      "implement",
+      {
+        exitCode: 0,
+        stdout: "done",
+        stderr: "",
+        gitStatusPorcelain: " M src/foo.ts\n",
+      },
+      8,
+      [],
+    );
+    assert.strictEqual(out.status, "success");
+    assert.ok(out.artifacts?.some((a) => a.includes("git-status:")));
+    assert.ok(out.artifacts?.some((a) => a.includes("src/foo.ts")));
+    const raw = out.rawResult as OpenCodeExecResult;
+    assert.strictEqual(raw.gitStatusPorcelain, " M src/foo.ts\n");
   });
 });
 
@@ -177,5 +202,148 @@ describe("OpenCodeRunner.executeStage", () => {
     const health = await runner.healthCheck();
     assert.strictEqual(health.healthy, true);
     assert.ok(health.details);
+  });
+
+  it("should forward stdout/stderr chunks via onLog before completion", async () => {
+    const received: string[] = [];
+    const runner = new OpenCodeRunner(
+      mockExec(async (req) => {
+        assert.ok(req.onLog, "onLog should be passed to exec");
+        await new Promise((r) => setTimeout(r, 5));
+        req.onLog!("alpha");
+        await new Promise((r) => setTimeout(r, 5));
+        req.onLog!("[stderr] warn\n");
+        return {
+          exitCode: 0,
+          stdout: "alphawarn",
+          stderr: "warn",
+        };
+      }),
+    );
+
+    const out = await runner.executeStage({
+      stage: "implement",
+      repoPath: "/tmp/non-git-repo-for-stream-test",
+      prompt: "stream test",
+      options: {
+        onLog: (chunk: string) => received.push(chunk),
+      },
+    });
+
+    assert.strictEqual(out.status, "success");
+    assert.deepStrictEqual(received, ["alpha", "[stderr] warn\n"]);
+    assert.ok(out.logs.some((l) => l.includes("alphawarn")));
+  });
+
+  it("should attach git status from a temp repo", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "opencode-git-"));
+    const runner = new OpenCodeRunner(
+      mockExec(async () => ({
+        exitCode: 0,
+        stdout: "ok",
+        stderr: "",
+      })),
+    );
+
+    const { execFile } = await import("node:child_process");
+    const { promisify } = await import("node:util");
+    const execFileAsync = promisify(execFile);
+    await execFileAsync("git", ["init"], { cwd: dir });
+    await writeFile(path.join(dir, "tracked.txt"), "hello");
+
+    const out = await runner.executeStage({
+      stage: "implement",
+      repoPath: dir,
+      prompt: "git test",
+    });
+
+    assert.strictEqual(out.status, "success");
+    assert.ok(
+      out.artifacts?.some((a) => a.includes("git-status:")),
+      "expected git-status artifact",
+    );
+    const raw = out.rawResult as OpenCodeExecResult;
+    assert.ok(raw.gitStatusPorcelain?.includes("tracked.txt"));
+  });
+
+  it("should skip git status gracefully when not a git repo", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "opencode-nogit-"));
+    const runner = new OpenCodeRunner(
+      mockExec(async () => ({
+        exitCode: 0,
+        stdout: "ok",
+        stderr: "",
+      })),
+    );
+
+    const out = await runner.executeStage({
+      stage: "build",
+      repoPath: dir,
+      prompt: "no git",
+    });
+
+    assert.strictEqual(out.status, "success");
+    assert.ok(out.logs.some((l) => l.includes("Git status skipped:")));
+    const raw = out.rawResult as OpenCodeExecResult;
+    assert.strictEqual(raw.gitStatusPorcelain, undefined);
+  });
+});
+
+describe("execOpenCodeCli streaming", () => {
+  it("forwards delayed stdout/stderr chunks via onLog", async () => {
+    const received: string[] = [];
+    const mockChild = new EventEmitter() as EventEmitter & {
+      stdout: EventEmitter;
+      stderr: EventEmitter;
+      kill: () => void;
+    };
+    mockChild.stdout = new EventEmitter();
+    mockChild.stderr = new EventEmitter();
+    mockChild.kill = () => {};
+
+    const mockSpawn = (() => mockChild) as unknown as typeof import("node:child_process").spawn;
+
+    const promise = execOpenCodeCli(
+      {
+        stage: "implement",
+        repoPath: "/tmp/repo",
+        prompt: "hi",
+        timeoutMs: 5000,
+        onLog: (chunk: string) => received.push(chunk),
+      },
+      mockSpawn,
+    );
+
+    setTimeout(() => mockChild.stdout.emit("data", "chunk-1"), 10);
+    setTimeout(() => mockChild.stderr.emit("data", "err-1"), 20);
+    setTimeout(() => mockChild.emit("close", 0), 30);
+
+    const result = await promise;
+    assert.strictEqual(result.exitCode, 0);
+    assert.strictEqual(result.stdout, "chunk-1");
+    assert.strictEqual(result.stderr, "err-1");
+    assert.deepStrictEqual(received, ["chunk-1", "[stderr] err-1"]);
+  });
+});
+
+describe("captureGitStatusPorcelain", () => {
+  it("returns porcelain for initialized repo", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "opencode-capture-"));
+    const { execFile } = await import("node:child_process");
+    const { promisify } = await import("node:util");
+    const execFileAsync = promisify(execFile);
+    await execFileAsync("git", ["init"], { cwd: dir });
+    await writeFile(path.join(dir, "new.txt"), "x");
+
+    const result = await captureGitStatusPorcelain(dir);
+    assert.ok(result.porcelain?.includes("new.txt"));
+    assert.strictEqual(result.skippedReason, undefined);
+  });
+
+  it("returns skippedReason when not a git repo", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "opencode-capture-ng-"));
+    const result = await captureGitStatusPorcelain(dir);
+    assert.strictEqual(result.porcelain, undefined);
+    assert.ok(result.skippedReason?.includes("not a git repository"));
   });
 });
