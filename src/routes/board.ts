@@ -77,11 +77,11 @@ const StartCardSchema = z.object({
   workflow: z.enum(["full", "lite"]),
   flags: z.array(z.string()).optional(),
   model: z.string().optional(),
-  confirm: z.boolean().optional(),
+  confirm: z.literal(true),
 });
 
 const FinishCardSchema = z.object({
-  confirm: z.boolean().optional(),
+  confirm: z.literal(true),
 });
 
 function repoResponse(repo: ReturnType<typeof boardDb.getRepo>) {

@@ -211,7 +211,7 @@ Execution control test spec.
     taskStore.updateTask(task.id, { status: "running" });
     boardDb.updateCard(cardId, { active_run_id: task.id, lane: "review" });
 
-    const noConfirm = finishCard(cardId, {});
+    const noConfirm = finishCard(cardId, {} as { confirm: true });
     assert.strictEqual(noConfirm.ok, false);
     if (!noConfirm.ok) assert.strictEqual(noConfirm.status, 400);
 

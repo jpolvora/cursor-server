@@ -22,11 +22,11 @@ export interface StartCardInput {
   workflow: BoardWorkflow;
   flags?: string[];
   model?: string;
-  confirm?: boolean;
+  confirm: true;
 }
 
 export interface FinishCardInput {
-  confirm?: boolean;
+  confirm: true;
 }
 
 export interface CardStatusResponse {
@@ -187,6 +187,13 @@ export async function startCard(
   if (!card) return { ok: false, error: "Card not found", status: 404 };
 
   if (card.active_run_id && card.lane === "paused") {
+    if (card.workflow && card.workflow !== input.workflow) {
+      return {
+        ok: false,
+        error: "Cannot change workflow while resuming a paused card; Finish first",
+        status: 409,
+      };
+    }
     const resumed = await resumeCard(config, cardId);
     if (!resumed.ok) return resumed;
     const updated = boardDb.getCard(cardId)!;
