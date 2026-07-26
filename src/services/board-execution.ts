@@ -177,7 +177,7 @@ export async function startCard(
   tenantId: string,
 ): Promise<
   | { ok: true; card: ReturnType<typeof cardFields>; taskId: string; resumed: boolean }
-  | { ok: false; error: string; status: number }
+  | { ok: false; error: string; status: number; errors?: string[]; issues?: unknown }
 > {
   if (!input.confirm) {
     return { ok: false, error: "Start requires confirm: true", status: 400 };
@@ -210,7 +210,15 @@ export async function startCard(
     exportResult = exportCardSpec(cloneResult.localPath, card);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    return { ok: false, error: message, status: 422 };
+    const errors =
+      err && typeof err === "object" && "errors" in err
+        ? (err as { errors: string[] }).errors
+        : undefined;
+    const issues =
+      err && typeof err === "object" && "issues" in err
+        ? (err as { issues: unknown }).issues
+        : undefined;
+    return { ok: false, error: message, status: 422, errors, issues };
   }
 
   const specRelativePath = path.posix.join(".agents/specs", exportResult.filename);
@@ -304,9 +312,17 @@ export async function resumeCard(
     return { ok: false, error: cloneResult.error, status: cloneResult.status };
   }
 
+  const task = taskStore.getTask(card.active_run_id);
+  if (!task) {
+    return { ok: false, error: "Task record not found for active_run_id", status: 404 };
+  }
+
   const requeued = requeueTask(config, card.active_run_id);
   if (!requeued) {
-    return { ok: false, error: "Unable to resume task; run may still be active", status: 409 };
+    if (task.status === "running" || task.status === "queued") {
+      return { ok: false, error: "Run is still active; pause before resuming", status: 409 };
+    }
+    return { ok: false, error: `Cannot resume task in status '${task.status}'`, status: 409 };
   }
 
   const updated = boardDb.updateCard(cardId, {

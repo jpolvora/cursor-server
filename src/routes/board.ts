@@ -519,7 +519,14 @@ export function createBoardRoutes(config: Config) {
     const tenantId = (c.get("tenantId") as string) ?? "master";
     const result = await startCard(config, id, parsed.data, tenantId);
     if (!result.ok) {
-      return c.json({ error: result.error }, result.status as 400 | 404 | 409 | 422 | 500);
+      return c.json(
+        {
+          error: result.error,
+          ...(result.errors ? { errors: result.errors } : {}),
+          ...(result.issues ? { issues: result.issues } : {}),
+        },
+        result.status as 400 | 404 | 409 | 422 | 500,
+      );
     }
 
     return c.json({ card: result.card, taskId: result.taskId, resumed: result.resumed }, result.resumed ? 200 : 202);
