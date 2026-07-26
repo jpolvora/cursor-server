@@ -44,7 +44,11 @@ function forwardStreamChunk(
   const text = String(chunk);
   buffer.value += text;
   if (!onLog || text.length === 0) return;
-  onLog(stream === "stderr" ? `[stderr] ${text}` : text);
+  try {
+    onLog(stream === "stderr" ? `[stderr] ${text}` : text);
+  } catch (err) {
+    console.error("Error in onLog callback:", err);
+  }
 }
 
 export async function captureGitStatusPorcelain(

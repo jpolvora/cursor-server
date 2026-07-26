@@ -166,7 +166,13 @@ async function runAgentPhase(
 
   try {
     const run = await agent.send(input.prompt);
-    await forwardRunStream(run, input.onOutput);
+    if (input.onOutput) {
+      try {
+        await forwardRunStream(run, input.onOutput);
+      } catch (streamErr) {
+        console.error(`Run stream error after agent.send succeeded:`, streamErr);
+      }
+    }
     const result = await run.wait();
 
     return {
