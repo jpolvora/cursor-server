@@ -1,9 +1,9 @@
 # Setup & Bootstrap — Shared Workflow Entry
 
 Initialization, configuration bootstrap, flags, resume logic, and first-run setup.
-Shared by [`spec-to-pr`](../spec-to-pr/SKILL.md) and [`spec-to-pr-lite`](../spec-to-pr-lite/SKILL.md).
+Shared by [`ws-spec-to-pr`](../ws-spec-to-pr/SKILL.md) and [`ws-spec-to-pr-lite`](../ws-spec-to-pr-lite/SKILL.md).
 
-Artifact paths: [`../spec-to-pr/ARTIFACTS.md`](../spec-to-pr/ARTIFACTS.md). Resume rules in this file are canonical; FAQ/DIAGRAM must link here.
+Artifact paths: [`../ws-spec-to-pr/ARTIFACTS.md`](../ws-spec-to-pr/ARTIFACTS.md). Resume rules in this file are canonical; FAQ/DIAGRAM must link here.
 
 ---
 
@@ -14,7 +14,7 @@ Resolve `config.json` `rules.*` before assuming a skill or rule file exists. Ful
 | Key | Role | Resolve (first match) |
 |-----|------|------------------------|
 | `rules.seniorDeveloper` | Engineering guardrails; **Code review proof** source | config path → local `senior-developer` skill → global/user skill |
-| `rules.karpathyGuidelines` | Surgical-change guidelines | config path → shipped `../karpathy-guidelines/SKILL.md` → global skill |
+| `rules.karpathyGuidelines` | Surgical-change guidelines | config path → shipped `../ws-karpathy-guidelines/SKILL.md` → global skill |
 | `rules.stackFile` | Human-readable stack companion | config path (default `.agents/skills/shared/STACK.md`); bootstrap may create under `shared/` if missing (see 1b below) — never require repo-root files |
 | Other `rules.*` | Optional consumer rules (e.g. `efMigrations`, `viewPatterns`) | Use path from config when set; do not invent filenames |
 
@@ -24,8 +24,8 @@ Resolve `config.json` `rules.*` before assuming a skill or rule file exists. Ful
 
 ## Bootstrap & Entry
 
-> **[spec-to-pr]** — Before Step 0.
-> **[spec-to-pr-lite]** — Before Step 0.
+> **[ws-spec-to-pr]** — Before Step 0.
+> **[ws-spec-to-pr-lite]** — Before Step 0.
 
 ### Entry matrix (both orchestrators)
 
@@ -33,9 +33,9 @@ Same entry paths for **standard** and **lite**. Resolve provider from `config.js
 
 | Input | Provider / skill | Step 0 action |
 |-------|------------------|---------------|
-| GitHub `{n}` / `US {n}` | [`github-provider`](../github-provider/SKILL.md) `fetch-to-spec` | Fetch issue → spec; `slug: us-{n}` |
-| ADO `{org}/{project}#{id}` / `ADO {id}` / `WI {id}` | [`azure-devops-provider`](../azure-devops-provider/SKILL.md) `fetch-to-spec` | Fetch WI → spec |
-| Hand-written `*.spec.md` (any path) | [`local-spec-provider`](../local-spec-provider/SKILL.md) `fetch-to-spec` | Register / normalize → canonical spec |
+| GitHub `{n}` / `US {n}` | [`ws-github-provider`](../ws-github-provider/SKILL.md) `fetch-to-spec` | Fetch issue → spec; `slug: us-{n}` |
+| ADO `{org}/{project}#{id}` / `ADO {id}` / `WI {id}` | [`ws-azure-devops-provider`](../ws-azure-devops-provider/SKILL.md) `fetch-to-spec` | Fetch WI → spec |
+| Hand-written `*.spec.md` (any path) | [`ws-local-spec-provider`](../ws-local-spec-provider/SKILL.md) `fetch-to-spec` | Register / normalize → canonical spec |
 | Free-text feature description (no spec) | `ws-write-spec` (standard or lite) | Brainstorm → `step-00-{slug}.spec.md` |
 | Plain text in invocation (no issue id, no `*.spec.md` path) | `ws-write-spec` | Same as free-text row |
 
@@ -45,9 +45,9 @@ Optional mirror: `{specs-dir}/{slug}.spec.md` for human browsing. Downstream ski
    - If missing: `cp .agents/skills/shared/config.json.example .agents/skills/shared/config.json`.
    - Load path tokens early ([`tools.md`](tools.md) § Path tokens): `pathTokens.skillsRoot` / `sharedDir` (defaults `.agents/skills` / `.agents/skills/shared`) plus `{plansDir}` ← `plans.dir`. Expand braces before Read/Grep/Shell.
    - User-gate: **Configure now (Recommended)** / **Skip**.
-   - If **Configure now** (or config exists but required fields are placeholders/`<…>` / empty): load and run [`configure-project`](../configure-project/SKILL.md) (same session). Pass `--section` only when fixing one area mid-workflow.
-   - If **Skip**: continue with example defaults; warn that providers/verification may be wrong until configure-project runs.
-1b. **Stack file bootstrap**: Read `config.json.rules.stackFile` (default: `.agents/skills/shared/STACK.md`). Prefer configure-project step 5 when that skill just ran. If config still points at a missing root `STACK.md`/`stack.md` while `.agents/skills/shared/STACK.md` exists, set `rules.stackFile` to the shared path (no root file required). Else `Shell` `test -f {stackFile}`. If missing:
+   - If **Configure now** (or config exists but required fields are placeholders/`<…>` / empty): load and run [`ws-configure-project`](../ws-configure-project/SKILL.md) (same session). Pass `--section` only when fixing one area mid-workflow.
+   - If **Skip**: continue with example defaults; warn that providers/verification may be wrong until ws-configure-project runs.
+1b. **Stack file bootstrap**: Read `config.json.rules.stackFile` (default: `.agents/skills/shared/STACK.md`). Prefer ws-configure-project step 5 when that skill just ran. If config still points at a missing root `STACK.md`/`stack.md` while `.agents/skills/shared/STACK.md` exists, set `rules.stackFile` to the shared path (no root file required). Else `Shell` `test -f {stackFile}`. If missing:
    - Auto-detect the project stack by scanning the repository:
      - **Language/Framework**: Look for `package.json` (Node/React/Next), `*.csproj`/`*.sln`/`*.slnx` (.NET), `pyproject.toml`/`requirements.txt` (Python), `go.mod` (Go), `Cargo.toml` (Rust), `pom.xml`/`build.gradle` (Java), `Gemfile` (Ruby), etc.
      - **Frontend framework**: Check `package.json` `dependencies` for `next`, `react`, `vue`, `angular`, `svelte`, `vite`, `tailwindcss`, etc.
@@ -68,7 +68,7 @@ Optional mirror: `{specs-dir}/{slug}.spec.md` for human browsing. Downstream ski
    - Do **not** store or apply `modelChain`.
    - `strict` → full US verification at Step 5 (standard orch only).
 2a. **Gate contract**: Load [`gates.md`](gates.md) — universal step controls, combined delivery + ship gate at standard Step 8 / lite Step 4, separate fix-PR at standard Step 9 / lite Step 5. Config/SCM: [`config-resolution.md`](config-resolution.md).
-2b. **Mode hint (new workflow only):** If user did not pass density flags and invoked full `spec-to-pr` without `--full`/`auto`, optionally offer once: **Full pipeline** (rec) / **Use lite instead** (`/spec-to-pr-lite`) — see gates.md Mode selection. Skip when already on lite.
+2b. **Mode hint (new workflow only):** If user did not pass density flags and invoked full `ws-spec-to-pr` without `--full`/`auto`, optionally offer once: **Full pipeline** (rec) / **Use lite instead** (`/ws-spec-to-pr-lite`) — see gates.md Mode selection. Skip when already on lite.
 3. **Log parsed args and switch states**: Write a banner to step output showing all switches and their resolved values:
    ```markdown
    ### Init — Parsed args
@@ -90,8 +90,8 @@ Optional mirror: `{specs-dir}/{slug}.spec.md` for human browsing. Downstream ski
    Write this block immediately after flag parsing, before auto-resume. Applies in all modes (normal, auto, dry-run). In `dryRun`, prefix with `[DRY-RUN]`.
 4. **Auto resume** or **Active Resume** (see [Resume / reset](#resume--reset)).
 5. **Identity**: `workflow-id`, `slug`, `us-dir`.
-   - **[spec-to-pr]**: Inject `workflowType: standard` into the initialized frontmatter of `{us-dir}/{workflow-id}.state.md`.
-   - **[spec-to-pr-lite]**: Inject `workflowType: lite`.
+   - **[ws-spec-to-pr]**: Inject `workflowType: standard` into the initialized frontmatter of `{us-dir}/{workflow-id}.state.md`.
+   - **[ws-spec-to-pr-lite]**: Inject `workflowType: lite`.
 6. **Baseline**: `git status --porcelain` → `preExistingDirty[]`; `git rev-parse HEAD` → `baselineCommit`.
 7. **LOC baseline**: `Shell` capture → `telemetry.loc.baseline`. Store ISO → `telemetry.workflowStartedAt`.
 8. **Checkpoint**: tag `uswf/{workflow-id}/before-step-0`.
@@ -108,8 +108,8 @@ Optional mirror: `{specs-dir}/{slug}.spec.md` for human browsing. Downstream ski
 
 1. `Glob` `{plansDir}/**/*.state.md` (`{plansDir}` ← `config.plans.dir`) → list all state files.
 2. For each, `Read` frontmatter YAML: `status`, `workflowId`, `slug`, `us`, `currentStep`, `startedAt`, `autoMode`, `workflowType`.
-3. **[spec-to-pr]** Filter: (`status: active` or `status: paused`) and `workflowType` is `standard` or absent.
-   **[spec-to-pr-lite]** Filter: (`status: active` or `status: paused`) and `workflowType` is exactly `lite`.
+3. **[ws-spec-to-pr]** Filter: (`status: active` or `status: paused`) and `workflowType` is `standard` or absent.
+   **[ws-spec-to-pr-lite]** Filter: (`status: active` or `status: paused`) and `workflowType` is exactly `lite`.
 4. Present as **selectable list** via user-gate:
 
 ```text

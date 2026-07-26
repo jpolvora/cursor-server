@@ -5,8 +5,8 @@ Living index of vision, features, roadmap, backlog, and done work.
 
 | Field | Value |
 |-------|-------|
-| Updated | 2026-07-24 (task `agent` roles: default / planner / implementer / plan+implementer) |
-| Priority order | Homelab-ready first (Compose → Tailscale/docs → auth → repo validation → **workflow-skills spec-to-pr*** → API depth → harness) |
+| Updated | 2026-07-26 (sync after fix batch PRs #10–#13, #15–#20; Phase 4 Kanban specs 32–34) |
+| Priority order | Homelab Kanban board (32→34) next; re-land `25-fix-scheduled-review-jobs` (PR #14 closed, not on develop) |
 | Spec folder | `.agents/specs/` |
 
 ---
@@ -101,24 +101,24 @@ Status: **partial** (usable sync API; not production-hardened).
   - [x] Local SDK `Agent.create` + `send` + `wait`
   - [x] Always dispose agent (`asyncDispose`)
   - [x] Distinguish startup failure (`CursorAgentError`) from run failure
-  - [ ] Validate repo path exists / is a git repo before run — see Phase 1
-  - [ ] Async / non-blocking task lifecycle — see Phase 2
-- [~] Job scheduler
+  - [x] Validate repo path exists / is a git repo before run — Phase 1
+  - [x] Async / non-blocking task lifecycle — Phase 2
+- [x] Job scheduler
   - [x] `node-cron` registration helper (`startScheduler`)
-  - [ ] Default / sample jobs registered
-  - [ ] Review / triage / hygiene job implementations — see Phase 2
+  - [x] Default review jobs registered (see Phase 2; enable-gate polish still open as fix-25)
+  - [x] Review / triage / hygiene job implementations — Phase 2 (hygiene real-impl pending fix-25)
 - [x] Agent / workflow harness docs (AGENTS.md, workflow-skills, secrets scan)
 - [x] Homelab packaging (Compose) — see Phase 1 Docker Compose
 - [x] Tailscale bind / client access docs — see Phase 1 Tailscale
-- [ ] Client authentication — see Phase 1
+- [x] Client authentication — see Phase 1
 
 `Verified:` — (fill when health + task smoke succeed on the host)
 
 ---
 
-### Phase 1 — Homelab-ready (next priority)
+### Phase 1 — Homelab-ready
 
-Status: **partial** (Compose + Tailscale docs landed; auth, repo validation still open). Goal: run reliably on Umbrel/Compose over Tailscale with basic client auth and safe repo resolution.
+Status: **done**. Goal: run reliably on Umbrel/Compose over Tailscale with basic client auth and safe repo resolution.
 
 - [x] Docker Compose stack
   - [x] Service definition (Node 20+, port, env)
@@ -146,7 +146,7 @@ Status: **partial** (Compose + Tailscale docs landed; auth, repo validation stil
 
 ### Phase 2 — API depth and operations
 
-Status: **todo**. Goal: production-shaped task lifecycle and observability without yet building the full spec harness.
+Status: **partial** (core + most verify-plan fixes on `develop`; scheduled-review robustness fix-25 not merged). Goal: production-shaped task lifecycle and observability without yet building the full spec harness.
 
 - [x] Workflow-skills runners (`spec-to-pr` / `spec-to-pr-lite`)
   - [x] Run installed [workflow-skills](https://github.com/jpolvora/workflow-skills) orchestrators already present under `.agents/skills/` in the target repo
@@ -162,45 +162,66 @@ Status: **todo**. Goal: production-shaped task lifecycle and observability witho
 - [x] Run history and persistence
   - [x] Store agentId, runId, status, timestamps, result summary
   - [x] List / get by id
+  - [x] Fail stale `running`/`queued` on startup load — fix PR #18 (`29-fix-task-store-stale-running`)
   - **spec:** `07-run-history.spec.md`
-- [ ] Streaming task output to clients
-  - [ ] SSE and/or WebSocket
+- [x] Streaming task output to clients
+  - [x] SSE `status` / `output` / `done` + EventSource query auth + tenant stream ACL — #4 + fix PR #13 (`24-fix-task-streaming-progress`)
   - **spec:** `08-task-streaming.spec.md`
-- [x] Scheduled review jobs
-  - [x] PR diff review, branch sync checks, triage/hygiene examples
-  - [x] Use `Agent.resume` where cross-process continuation fits
+- [~] Scheduled review jobs
+  - [x] PR diff review, branch sync checks, triage/hygiene examples (base)
+  - [x] Use `Agent.resume` where cross-process continuation fits (base path)
+  - [ ] Real `repo-hygiene-check` (not placeholder) + `SCHEDULED_REVIEW_JOBS` enable gate — **fix PR #14 closed; not on develop** (`25-fix-scheduled-review-jobs`, branch `fix/25-scheduled-review-jobs`)
   - **spec:** `09-scheduled-review-jobs.spec.md`
 - [x] Event gateway
   - [x] Standardized event ingestion API (`POST /events`)
+  - [x] Optional `event` field defaults safely — fix PR #20 (`31-fix-event-gateway-contract`)
   - **spec:** `19-event-gateway.spec.md`
-- [ ] MCP configuration
-  - [ ] Per task and/or per repo
+- [x] MCP configuration
+  - [x] Per task and/or per repo + merge into `POST /tasks` — #9 + fix PR #12 (`23-fix-mcp-merge-wiring`)
   - **spec:** `18-mcp-config.spec.md`
 
 ---
 
 ### Phase 3 — Spec harness and pluggable runners (flagship)
 
-Status: **partial** (schema, orchestration, Cursor runner, and spec editor landed; Hermes/OpenCode/multi-tenant still open). Goal: qualified specs drive staged, observable, resumable pipelines; runners are swappable.
+Status: **partial** (runners + schema fixes landed; Kanban board is Phase 4). Goal: qualified specs drive staged, observable, resumable pipelines; runners are swappable.
 
 - [x] Spec schema (machine-actionable: IDs, AC, dependencies)
+  - [x] Frontmatter `stages` / `dependencies` parsing — fix PR #16 (`27-fix-spec-schema-frontmatter-stages`)
   - **spec:** `10-spec-schema.spec.md`
 - [x] Stage orchestration service
-  - [x] Stages: implement → build → test → deploy → review
+  - [x] Default stages: implement → build → test → review (deploy dropped) — fix PR #15 (`26-fix-harness-default-stages`)
   - [x] Per-stage logs, artifacts, pass/fail; resumable; tied to spec sections
   - **spec:** `12-stage-orchestration.spec.md`
 - [x] Runner interface (do not hard-couple to `@cursor/sdk`)
   - **spec:** `11-harness-runner-interface.spec.md`
 - [x] Cursor SDK runner adapter (default)
+  - [x] Cancel run on stage timeout — fix PR #19 (`30-fix-cursor-runner-timeout-cancel`)
   - **spec:** `13-runner-cursor-sdk.spec.md`
 - [x] Spec editor / served environment (`GET /ui/spec-editor`)
   - **spec:** `14-spec-editor.spec.md`
 - [x] Hermes Agent integration (orchestration, schedule, memory/skills, delegation)
+  - [x] CLI argv + honest healthCheck — fix PR #10 (`20-fix-hermes-cli-and-health`)
   - **spec:** `15-hermes-integration.spec.md`
-- [ ] OpenCode runner adapter
+- [x] OpenCode runner adapter
+  - [x] Live stdout/stderr stream + git status artifact — #8 + fix (`21-fix-opencode-stream-and-git`)
   - **spec:** `16-runner-opencode.spec.md`
-- [ ] Multi-tenant isolation (if multiple clients share one host)
+- [x] Multi-tenant isolation (if multiple clients share one host)
+  - [x] Tenant ACL / env / limits — #9 + fix PR #11 (`22-fix-multi-tenant-isolation`)
   - **spec:** `17-multi-tenant-isolation.spec.md`
+
+---
+
+### Phase 4 — Homelab Kanban board (ops UI)
+
+Status: **todo**. Goal: SQLite-backed spec cards + filesystem working clones; global Kanban UI drives `spec-to-pr` / `spec-to-pr-lite` Start/Pause/Finish with real status. Design: `docs/superpowers/specs/2026-07-25-kanban-board-design.md`.
+
+- [ ] Board data plane (SQLite, repos, cards, import/export, ensure/cleanup clone)
+  - **spec:** `32-board-data-plane.spec.md`
+- [ ] Board UI (`GET /ui/board`, coarse lanes, repo filter, card chrome; keep `/ui/spec-editor`)
+  - **spec:** `33-board-ui.spec.md`
+- [ ] Board execution control (Start confirm / Pause / Resume / Finish + step→lane sync)
+  - **spec:** `34-board-execution-control.spec.md`
 
 ---
 
@@ -217,20 +238,35 @@ Write / implement in this order unless a dependency forces a skip. Update status
 | 5 | `[x]` | `05-workflow-skills-spec-to-pr.spec.md` | Run installed `spec-to-pr` / `spec-to-pr-lite`; exclusive agent roles; caller chooses agent |
 | 6 | `[x]` | `06-async-task-queue.spec.md` | Accept/poll/(webhook) async task lifecycle |
 | 7 | `[x]` | `07-run-history.spec.md` | Persist and query past runs |
-| 8 | `[x]` | `08-task-streaming.spec.md` | Stream agent output to clients via SSE |
-| 9 | `[x]` | `09-scheduled-review-jobs.spec.md` | First real cron jobs using the scheduler hook |
-| 10 | `[x]` | `10-spec-schema.spec.md` | Qualified spec format & Zod schema for the harness engine — **landed** |
-| 11 | `[x]` | `11-harness-runner-interface.spec.md` | Pluggable runner contract (Cursor SDK, Hermes, OpenCode) — **landed** |
-| 12 | `[x]` | `12-stage-orchestration.spec.md` | Stage pipeline + observability + resume — **landed** |
-| 13 | `[x]` | `13-runner-cursor-sdk.spec.md` | Cursor adapter behind the interface |
+| 8 | `[x]` | `08-task-streaming.spec.md` | Stream agent output to clients via SSE (+ fix #13) |
+| 9 | `[~]` | `09-scheduled-review-jobs.spec.md` | Base landed; fix-25 enable-gate/hygiene **not on develop** (PR #14 closed) |
+| 10 | `[x]` | `10-spec-schema.spec.md` | Qualified spec format & Zod schema (+ frontmatter stages #16) |
+| 11 | `[x]` | `11-harness-runner-interface.spec.md` | Pluggable runner contract (Cursor SDK, Hermes, OpenCode) |
+| 12 | `[x]` | `12-stage-orchestration.spec.md` | Stage pipeline + observability + resume (+ default stages #15) |
+| 13 | `[x]` | `13-runner-cursor-sdk.spec.md` | Cursor adapter (+ timeout cancel #19) |
 | 14 | `[x]` | `14-spec-editor.spec.md` | Hosted editor/environment |
-| 15 | `[x]` | `15-hermes-integration.spec.md` | Hermes as orchestrator / delegate |
-| 16 | `[ ]` | `16-runner-opencode.spec.md` | OpenCode adapter |
-| 17 | `[ ]` | `17-multi-tenant-isolation.spec.md` | Isolation if shared host |
-| 18 | `[ ]` | `18-mcp-config.spec.md` | MCP servers per task/repo (deferred to future backlog) |
-| 19 | `[x]` | `19-event-gateway.spec.md` | Standardized Event Ingestion Gateway (`POST /events`) |
+| 15 | `[x]` | `15-hermes-integration.spec.md` | Hermes adapter (+ CLI/health #10) |
+| 16 | `[x]` | `16-runner-opencode.spec.md` | OpenCode adapter (+ stream/git #10/#21) |
+| 17 | `[x]` | `17-multi-tenant-isolation.spec.md` | Tenant isolation (+ ACL fix #11) |
+| 18 | `[x]` | `18-mcp-config.spec.md` | MCP per task/repo (+ merge wiring #12) |
+| 19 | `[x]` | `19-event-gateway.spec.md` | Event gateway (+ optional `event` #20) |
+| 20 | `[x]` | `20-fix-hermes-cli-and-health.spec.md` | Hermes CLI argv + healthCheck — **PR #10** |
+| 21 | `[x]` | `21-fix-opencode-stream-and-git.spec.md` | OpenCode live stream + git status — **bundled/shipped** |
+| 22 | `[x]` | `22-fix-multi-tenant-isolation.spec.md` | Tenant ACL hardening — **PR #11** |
+| 23 | `[x]` | `23-fix-mcp-merge-wiring.spec.md` | MCP merge at POST /tasks — **PR #12** |
+| 24 | `[x]` | `24-fix-task-streaming-progress.spec.md` | SSE output + EventSource auth — **PR #13** |
+| 25 | `[ ]` | `25-fix-scheduled-review-jobs.spec.md` | Hygiene + enable gate + resume — **PR #14 closed; re-land** |
+| 26 | `[x]` | `26-fix-harness-default-stages.spec.md` | Drop deploy from defaults — **PR #15** |
+| 27 | `[x]` | `27-fix-spec-schema-frontmatter-stages.spec.md` | Frontmatter stages/deps — **PR #16** |
+| 28 | `[x]` | `28-fix-docs-roadmap-sync.spec.md` | AGENTS/README roadmap sync — **PR #17** |
+| 29 | `[x]` | `29-fix-task-store-stale-running.spec.md` | Stale running on load — **PR #18** |
+| 30 | `[x]` | `30-fix-cursor-runner-timeout-cancel.spec.md` | Cancel on stage timeout — **PR #19** |
+| 31 | `[x]` | `31-fix-event-gateway-contract.spec.md` | Optional event default — **PR #20** |
+| 32 | `[ ]` | `32-board-data-plane.spec.md` | SQLite cards/repos; secret_ref; clone ensure/cleanup; import/export |
+| 33 | `[ ]` | `33-board-ui.spec.md` | `GET /ui/board` Kanban; global + repo filter; planning-lane drag |
+| 34 | `[ ]` | `34-board-execution-control.spec.md` | Start/Pause/Resume/Finish; real step→lane sync |
 
-**Suggested immediate next step:** `16-runner-opencode.spec.md` (OpenCode adapter).
+**Suggested immediate next step:** re-open/ship `25-fix-scheduled-review-jobs` from `fix/25-scheduled-review-jobs`, then start `32-board-data-plane.spec.md`.
 
 ---
 
@@ -238,7 +274,7 @@ Write / implement in this order unless a dependency forces a skip. Update status
 
 Capture anything that comes up while developing. Promote into a phase + next-specs row when it deserves a full spec.
 
-- [ ] _(empty — add bullets here)_
+- [x] Homelab Kanban board (cards/specs, real status, Start/Pause/Finish) — **promoted** → Phase 4 · specs `32`–`34` · design `docs/superpowers/specs/2026-07-25-kanban-board-design.md`
 
 ---
 
@@ -255,7 +291,9 @@ Coarse record of what already counts as landed; detail stays in git history / ch
 | 2026-07-24 | Tailscale bind / client access docs | `.env.example`, README, `docs/docker.md`, AGENTS — Phase 1 |
 | 2026-07-24 | Task `agent` roles + `GET /agents` | `default` / `planner` / `implementer` / `plan+implementer`; unknown → `default` — Phase 0 |
 | 2026-07-25 | Spec editor UI + spec file IO | `GET /ui/spec-editor`; GET/PUT `/repos/:repo/specs/:file`; harness repo-name resolve — Phase 3 |
-| 2026-07-25 | HermesRunner harness adapter | `id: hermes`; injectable CLI/HTTP stub; StageOutput normalize — Phase 3 |
+| 2026-07-25 | HermesRunner / OpenCodeRunner / multi-tenant / MCP | PRs #7–#9 — Phase 3 |
+| 2026-07-26 | Verify-plan fix batch | PRs #10–#13, #15–#20 merged; #14 closed (scheduled-review fix not on develop) |
+| 2026-07-25 | Kanban board epic drafted | Specs `32`–`34` + design doc — Phase 4 todo |
 
 ---
 

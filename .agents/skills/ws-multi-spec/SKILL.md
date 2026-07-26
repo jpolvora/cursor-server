@@ -1,8 +1,9 @@
 ---
+
 name: ws-multi-spec
-version: 0.0.84
+version: 0.0.90
 description: >-
-  Sequential smart multi-spec batch delivery orchestrator. Evaluates spec complexity to dispatch spec-to-pr or spec-to-pr-lite workers.
+  Sequential smart multi-spec batch delivery orchestrator. Evaluates spec complexity to dispatch ws-spec-to-pr or ws-spec-to-pr-lite workers.
   Invoke: /ws-multi-spec | @[ws-multi-spec].
   Entry: state file | list of specs | blank (scan default specsDir).
 ---
@@ -15,11 +16,11 @@ description: >-
 | **Protocol & State** | [`PROTOCOL.md`](PROTOCOL.md) · [`STATE.md`](STATE.md) |
 | **Examples & Evals** | [`EXAMPLES.md`](EXAMPLES.md) · [`evals/evals.json`](evals/evals.json) |
 
-**Always-on load:** this file + [`PROTOCOL.md`](PROTOCOL.md). **On demand:** [`STATE.md`](STATE.md) · [`EXAMPLES.md`](EXAMPLES.md) · [`../spec-to-pr/SKILL.md`](../spec-to-pr/SKILL.md) · [`../spec-to-pr-lite/SKILL.md`](../spec-to-pr-lite/SKILL.md) · [`../shared/tools.md`](../shared/tools.md). Language: **en-us** only.
+**Always-on load:** this file + [`PROTOCOL.md`](PROTOCOL.md). **On demand:** [`STATE.md`](STATE.md) · [`EXAMPLES.md`](EXAMPLES.md) · [`../ws-spec-to-pr/SKILL.md`](../ws-spec-to-pr/SKILL.md) · [`../ws-spec-to-pr-lite/SKILL.md`](../ws-spec-to-pr-lite/SKILL.md) · [`../shared/tools.md`](../shared/tools.md). Language: **en-us** only.
 
 ## Native tool contract
 
-Canonical aliases: [`../shared/tools.md`](../shared/tools.md). Params: `{sharedDir}/config.json`. Never narrate undone work. Master orchestrator never edits code directly — dispatches `spec-to-pr` or `spec-to-pr-lite` workers via `dispatch-agent`.
+Canonical aliases: [`../shared/tools.md`](../shared/tools.md). Params: `{sharedDir}/config.json`. Never narrate undone work. Master orchestrator never edits code directly — dispatches `ws-spec-to-pr` or `ws-spec-to-pr-lite` workers via `dispatch-agent`.
 
 | Intent | Alias | Rule |
 |--------|-------|------|
@@ -35,7 +36,7 @@ Sequential multi-spec batch delivery orchestrator with **smart complexity & flow
 ## Goals
 
 1. Batch process a list or directory of specs sequentially.
-2. **Smart Flow Auto-Detection**: Evaluate spec complexity to select `spec-to-pr` (full) or `spec-to-pr-lite` (fast).
+2. **Smart Flow Auto-Detection**: Evaluate spec complexity to select `ws-spec-to-pr` (full) or `ws-spec-to-pr-lite` (fast).
 3. Probe before execution to skip already-implemented specs.
 4. Unified state management across specs in `{plansDir}/ws-multi-spec/{runId}.state.md`.
 5. Pause on worker failure with clear recovery options (Resume, Skip, Abort).
@@ -45,7 +46,7 @@ Sequential multi-spec batch delivery orchestrator with **smart complexity & flow
 | Topic | Rule |
 |-------|------|
 | Sequential | Exactly one spec worker active at a time |
-| Flow Auto-Detect | `spec-to-pr-lite` when ≤3 steps / ≤6 files / ≤2 layers / frontmatter `complexity: low`; `spec-to-pr` otherwise |
+| Flow Auto-Detect | `ws-spec-to-pr-lite` when ≤3 steps / ≤6 files / ≤2 layers / frontmatter `complexity: low`; `ws-spec-to-pr` otherwise |
 | Merge | Worker merges PR only after `ws-goal-fix-pr` converges and CI checks pass |
 | Isolation | Fresh worker context per spec; no shared scratch across specs |
 | Pause on fail | No silent continue on worker failure; gate required |

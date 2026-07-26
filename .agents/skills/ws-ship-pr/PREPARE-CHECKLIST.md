@@ -55,7 +55,7 @@ Prefer `bash .agents/skills/ws-ship-pr/scripts/verify.sh` when it covers configu
 
 ### 4. Security / leak scan
 **When:** no security check yet on ship-scope diff (or full tree if scope unclear).  
-**Do:** run [secrets-leak-review](../secrets-leak-review/SKILL.md); HIGH → ❌. Honor `config.json.rules.*` security paths when set.  
+**Do:** run [ws-secrets-leak-review](../ws-secrets-leak-review/SKILL.md); HIGH → ❌. Honor `config.json.rules.*` security paths when set.  
 **⏭:** clean scan evidence for current ship-scope tree.  
 **Done when:** scan clean, or HIGH findings listed and push blocked.
 

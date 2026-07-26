@@ -66,7 +66,7 @@ Update `step-08-{slug}.result.md` sections **Done** and **Next steps**:
 - Open PR `develop` → `master` when ready.
 ```
 
-If stub `step-08-{slug}.result.md` did not exist, create full file per [`protocols/delivery-result.md`](../spec-to-pr/protocols/delivery-result.md).
+If stub `step-08-{slug}.result.md` did not exist, create full file per [`protocols/delivery-result.md`](../ws-spec-to-pr/protocols/delivery-result.md).
 
 ---
 

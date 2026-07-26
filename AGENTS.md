@@ -201,10 +201,11 @@ This repo consumes the **full** package. Skills live under `.agents/skills/`. Do
 ### How to use
 
 1. Load the shared hub first for routing: [`.agents/skills/shared/AGENTS.md`](.agents/skills/shared/AGENTS.md).
-2. Autoload Layer 0 from the hub (`caveman`, `gabarito`, `karpathy-guidelines`, plus `changelog` / `self-learning` on completion).
+2. Autoload Layer 0 from the hub (`caveman`, `gabarito`, `karpathy-guidelines`).
 3. Invoke orchestrators by intent: `/spec-to-pr`, `/spec-to-pr-lite`, `/fable-method`, `/configure-project`, `/check-harness`, `/ship-pr`, `/fix-pr`, etc.
 4. Expand path tokens (`{skillsRoot}`, `{sharedDir}`, `{plansDir}`) from `config.json` per `shared/tools.md` before file ops.
 5. Never invent alternate pipeline folder ids; dispatch steps via the orchestrator (`00`–`09`, `goal-fix-pr`, `update-plan-implementation`).
+6. **After every task is ready (mandatory completion gate):** run [`ws-sync-spec`](.agents/skills/ws-sync-spec/SKILL.md), then `self-learning`, then `changelog`. Spec drift sync proposes updates and waits for approval before writing; if no matching `*.spec.md`, report and continue.
 
 ### Install / update / uninstall
 

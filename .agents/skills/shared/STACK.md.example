@@ -4,7 +4,7 @@ Human-readable companion to `config.json`. Agents read `config.json` for machine
 
 > **Source of truth:** `.agents/skills/shared/config.json` — project identity, stack, verification, invariants. `tools.md` — tool aliases. This `STACK.md` is the human-readable guide.
 >
-> Fresh installs seed this file from `STACK.md.example`. Run [`configure-project`](../configure-project/SKILL.md) to replace placeholders with your project’s real stack.
+> Fresh installs seed this file from `STACK.md.example`. Run [`ws-configure-project`](../ws-configure-project/SKILL.md) to replace placeholders with your project’s real stack.
 
 ## Project Stack (from config.json)
 
@@ -75,7 +75,7 @@ Delegated workflow skills (pipeline `ws-*` folders: `ws-write-spec`…`ws-fix-pr
 
 Enforced by code review and validation when present. Read from `config.json.invariants`.
 
-Seeded example keys are **placeholders** (often from a sample stack). Keep only invariants that apply to this repo; delete or set false for the rest. Run `configure-project` to refresh.
+Seeded example keys are **placeholders** (often from a sample stack). Keep only invariants that apply to this repo; delete or set false for the rest. Run `ws-configure-project` to refresh.
 
 | Key | Intent (example) |
 |-----|------------------|

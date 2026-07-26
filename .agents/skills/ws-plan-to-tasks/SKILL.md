@@ -1,7 +1,8 @@
 ---
+
 name: ws-plan-to-tasks
 description: Breaks an implementation plan into atomic tasks organized in a DAG, or sequential when small.
-version: 0.0.82
+version: 0.0.90
 disable-model-invocation: true
 invocation_names:
   - plan-to-tasks
@@ -22,7 +23,7 @@ Standalone:
 /plan-to-tasks <plan-path> [thresholds=<path>]
 ```
 
-Workflow (spec-to-pr Step 3): orchestrator passes `planPath` (`step-02-*.plan.refined.md` or `step-01-*.plan.md`) from state.
+Workflow (ws-spec-to-pr Step 3): orchestrator passes `planPath` (`step-02-*.plan.refined.md` or `step-01-*.plan.md`) from state.
 
 | Parameter | Default | Notes |
 |-----------|---------|-------|

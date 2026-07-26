@@ -9,7 +9,7 @@
         "Scans config.plans.specsDir (default .agents/specs) for *.spec.md",
         "Creates state under {plansDir}/ws-multi-spec/",
         "Auto-detects spec complexity (lite vs standard workflow selection)",
-        "Dispatches at most one spec-to-pr or spec-to-pr-lite worker at a time",
+        "Dispatches at most one ws-spec-to-pr or ws-spec-to-pr-lite worker at a time",
         "Does not start implementing before selection gate completes"
       ]
     },
@@ -20,7 +20,7 @@
       "assertions": [
         "Creates state from explicit spec list without blank-list scan",
         "Runs already-implemented probe before each worker",
-        "Selects spec-to-pr-lite for simple specs and spec-to-pr for complex specs",
+        "Selects ws-spec-to-pr-lite for simple specs and ws-spec-to-pr for complex specs",
         "Pauses with user-gate on worker failure instead of silently continuing"
       ]
     },

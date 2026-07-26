@@ -1,7 +1,8 @@
 ---
+
 name: ws-implement-tasks
 description: Executes code implementations or fixes defects following a plan, DAG, or review findings.
-version: 0.0.82
+version: 0.0.90
 disable-model-invocation: true
 invocation_names:
   - implement-tasks
@@ -12,7 +13,7 @@ invocation_names:
 
 Execute the coding and testing steps from the plan (build mode) or correct defects from a review or test report (fix mode). Act as a Senior Software Developer: clean code, SOLID, surgical edits, stack-consistent, no duplication.
 
-**Reads:** execution plan (`step-03-*.plan.exec.md`), refined plan (`step-02-*.plan.refined.md`), or draft plan (`step-01-*.plan.md`); `config.json` for layer patterns; `{sharedDir}/MEMORY.md` (Grep task keywords before coding — expand per [`tools.md`](../shared/tools.md) § Path tokens; [`self-learning`](../self-learning/SKILL.md) § Pre-work consult).
+**Reads:** execution plan (`step-03-*.plan.exec.md`), refined plan (`step-02-*.plan.refined.md`), or draft plan (`step-01-*.plan.md`); `config.json` for layer patterns; `{sharedDir}/MEMORY.md` (Grep task keywords before coding — expand per [`tools.md`](../shared/tools.md) § Path tokens; [`ws-self-learning`](../ws-self-learning/SKILL.md) § Pre-work consult).
 
 ## Invocation
 
@@ -22,7 +23,7 @@ Standalone:
 /implement-tasks <plan-path> [mode=build|fix] [findings=<path>]
 ```
 
-Workflow (spec-to-pr Step 4 build; conditional fix substep under Step 6 review findings / Step 7 test failures; lite Step 2 build / Step 3 review-fix): orchestrator passes `planPath`, `mode`, and optional `findings` path.
+Workflow (ws-spec-to-pr Step 4 build; conditional fix substep under Step 6 review findings / Step 7 test failures; lite Step 2 build / Step 3 review-fix): orchestrator passes `planPath`, `mode`, and optional `findings` path.
 
 | Parameter | Default | Notes |
 |-----------|---------|-------|
@@ -58,7 +59,7 @@ Workflow (spec-to-pr Step 4 build; conditional fix substep under Step 6 review f
 2. **Consult MEMORY** — Grep `{sharedDir}/MEMORY.md` for the defect class / paths; reuse known Solutions before inventing fixes.
    - Done when: relevant entries noted or none found.
 
-3. **Correct** — Apply minimal, targeted fixes per [karpathy-guidelines](../karpathy-guidelines/SKILL.md).
+3. **Correct** — Apply minimal, targeted fixes per [ws-karpathy-guidelines](../ws-karpathy-guidelines/SKILL.md).
    - Done when: every enumerated finding has a corresponding edit.
 
 4. **Sweep siblings** — Search modified directories for the same defect class and fix simultaneously.

@@ -34,7 +34,7 @@ specsDir: .agents/specs
 |-------|----------------|
 | Run `status` | `active` · `paused` · `completed` |
 | Item `status` | `pending` · `in_progress` · `shipped` · `skipped` · `failed` |
-| `flowMode` | `lite` (dispatches `spec-to-pr-lite`) · `standard` (dispatches full `spec-to-pr`) |
+| `flowMode` | `lite` (dispatches `ws-spec-to-pr-lite`) · `standard` (dispatches full `ws-spec-to-pr`) |
 | `slug` | Basename of spec without `.spec.md` (stable id) |
 | `specPath` | Repo-relative path to source `*.spec.md` |
 | `reason` | Required when `skipped` or `failed` (e.g. `already-implemented`, error summary) |

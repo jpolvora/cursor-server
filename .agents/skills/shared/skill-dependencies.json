@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "packageVersion": "0.0.85",
+  "packageVersion": "0.0.90",
   "upstream": {
     "repo": "jpolvora/workflow-skills",
     "url": "https://github.com/jpolvora/workflow-skills",
@@ -23,8 +23,8 @@
     },
     "workflows": {
       "skills": [
-        "spec-to-pr",
-        "spec-to-pr-lite",
+        "ws-spec-to-pr",
+        "ws-spec-to-pr-lite",
         "ws-write-spec",
         "ws-write-plan",
         "ws-interview",
@@ -37,24 +37,26 @@
         "ws-fix-pr",
         "ws-goal-fix-pr",
         "ws-update-plan-implementation",
-        "github-provider",
-        "azure-devops-provider",
-        "local-spec-provider",
-        "check-harness",
-        "check-workflows",
-        "caveman",
-        "gabarito",
-        "karpathy-guidelines",
-        "spec-format",
-        "goal-loop",
-        "self-learning",
-        "changelog",
-        "secrets-leak-review",
-        "configure-project",
-        "fable-method",
-        "fable-judge",
-        "fable-domain",
-        "ws-multi-spec"
+        "ws-github-provider",
+        "ws-azure-devops-provider",
+        "ws-local-spec-provider",
+        "ws-check-harness",
+        "ws-check-workflows",
+        "ws-caveman",
+        "ws-gabarito",
+        "ws-karpathy-guidelines",
+        "ws-spec-format",
+        "ws-goal-loop",
+        "ws-self-learning",
+        "ws-changelog",
+        "ws-secrets-leak-review",
+        "ws-configure-project",
+        "ws-fable-method",
+        "ws-fable-judge",
+        "ws-fable-domain",
+        "ws-multi-spec",
+        "ws-spec-index",
+        "ws-sync-spec"
       ],
       "ensureHub": true,
       "shortcut": "w",
@@ -62,8 +64,8 @@
     },
     "extra": {
       "skills": [
-        "write-a-skill",
-        "show-harness"
+        "ws-write-a-skill",
+        "ws-show-harness"
       ],
       "ensureHub": false,
       "shortcut": "e",
@@ -71,7 +73,7 @@
     }
   },
   "dependencies": {
-    "spec-to-pr": [
+    "ws-spec-to-pr": [
       "ws-write-spec",
       "ws-write-plan",
       "ws-interview",
@@ -84,21 +86,22 @@
       "ws-fix-pr",
       "ws-goal-fix-pr",
       "ws-update-plan-implementation",
-      "github-provider",
-      "azure-devops-provider",
-      "local-spec-provider",
-      "check-harness",
-      "check-workflows",
-      "caveman",
-      "gabarito",
-      "karpathy-guidelines",
-      "spec-format",
-      "goal-loop",
-      "self-learning",
-      "changelog",
-      "configure-project"
+      "ws-github-provider",
+      "ws-azure-devops-provider",
+      "ws-local-spec-provider",
+      "ws-check-harness",
+      "ws-check-workflows",
+      "ws-caveman",
+      "ws-gabarito",
+      "ws-karpathy-guidelines",
+      "ws-spec-format",
+      "ws-goal-loop",
+      "ws-self-learning",
+      "ws-changelog",
+      "ws-configure-project",
+      "ws-spec-index"
     ],
-    "spec-to-pr-lite": [
+    "ws-spec-to-pr-lite": [
       "ws-write-spec",
       "ws-write-plan",
       "ws-implement-tasks",
@@ -106,69 +109,71 @@
       "ws-ship-pr",
       "ws-fix-pr",
       "ws-goal-fix-pr",
-      "github-provider",
-      "azure-devops-provider",
-      "local-spec-provider",
-      "caveman",
-      "gabarito",
-      "karpathy-guidelines",
-      "spec-format",
-      "self-learning",
-      "changelog",
-      "configure-project"
+      "ws-github-provider",
+      "ws-azure-devops-provider",
+      "ws-local-spec-provider",
+      "ws-caveman",
+      "ws-gabarito",
+      "ws-karpathy-guidelines",
+      "ws-spec-format",
+      "ws-self-learning",
+      "ws-changelog",
+      "ws-configure-project",
+      "ws-spec-index"
     ],
     "ws-write-spec": [
-      "spec-format"
+      "ws-spec-format"
     ],
-    "github-provider": [
-      "spec-format"
+    "ws-github-provider": [
+      "ws-spec-format"
     ],
-    "azure-devops-provider": [
-      "spec-format"
+    "ws-azure-devops-provider": [
+      "ws-spec-format"
     ],
-    "local-spec-provider": [
-      "spec-format"
+    "ws-local-spec-provider": [
+      "ws-spec-format"
     ],
     "ws-goal-fix-pr": [
       "ws-fix-pr",
-      "goal-loop"
+      "ws-goal-loop"
     ],
     "ws-write-plan": [
-      "fable-domain"
+      "ws-fable-domain"
     ],
     "ws-verify-plan": [
-      "fable-judge"
+      "ws-fable-judge"
     ],
     "ws-ship-pr": [
-      "secrets-leak-review",
-      "fable-judge"
+      "ws-secrets-leak-review",
+      "ws-fable-judge",
+      "ws-spec-index"
     ],
     "ws-code-review": [
-      "karpathy-guidelines",
-      "caveman",
-      "gabarito",
-      "self-learning",
-      "fable-judge"
+      "ws-karpathy-guidelines",
+      "ws-caveman",
+      "ws-gabarito",
+      "ws-self-learning",
+      "ws-fable-judge"
     ],
-    "fable-method": [
-      "fable-judge",
-      "fable-domain",
-      "caveman",
-      "gabarito",
-      "karpathy-guidelines",
-      "self-learning"
+    "ws-fable-method": [
+      "ws-fable-judge",
+      "ws-fable-domain",
+      "ws-caveman",
+      "ws-gabarito",
+      "ws-karpathy-guidelines",
+      "ws-self-learning"
     ],
-    "fable-judge": [
-      "caveman",
-      "gabarito",
-      "karpathy-guidelines"
+    "ws-fable-judge": [
+      "ws-caveman",
+      "ws-gabarito",
+      "ws-karpathy-guidelines"
     ],
     "ws-multi-spec": [
-      "spec-to-pr",
-      "spec-to-pr-lite",
-      "caveman",
-      "gabarito",
-      "karpathy-guidelines"
+      "ws-spec-to-pr",
+      "ws-spec-to-pr-lite",
+      "ws-caveman",
+      "ws-gabarito",
+      "ws-karpathy-guidelines"
     ]
   },
   "autoloadOnly": [],

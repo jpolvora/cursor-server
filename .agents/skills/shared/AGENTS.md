@@ -2,7 +2,7 @@
 
 **Audience: agents** (config resolution, gates, skill loading, consumer-owned paths). Humans: install narrative in the project README or upstream [workflow-skills](https://github.com/jpolvora/workflow-skills) README.
 
-> **Config, gates, bootstrap docs, skill loading, and consumer-owned project data** for [`spec-to-pr`](../spec-to-pr/SKILL.md) and [`spec-to-pr-lite`](../spec-to-pr-lite/SKILL.md).
+> **Config, gates, bootstrap docs, skill loading, and consumer-owned project data** for [`ws-spec-to-pr`](../ws-spec-to-pr/SKILL.md) and [`ws-spec-to-pr-lite`](../ws-spec-to-pr-lite/SKILL.md).
 >
 > This folder is **not** an installable skill package. The installer copies hub templates here when a workflow or Full package is selected.
 >
@@ -10,9 +10,9 @@
 >
 > **Consumer-owned** (preserved on update; never overwritten by upstream):
 > `config.json`, `STACK.md`, `MEMORY.md`, `memory/*`, `installed-skills.json`, and `CHANGELOG.md` (when `rules.changelogFile` points under `shared/`).
-> Fresh install seeds `config.json` from `config.json.example`, empty `MEMORY.md` / `CHANGELOG.md` from templates, and `STACK.md` from `STACK.md.example`. Prefer [`configure-project`](../configure-project/SKILL.md) to fill placeholders. The installer writes `installed-skills.json` for update/uninstall tracking.
+> Fresh install seeds `config.json` from `config.json.example`, empty `MEMORY.md` / `CHANGELOG.md` from templates, and `STACK.md` from `STACK.md.example`. Prefer [`ws-configure-project`](../ws-configure-project/SKILL.md) to fill placeholders. The installer writes `installed-skills.json` for update/uninstall tracking.
 >
-> **Installer scope:** only `.agents/skills/` (skill folders + this `shared/` hub). Never creates or overwrites consumer repo-root files (root `AGENTS.md`, host pointers). Optional root/host pointers stay consumer-owned; check-harness may suggest them.
+> **Installer scope:** only `.agents/skills/` (skill folders + this `shared/` hub). Never creates or overwrites consumer repo-root files (root `AGENTS.md`, host pointers). Optional root/host pointers stay consumer-owned; ws-check-harness may suggest them.
 
 **Language:** en-us only for skill bodies, gates, banners, and harness docs.
 
@@ -22,15 +22,15 @@
 
 | File | Purpose |
 |------|---------|
-| [`config.json.example`](config.json.example) | Project config template — seeded to `config.json` on fresh install; fill via [`configure-project`](../configure-project/SKILL.md); never commit |
+| [`config.json.example`](config.json.example) | Project config template — seeded to `config.json` on fresh install; fill via [`ws-configure-project`](../ws-configure-project/SKILL.md); never commit |
 | [`config.schema.json`](config.schema.json) | JSON Schema for `config.json` validation |
 | [`config-resolution.md`](config-resolution.md) | Canonical config path + SCM resolution (dual-mode) |
 | [`gates.md`](gates.md) | Shared user-gate / delivery / ship / session-model banner (dual-mode) |
 | [`tools.md`](tools.md) | Canonical agent tool vocabulary (aliases → config keys), **Path tokens** (`{skillsRoot}` / `{sharedDir}` / `{plansDir}`), script launchers (`python` / `node` / `bash`). Load with `config.json` before tool calls. |
 | [`STACK.md.example`](STACK.md.example) | Template for human-readable stack companion — seeds `STACK.md` |
-| [`setup.md`](setup.md) | Bootstrap & entry logic shared by `spec-to-pr` and `spec-to-pr-lite` |
+| [`setup.md`](setup.md) | Bootstrap & entry logic shared by `ws-spec-to-pr` and `ws-spec-to-pr-lite` |
 | [`MEMORY.md.template`](MEMORY.md.template) | Empty memory index template — seeds `MEMORY.md` |
-| [`CHANGELOG.md.template`](CHANGELOG.md.template) | Empty changelog stub — seeds `CHANGELOG.md` |
+| [`CHANGELOG.md.template`](CHANGELOG.md.template) | Empty ws-changelog stub — seeds `CHANGELOG.md` |
 | [`skill-dependencies.json`](skill-dependencies.json) | Install graph + **`packageVersion`** + single **`upstream`** ownership block (no per-skill `upstream:` in SKILL.md) |
 
 ## Consumer-owned (local only)
@@ -39,9 +39,9 @@
 |------|---------|
 | `config.json` | Project identity, stack, verification, providers (seeded; gitignored) |
 | `STACK.md` | Human-readable companion to `config.json` (edit freely) |
-| `MEMORY.md` | Compiled anti-regression index (`self-learning` skill) |
+| `MEMORY.md` | Compiled anti-regression index (`ws-self-learning` skill) |
 | `memory/*.md` | Individual memory entries (compile into `MEMORY.md`) |
-| `CHANGELOG.md` | Append-only history (`changelog` skill; default `rules.changelogFile`) |
+| `CHANGELOG.md` | Append-only history (`ws-changelog` skill; default `rules.changelogFile`) |
 | `installed-skills.json` | Managed skill list for `update` / `uninstall` (installer-written) |
 
 ---
@@ -50,27 +50,27 @@
 
 | Skill | Path | Trigger |
 |-------|------|---------|
-| `caveman` | [`../caveman/SKILL.md`](../caveman/SKILL.md) | Every prompt — compression |
-| `gabarito` | [`../gabarito/SKILL.md`](../gabarito/SKILL.md) | Every prompt — operational guidelines |
-| `karpathy-guidelines` | [`../karpathy-guidelines/SKILL.md`](../karpathy-guidelines/SKILL.md) | Every prompt — surgical scope |
-| `changelog` | [`../changelog/SKILL.md`](../changelog/SKILL.md) | Every task completion |
-| `self-learning` | [`../self-learning/SKILL.md`](../self-learning/SKILL.md) | Before plan/code/fix: consult `{sharedDir}/MEMORY.md`; on completion: write traps → compile |
+| `ws-caveman` | [`../ws-caveman/SKILL.md`](../ws-caveman/SKILL.md) | Every prompt — compression |
+| `ws-gabarito` | [`../ws-gabarito/SKILL.md`](../ws-gabarito/SKILL.md) | Every prompt — operational guidelines |
+| `ws-karpathy-guidelines` | [`../ws-karpathy-guidelines/SKILL.md`](../ws-karpathy-guidelines/SKILL.md) | Every prompt — surgical scope |
+| `ws-changelog` | [`../ws-changelog/SKILL.md`](../ws-changelog/SKILL.md) | Every task completion |
+| `ws-self-learning` | [`../ws-self-learning/SKILL.md`](../ws-self-learning/SKILL.md) | Before plan/code/fix: consult `{sharedDir}/MEMORY.md`; on completion: write traps → compile |
 
 ### Precedence (highest first)
 
 1. Explicit user instructions (current turn)
 2. Design / spec / architecture constraints
-3. `karpathy-guidelines`
-4. `gabarito`
-5. `caveman` (compression only; keep technical accuracy)
+3. `ws-karpathy-guidelines`
+4. `ws-gabarito`
+5. `ws-caveman` (compression only; keep technical accuracy)
 
 ### Opt-out
 
 | Phrase | Effect |
 |--------|--------|
-| `stop caveman` / `normal mode` | Disable caveman |
-| `stop gabarito` / `sem gabarito` | Disable gabarito |
-| `/caveman lite\|full\|ultra\|…` | Intensity |
+| `stop ws-caveman` / `normal mode` | Disable ws-caveman |
+| `stop ws-gabarito` / `sem ws-gabarito` | Disable ws-gabarito |
+| `/ws-caveman lite\|full\|ultra\|…` | Intensity |
 
 ---
 
@@ -80,25 +80,27 @@
 
 | Skill | Path |
 |-------|------|
-| `caveman` | [`../caveman/SKILL.md`](../caveman/SKILL.md) |
-| `gabarito` | [`../gabarito/SKILL.md`](../gabarito/SKILL.md) |
-| `karpathy-guidelines` | [`../karpathy-guidelines/SKILL.md`](../karpathy-guidelines/SKILL.md) |
-| `fable-method` | [`../fable-method/SKILL.md`](../fable-method/SKILL.md) |
-| `fable-domain` | [`../fable-domain/SKILL.md`](../fable-domain/SKILL.md) |
-| `spec-format` | [`../spec-format/SKILL.md`](../spec-format/SKILL.md) |
-| `configure-project` | [`../configure-project/SKILL.md`](../configure-project/SKILL.md) |
-| `goal-loop` | [`../goal-loop/SKILL.md`](../goal-loop/SKILL.md) |
-| `self-learning` | [`../self-learning/SKILL.md`](../self-learning/SKILL.md) |
-| `changelog` | [`../changelog/SKILL.md`](../changelog/SKILL.md) |
+| `ws-caveman` | [`../ws-caveman/SKILL.md`](../ws-caveman/SKILL.md) |
+| `ws-gabarito` | [`../ws-gabarito/SKILL.md`](../ws-gabarito/SKILL.md) |
+| `ws-karpathy-guidelines` | [`../ws-karpathy-guidelines/SKILL.md`](../ws-karpathy-guidelines/SKILL.md) |
+| `ws-fable-method` | [`../ws-fable-method/SKILL.md`](../ws-fable-method/SKILL.md) |
+| `ws-fable-domain` | [`../ws-fable-domain/SKILL.md`](../ws-fable-domain/SKILL.md) |
+| `ws-spec-format` | [`../ws-spec-format/SKILL.md`](../ws-spec-format/SKILL.md) |
+| `ws-configure-project` | [`../ws-configure-project/SKILL.md`](../ws-configure-project/SKILL.md) |
+| `ws-goal-loop` | [`../ws-goal-loop/SKILL.md`](../ws-goal-loop/SKILL.md) |
+| `ws-self-learning` | [`../ws-self-learning/SKILL.md`](../ws-self-learning/SKILL.md) |
+| `ws-changelog` | [`../ws-changelog/SKILL.md`](../ws-changelog/SKILL.md) |
+| `ws-spec-index` | [`../ws-spec-index/SKILL.md`](../ws-spec-index/SKILL.md) |
+| `ws-sync-spec` | [`../ws-sync-spec/SKILL.md`](../ws-sync-spec/SKILL.md) |
 
 ### Harness & review (Workflows package)
 
 | Skill | Path |
 |-------|------|
-| `check-harness` | [`../check-harness/SKILL.md`](../check-harness/SKILL.md) |
-| `check-workflows` | [`../check-workflows/SKILL.md`](../check-workflows/SKILL.md) |
-| `secrets-leak-review` | [`../secrets-leak-review/SKILL.md`](../secrets-leak-review/SKILL.md) |
-| `fable-judge` | [`../fable-judge/SKILL.md`](../fable-judge/SKILL.md) |
+| `ws-check-harness` | [`../ws-check-harness/SKILL.md`](../ws-check-harness/SKILL.md) |
+| `ws-check-workflows` | [`../ws-check-workflows/SKILL.md`](../ws-check-workflows/SKILL.md) |
+| `ws-secrets-leak-review` | [`../ws-secrets-leak-review/SKILL.md`](../ws-secrets-leak-review/SKILL.md) |
+| `ws-fable-judge` | [`../ws-fable-judge/SKILL.md`](../ws-fable-judge/SKILL.md) |
 
 ### Extra package (optional)
 
@@ -106,12 +108,12 @@ Present only after Extra or Full install. If a path is missing, treat as intenti
 
 | Skill | Path |
 |-------|------|
-| `write-a-skill` | [`../write-a-skill/SKILL.md`](../write-a-skill/SKILL.md) |
-| `show-harness` | [`../show-harness/SKILL.md`](../show-harness/SKILL.md) |
+| `ws-write-a-skill` | [`../ws-write-a-skill/SKILL.md`](../ws-write-a-skill/SKILL.md) |
+| `ws-show-harness` | [`../ws-show-harness/SKILL.md`](../ws-show-harness/SKILL.md) |
 
 ### Intentionally orch-only (not duplicated here)
 
-Pipeline folders `ws-write-spec`…`ws-fix-pr`, `ws-goal-fix-pr`, `ws-update-plan-implementation`, orchestrators (`spec-to-pr`, `spec-to-pr-lite`), and providers are discovered via host invoke / orch dispatch — not listed as promoted utilities.
+Pipeline folders `ws-write-spec`…`ws-fix-pr`, `ws-goal-fix-pr`, `ws-update-plan-implementation`, orchestrators (`ws-spec-to-pr`, `ws-spec-to-pr-lite`, `ws-multi-spec`), and providers are discovered via host invoke / orch dispatch — not listed as promoted utilities.
 
 Install packages and dependency map: upstream `bin/skill-dependencies.json` in [workflow-skills](https://github.com/jpolvora/workflow-skills) (not vendored in consumer clones).
 
@@ -121,21 +123,23 @@ Install packages and dependency map: upstream `bin/skill-dependencies.json` in [
 
 | Intent | Load |
 |--------|------|
-| Spec → PR E2E | `spec-to-pr` |
-| Spec → PR lite | `spec-to-pr-lite` |
+| Spec → PR E2E | `ws-spec-to-pr` |
+| Spec → PR lite | `ws-spec-to-pr-lite` |
 | Batch spec delivery | `ws-multi-spec` |
-| Fable Method 7-step loop | `fable-method` |
-| Adversarial audit / fraud scan | `fable-judge` |
-| Domain adapters (DevOps/Data/Research) | `fable-domain` |
-| Fill / update `config.json` | `configure-project` |
-| Audit harness | `check-harness` |
-| Check workflows | `check-workflows` |
-| Secrets / leaks | `secrets-leak-review` |
-| Format/review spec | `spec-format` |
-| Record learning | `self-learning` |
-| Record changelog | `changelog` |
-| Create / rewrite a skill | `write-a-skill` (Extra) |
-| Show active harness | `show-harness` (Extra) |
+| Project spec index init/sync/promote | `ws-spec-index` |
+| Auto-update feature specs after code changes | `ws-sync-spec` |
+| Fable Method 7-step loop | `ws-fable-method` |
+| Adversarial audit / fraud scan | `ws-fable-judge` |
+| Domain adapters (DevOps/Data/Research) | `ws-fable-domain` |
+| Fill / update `config.json` | `ws-configure-project` |
+| Audit harness | `ws-check-harness` |
+| Check workflows | `ws-check-workflows` |
+| Secrets / leaks | `ws-secrets-leak-review` |
+| Format/review spec | `ws-spec-format` |
+| Record learning | `ws-self-learning` |
+| Record ws-changelog | `ws-changelog` |
+| Create / rewrite a skill | `ws-write-a-skill` (Extra) |
+| Show active harness | `ws-show-harness` (Extra) |
 
 Pipeline steps 0–9: use orchestrator dispatch (do not invent alternate folder ids).
 
@@ -162,7 +166,7 @@ False positives that look like “forward reference” bugs are almost always sa
 Run this checklist prior to triggering `/ship-pr` or shipping features in a consumer project:
 
 - [ ] **1. Run Tests & Verification**: Execute local test commands (`verification.backendTest` / `verification.frontendTest` or project test scripts).
-- [ ] **2. Harness & Workflow Audit**: Run `check-harness` / `check-workflows` to ensure 0 critical findings.
+- [ ] **2. Harness & Workflow Audit**: Run `ws-check-harness` / `ws-check-workflows` to ensure 0 critical findings.
 - [ ] **3. Configure & Verify Project**: Verify `.agents/skills/shared/config.json` settings and stack definitions.
 - [ ] **4. Clean Docs & Artifacts**: Ensure documentation files have no merge conflict markers or uncommitted scratch files.
 - [ ] **5. Ship via `ship-pr`**: Execute `/ship-pr` (runs Prepare Board, commits, pushes, creates PR).
@@ -174,7 +178,7 @@ Additional obligations when maintaining and releasing the upstream skills packag
 - [ ] **1. Run Package Tests**: Execute `npm run test` (runs installer, integrity checks, and tree verification).
 - [ ] **2. Single Version Bump**: Increment package version once per release PR and stamp site footer (`npm run build-site:bump`).
 - [ ] **3. Regenerate Integrity Manifest**: Run `npm run generate-integrity` and `npm run verify-integrity`.
-- [ ] **4. Harness Audit**: Run `check-harness` to ensure 0 critical findings.
+- [ ] **4. Harness Audit**: Run `ws-check-harness` to ensure 0 critical findings.
 - [ ] **5. Hub Sync**: Keep `AGENTS.md` and `.agents/AGENTS.md` in sync before shipping PR.
 
 ---
@@ -192,7 +196,7 @@ Not shipped in the hub package (except where noted). Resolve each dependency in 
 | Dependency | Resolve (first match) |
 |------------|------------------------|
 | `senior-developer` | `config.json` → `rules.seniorDeveloper` → local skill (`senior-developer/SKILL.md`) → global/user skill |
-| `karpathy-guidelines` | `config.json` → `rules.karpathyGuidelines` → shipped `../karpathy-guidelines/SKILL.md` → global skill |
+| `ws-karpathy-guidelines` | `config.json` → `rules.karpathyGuidelines` → shipped `../ws-karpathy-guidelines/SKILL.md` → global skill |
 | Stack companion | `config.json` → `rules.stackFile` (default `.agents/skills/shared/STACK.md`) — consumer-owned under `shared/` |
 | Changelog file | `config.json` → `rules.changelogFile` (default `.agents/skills/shared/CHANGELOG.md`) |
 | Domain glossary | `config.json` → `domain.glossaryFile` (often `CONTEXT.md`) — consumer root, optional |

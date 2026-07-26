@@ -1,7 +1,8 @@
 ---
+
 name: ws-update-plan-implementation
 description: Post-workflow delta adjustments. Captures manual QA findings, plans delta fixes, implements changes, and updates result summaries.
-version: 0.0.82
+version: 0.0.90
 disable-model-invocation: true
 invocation_names:
   - update-plan-implementation
@@ -24,7 +25,7 @@ Standalone:
 /ws-update-plan-implementation <slug-or-plan-path> [session-name=<name>]
 ```
 
-Not part of the main `spec-to-pr` pipeline; invoked by the developer explicitly after the main workflow completes, when manual QA or browser testing reveals additional gaps.
+Not part of the main `ws-spec-to-pr` pipeline; invoked by the developer explicitly after the main workflow completes, when manual QA or browser testing reveals additional gaps.
 
 | Parameter | Default | Notes |
 |-----------|---------|-------|

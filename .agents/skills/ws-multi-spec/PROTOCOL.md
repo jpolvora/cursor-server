@@ -12,8 +12,8 @@ flowchart TD
   P3 -->|Item Selected| Probe{Already Implemented?}
   Probe -->|Yes| P5[5 Record Outcome - Skipped]
   Probe -->|No| FlowDetect{Smart Flow Auto-Detection}
-  FlowDetect -->|Low Complexity| DispatchLite[Dispatch spec-to-pr-lite Worker]
-  FlowDetect -->|High Complexity| DispatchFull[Dispatch spec-to-pr Worker]
+  FlowDetect -->|Low Complexity| DispatchLite[Dispatch ws-spec-to-pr-lite Worker]
+  FlowDetect -->|High Complexity| DispatchFull[Dispatch ws-spec-to-pr Worker]
   DispatchLite --> WorkerOutcome
   DispatchFull --> WorkerOutcome
   WorkerOutcome{Worker Result} -->|Success| P5[5 Record Outcome - Shipped]
@@ -47,15 +47,15 @@ Evaluate the target `*.spec.md` file:
 1. **Explicit Frontmatter**: Check frontmatter `complexity:` or `flow:` field if present (`lite` / `fast` / `standard` / `full`).
 2. **Threshold Scan**:
    - Count sections / requirements / tasks / files in spec.
-   - If implementation tasks ≤ 3 AND estimated files ≤ 6 AND layers ≤ 2 (matching `config.json.dagThresholds` limits) → select **`spec-to-pr-lite`**.
-   - Otherwise → select **`spec-to-pr`** (full standard orchestrator).
+   - If implementation tasks ≤ 3 AND estimated files ≤ 6 AND layers ≤ 2 (matching `config.json.dagThresholds` limits) → select **`ws-spec-to-pr-lite`**.
+   - Otherwise → select **`ws-spec-to-pr`** (full standard orchestrator).
 3. Log selected `flowMode` (`lite` or `standard`) into the item state row.
 
 ### Phase 4: Dispatch Worker
 - Mark state item `status: in_progress`, `flowMode: {lite|standard}`. Update state file `updatedAt`.
 - Dispatch subagent via `dispatch-agent`:
   - `description: "ws-multi-spec worker [{flowMode}] — {slug}"`
-  - Command: if `flowMode == lite`: `/spec-to-pr-lite full auto {specPath}` else: `/spec-to-pr full auto {specPath}` (pass `dryRun` if set).
+  - Command: if `flowMode == lite`: `/ws-spec-to-pr-lite full auto {specPath}` else: `/ws-spec-to-pr full auto {specPath}` (pass `dryRun` if set).
 - Await completion or worker exit `step-output`.
 
 ### Phase 5: Record Outcome
@@ -75,7 +75,7 @@ Evaluate the target `*.spec.md` file:
 
 | Need | Source |
 |------|--------|
-| Per-spec Standard FSM | [`../spec-to-pr/SKILL.md`](../spec-to-pr/SKILL.md) |
-| Per-spec Lite FSM | [`../spec-to-pr-lite/SKILL.md`](../spec-to-pr-lite/SKILL.md) |
+| Per-spec Standard FSM | [`../ws-spec-to-pr/SKILL.md`](../ws-spec-to-pr/SKILL.md) |
+| Per-spec Lite FSM | [`../ws-spec-to-pr-lite/SKILL.md`](../ws-spec-to-pr-lite/SKILL.md) |
 | State schema & probe | [`STATE.md`](STATE.md) |
 | Usage examples | [`EXAMPLES.md`](EXAMPLES.md) |

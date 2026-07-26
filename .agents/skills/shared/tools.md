@@ -20,7 +20,7 @@ Canonical tool names every agent uses. Project-specific parameters from `config.
 2. Expand tokens **before** tool calls. Example: `{sharedDir}/MEMORY.md` → `.agents/skills/shared/MEMORY.md`.
 3. **Forbidden:** bare `shared/MEMORY.md` or other undeclared shorthands (do not Grep those literals).
 4. **Shell recipes:** expand tokens before paste, or write the Default path literally (copy-paste safe).
-5. **Markdown links** in skill files: use real relative paths (`../shared/…`), never brace tokens (GitHub/check-harness cannot expand them).
+5. **Markdown links** in skill files: use real relative paths (`../shared/…`), never brace tokens (GitHub/ws-check-harness cannot expand them).
 6. **Hub routing tables** that inventory disk paths: keep full `.agents/skills/…` literals so audits stay filesystem-true.
 7. `{skillsRoot}` / `{sharedDir}` are **fixed install layout**, not relocatable consumer knobs (unlike `plans.dir`).
 
@@ -43,18 +43,18 @@ Canonical tool names every agent uses. Project-specific parameters from `config.
 
 ## State & workflow tools
 
-Path tokens: [Path tokens (load first)](#path-tokens-load-first). Artifact names: [`ARTIFACTS.md`](../spec-to-pr/ARTIFACTS.md).
+Path tokens: [Path tokens (load first)](#path-tokens-load-first). Artifact names: [`ARTIFACTS.md`](../ws-spec-to-pr/ARTIFACTS.md).
 
 | Tool | Action | Native |
 |------|--------|--------|
 | `read-state` | Read workflow state | `Read` `{us-dir}/{workflow-id}.state.md` |
 | `write-state` | Write/append state | `Write` / `StrReplace` (hygiene before board) |
 | `read-config` | Load project config | `Read` `{sharedDir}/config.json` |
-| `read-artifacts-registry` | Canonical artifact names | `Read` `{skillsRoot}/spec-to-pr/ARTIFACTS.md` |
+| `read-artifacts-registry` | Canonical artifact names | `Read` `{skillsRoot}/ws-spec-to-pr/ARTIFACTS.md` |
 | `read-stack` | Load stack reference | `Read` `config.json.rules.stackFile` (default `{sharedDir}/STACK.md`) |
-| `read-memory` | Load learned knowledge **before** plan/code/fix | `Grep` / `Read` `{sharedDir}/MEMORY.md` (keywords from the task). Mandatory for mutating work — see [`self-learning`](../self-learning/SKILL.md) § Pre-work consult |
+| `read-memory` | Load learned knowledge **before** plan/code/fix | `Grep` / `Read` `{sharedDir}/MEMORY.md` (keywords from the task). Mandatory for mutating work — see [`ws-self-learning`](../ws-self-learning/SKILL.md) § Pre-work consult |
 | `search-code` | Find patterns in code | `Grep` / `Glob` |
-| `run-script` | Run workflow / provider script | `Shell` with **explicit launcher** (see [Script launchers](#script-launchers)): `python` / `node` / `bash` + path. Orchestrator helpers: `python {skillsRoot}/spec-to-pr/scripts/{name}.py`. Converters/thread helpers: prefer `{skillsRoot}/{github,azure-devops,local-spec}-provider/scripts/` (shims may still live under `spec-to-pr/scripts/` / `ws-fix-pr/scripts/`) |
+| `run-script` | Run workflow / provider script | `Shell` with **explicit launcher** (see [Script launchers](#script-launchers)): `python` / `node` / `bash` + path. Orchestrator helpers: `python {skillsRoot}/ws-spec-to-pr/scripts/{name}.py`. Converters/thread helpers: prefer `{skillsRoot}/{github,azure-devops,local-spec}-provider/scripts/` (shims may still live under `ws-spec-to-pr/scripts/` / `ws-fix-pr/scripts/`) |
 
 ## Source control tools
 
@@ -63,12 +63,12 @@ Path tokens: [Path tokens (load first)](#path-tokens-load-first). Artifact names
 | `commit-code` | Commit src/web/tests only | `Shell` `git add src/ web/ tests/ && git commit -m "..."` |
 | `commit-delivery` | Commit plan + result (Step 8) | `Shell` stage `step-02-{slug}.plan.refined.md` **or** `step-01-{slug}.plan.md`, plus `step-08-{slug}.result.md` |
 | `push-branch` | Push working branch | `Shell` `git push {gitRemote} {workingBranch}` — from `config.project` |
-| `create-pr` | Create PR via SCM provider | Resolve `providers.scm` → [`github-provider`](../github-provider/SKILL.md) or [`azure-devops-provider`](../azure-devops-provider/SKILL.md) `create-pr` (not raw `gh`/`az` alone) |
+| `create-pr` | Create PR via SCM provider | Resolve `providers.scm` → [`ws-github-provider`](../ws-github-provider/SKILL.md) or [`ws-azure-devops-provider`](../ws-azure-devops-provider/SKILL.md) `create-pr` (not raw `gh`/`az` alone) |
 | `list-threads` / `resolve-thread` / `merge-pr` | PR review + merge intents | Same SCM provider skill as `create-pr` |
 | `create-checkpoint` | Tag before step N | `Shell` `git tag uswf/{id}/before-step-{N}` |
 | `revert-to-checkpoint` | Revert to tag M | `Shell` `git reset --mixed {tag}` + per-path restore |
 
-Entry / fetch: resolve `providers.active` → [`github-provider`](../github-provider/SKILL.md) · [`azure-devops-provider`](../azure-devops-provider/SKILL.md) · [`local-spec-provider`](../local-spec-provider/SKILL.md) `fetch-to-spec`. Consumers who already installed `spec-to-pr` before these folders existed: `npx github:jpolvora/workflow-skills update --include-new`.
+Entry / fetch: resolve `providers.active` → [`ws-github-provider`](../ws-github-provider/SKILL.md) · [`ws-azure-devops-provider`](../ws-azure-devops-provider/SKILL.md) · [`ws-local-spec-provider`](../ws-local-spec-provider/SKILL.md) `fetch-to-spec`. Consumers who already installed `ws-spec-to-pr` before these folders existed: `npx github:jpolvora/workflow-skills update --include-new`.
 
 ## Agent dispatch tools
 
@@ -84,8 +84,8 @@ Entry / fetch: resolve `providers.active` → [`github-provider`](../github-prov
 
 | Tool | Action | Native |
 |------|--------|--------|
-| `update-memory` | Write learned pattern | Create unique file in `{sharedDir}/memory/` and run `python {skillsRoot}/self-learning/scripts/self_learning.py --compile` |
-| `update-changelog` | Append historical log | `Write`/`StrReplace` `config.json.rules.changelogFile` (default `{sharedDir}/CHANGELOG.md`) |
+| `update-memory` | Write learned pattern | Create unique file in `{sharedDir}/memory/` and run `python {skillsRoot}/ws-self-learning/scripts/self_learning.py --compile` |
+| `update-ws-changelog` | Append historical log | `Write`/`StrReplace` `config.json.rules.changelogFile` (default `{sharedDir}/CHANGELOG.md`) |
 
 ## Script launchers
 
@@ -113,7 +113,7 @@ Skill `.sh` dialect: Git Bash–compatible bash. Prefer Node/Python for new logi
 3. **Explicit launchers** — every managed script call uses `python` / `node` / `bash` per [Script launchers](#script-launchers).
 4. **Consult MEMORY before mutating** — `read-memory` (`Grep` / `Read` `{sharedDir}/MEMORY.md`) before plan, code, skill edits, or script fixes; apply known Solutions. Write new traps via `update-memory` after.
 5. **One worktree max** — step 4 worktrees are exclusive under `{worktrees-dir}` when `config.plans.useWorktrees` is true.
-6. **No commit of `{plansDir}/`** — except Step 8 delivery per [`ARTIFACTS.md`](../spec-to-pr/ARTIFACTS.md).
+6. **No commit of `{plansDir}/`** — except Step 8 delivery per [`ARTIFACTS.md`](../ws-spec-to-pr/ARTIFACTS.md).
 7. **Subagents: fresh per step** — never resume a subagent across steps.
 8. **Orch never edits code** — hard stop. Code changes spawn via `dispatch-agent`.
 9. **Paths via tokens** — expand [Path tokens](#path-tokens-load-first) before tool calls; never invent undeclared shorthands. `{plansDir}` / `{reviewsDir}` / `workingBranch` / `baseBranch` come from config; `{skillsRoot}` / `{sharedDir}` from `pathTokens` or defaults.

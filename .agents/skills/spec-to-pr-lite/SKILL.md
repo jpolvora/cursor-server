@@ -47,7 +47,7 @@ Skips interview, DAG, check-implementation, Testing vs standard.
 - **1:** `step-01-{slug}.plan.md` → Advance.
 - **2:** build mode + verification → Advance.
 - **3:** review file; optional fix substep (`mode=fix`) or logged skip → Advance.
-- **4:** checklist `[x]`; write `step-08-{slug}.result.md` with Benchmark Total time; combined ship gate; `ws-ship-pr` inline (`workflowType: lite`) → Advance when PR/skip done.
+- **4:** checklist `[x]`; write `step-08-{slug}.result.md` with Benchmark Total time; combined ship gate; `ws-ship-pr` inline (`workflowType: lite`); auto-run [`ws-spec-index`](../ws-spec-index/SKILL.md) `sync` → Advance when PR/skip done.
 - **5:** ≥300s settle; loop until `activeThreads == 0`; `merge-pr` via scm; never delete `project.workingBranch`.
 
 ## Auto-gate defaults (`autoMode` → index 0)

@@ -1,0 +1,25 @@
+{
+  "skill_name": "ws-caveman",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/ws-caveman explain why JWT refresh fails intermittently",
+      "expected_output": "Terse technical answer; articles and filler dropped.",
+      "assertions": [
+        "Response is compressed vs normal prose",
+        "Technical terms and code remain exact",
+        "Still answers the question accurately"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "stop ws-caveman — give full sentences for onboarding doc",
+      "expected_output": "Normal mode; ws-caveman opt-out honored.",
+      "assertions": [
+        "Uses full sentences after stop ws-caveman",
+        "Does not continue ultra-compressed style",
+        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+      ]
+    }
+  ]
+}
