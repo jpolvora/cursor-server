@@ -123,20 +123,25 @@ Status: **done**. Design: `docs/superpowers/specs/2026-07-25-kanban-board-design
 - [x] Board projects management — dashboard Projects CRUD + soft-block delete (`spec: 39-board-projects-management.spec.md`)
 - [x] Root ops dashboard shell — `GET /` + `/settings` (`spec: 40-main-page-dashboard.spec.md`)
 
+### Phase 5 — Product website
+
+Status: **planned**.
+
+- [ ] GitHub Pages product website (`spec: 41-github-pages-product-website.spec.md`)
+
 ## 8. Next specs
 
 Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 
 | # | Spec | Status | Target Phase | Notes |
 |---|------|--------|--------------|-------|
-| — | — | — | — | No active Next specs; promote from Inbox when ready. |
+| 41 | `41-github-pages-product-website.spec.md` | [ ] todo | Phase 5 | GitHub Pages product website |
 
-**Immediate next:** none — Inbox only until a new spec is promoted.
+**Immediate next:** `41-github-pages-product-website`.
 
 ## 9. Inbox (unscheduled ideas)
 
 - Richer MCP diagnostics beyond fix-23 (only if new gaps appear)
-- GitHub Pages product website
 
 ## 10. Done log
 
