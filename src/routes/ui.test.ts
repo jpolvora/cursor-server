@@ -20,6 +20,29 @@ describe("UI routes", () => {
     assert.ok(body.includes("/harness/runs"));
   });
 
+  it("serves agent prompt UI", async () => {
+    const res = await app.request("/ui/prompt");
+    assert.strictEqual(res.status, 200);
+    const contentType = res.headers.get("content-type") || "";
+    assert.ok(contentType.includes("text/html"));
+    const body = await res.text();
+    assert.ok(body.includes("Agent Prompt"));
+    assert.ok(body.includes("data-cursor-prompt-widget"));
+    assert.ok(body.includes("/ui/prompt-widget.js"));
+    assert.ok(body.includes("prompt → task"));
+  });
+
+  it("serves embeddable prompt widget script", async () => {
+    const res = await app.request("/ui/prompt-widget.js");
+    assert.strictEqual(res.status, 200);
+    const contentType = res.headers.get("content-type") || "";
+    assert.ok(contentType.includes("javascript"));
+    const body = await res.text();
+    assert.ok(body.includes("CursorPromptWidget"));
+    assert.ok(body.includes("data-cursor-prompt-widget"));
+    assert.ok(body.includes("/tasks"));
+  });
+
   it("serves board Kanban UI", async () => {
     const res = await app.request("/ui/board");
     assert.strictEqual(res.status, 200);
