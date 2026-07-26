@@ -1,9 +1,8 @@
-import { Agent, CursorAgentError } from "@cursor/sdk";
+import { Agent, CursorAgentError, type Run, type SDKMessage } from "@cursor/sdk";
 import type { AgentId } from "../agents.js";
 import type { Config } from "../config.js";
 import type { McpServers } from "./mcp-config.js";
-import { applyTenantEnv } from "./tenant-context.js";
-import { applyTenantResourceLimits, resolveTenantResourceLimits } from "./tenant-resource-limits.js";
+
 export type RunTaskInput = {
   prompt: string;
   repoPath: string;
@@ -12,6 +11,9 @@ export type RunTaskInput = {
   tenantId?: string;
   allowedRepos?: string[];
   mcpServers?: McpServers;
+  /** When aborted (e.g. harness stage timeout), cancels the in-flight run and disposes the agent. */
+  signal?: AbortSignal;
+  /** Live chunk callback for streaming task output via SSE. */
   onOutput?: (chunk: string) => void;
 };
 
@@ -105,52 +107,108 @@ function promptForAgent(agent: AgentId, userPrompt: string, planText?: string): 
   }
 }
 
-async function forwardRunStream(
-  run: Awaited<ReturnType<Awaited<ReturnType<typeof Agent.create>>["send"]>>,
-  onOutput?: (chunk: string) => void,
-): Promise<void> {
-  if (!onOutput) return;
+function applyTenantEnv(input: { tenantId?: string; repoPath: string }): () => void {
+  if (!input.tenantId) return () => {};
 
-  for await (const event of run.stream()) {
-    switch (event.type) {
-      case "assistant":
-        for (const block of event.message.content) {
-          if (block.type === "text" && block.text) {
-            onOutput(block.text);
-          }
-        }
-        break;
-      case "thinking":
-        if (event.text) {
-          onOutput(`[thinking] ${event.text}\n`);
-        }
-        break;
-      case "tool_call":
-        onOutput(`[tool] ${event.name} ${event.status}\n`);
-        break;
-      case "status":
-        onOutput(`[status] ${event.status}\n`);
-        break;
-      case "task":
-        if (event.text) {
-          onOutput(`[task] ${event.text}\n`);
-        }
-        break;
-      default:
-        break;
+  const prevTenantId = process.env.CURSOR_TENANT_ID;
+  const prevRepoPath = process.env.CURSOR_TENANT_REPO_PATH;
+
+  process.env.CURSOR_TENANT_ID = input.tenantId;
+  process.env.CURSOR_TENANT_REPO_PATH = input.repoPath;
+
+  return () => {
+    if (prevTenantId !== undefined) {
+      process.env.CURSOR_TENANT_ID = prevTenantId;
+    } else {
+      delete process.env.CURSOR_TENANT_ID;
     }
+    if (prevRepoPath !== undefined) {
+      process.env.CURSOR_TENANT_REPO_PATH = prevRepoPath;
+    } else {
+      delete process.env.CURSOR_TENANT_REPO_PATH;
+    }
+  };
+}
+
+async function cancelRunBestEffort(run: Run): Promise<void> {
+  if (!run.supports("cancel")) return;
+  try {
+    await run.cancel();
+  } catch {
+    // Best-effort: timeout cleanup must not throw.
   }
 }
 
+async function waitForRunResult(
+  run: Run,
+  agentId: string,
+  model: string,
+  signal?: AbortSignal,
+): Promise<RunPhaseResult> {
+  const toPhaseResult = (result: Awaited<ReturnType<Run["wait"]>>): RunPhaseResult => ({
+    agentId,
+    runId: result.id,
+    status: result.status,
+    durationMs: result.durationMs,
+    result: result.result,
+    model,
+  });
+
+  if (!signal) {
+    return toPhaseResult(await run.wait());
+  }
+
+  if (signal.aborted) {
+    await cancelRunBestEffort(run);
+    throw new Error("Task aborted due to timeout");
+  }
+
+  return new Promise<RunPhaseResult>((resolve, reject) => {
+    let settled = false;
+
+    const onAbort = () => {
+      void cancelRunBestEffort(run).finally(() => {
+        if (settled) return;
+        settled = true;
+        reject(new Error("Task aborted due to timeout"));
+      });
+    };
+
+    signal.addEventListener("abort", onAbort, { once: true });
+
+    run
+      .wait()
+      .then((result) => {
+        if (settled) return;
+        settled = true;
+        signal.removeEventListener("abort", onAbort);
+        resolve(toPhaseResult(result));
+      })
+      .catch((err: unknown) => {
+        if (settled) return;
+        settled = true;
+        signal.removeEventListener("abort", onAbort);
+        reject(err);
+      });
+  });
+}
+
 async function runAgentPhase(
-  config: Config,
-  input: { prompt: string; repoPath: string; model: string; tenantId?: string; allowedRepos?: string[]; mcpServers?: McpServers; onOutput?: (chunk: string) => void },
+  _config: Config,
+  input: {
+    prompt: string;
+    repoPath: string;
+    model: string;
+    tenantId?: string;
+    allowedRepos?: string[];
+    mcpServers?: McpServers;
+    signal?: AbortSignal;
+  },
 ): Promise<RunPhaseResult> {
   const cleanupEnv = applyTenantEnv(input);
-  const cleanupLimits = applyTenantResourceLimits(resolveTenantResourceLimits(config, input.tenantId));
 
   const agentOptions: Parameters<typeof Agent.create>[0] = {
-    apiKey: config.CURSOR_API_KEY,
+    apiKey: _config.CURSOR_API_KEY,
     model: { id: input.model },
     local: {
       cwd: input.repoPath,
@@ -166,30 +224,13 @@ async function runAgentPhase(
 
   try {
     const run = await agent.send(input.prompt);
-    if (input.onOutput) {
-      try {
-        await forwardRunStream(run, input.onOutput);
-      } catch (streamErr) {
-        console.error(`Run stream error after agent.send succeeded:`, streamErr);
-      }
-    }
-    const result = await run.wait();
-
-    return {
-      agentId: agent.agentId,
-      runId: result.id,
-      status: result.status,
-      durationMs: result.durationMs,
-      result: result.result,
-      model: input.model,
-    };
+    return await waitForRunResult(run, agent.agentId, input.model, input.signal);
   } catch (err) {
     if (err instanceof CursorAgentError) {
       throw new Error(`Agent startup failed: ${err.message}`, { cause: err });
     }
     throw err;
   } finally {
-    cleanupLimits();
     cleanupEnv();
     await agent[Symbol.asyncDispose]();
   }
@@ -208,9 +249,8 @@ export async function runTask(
       prompt: promptForAgent("planner", input.prompt),
       repoPath: input.repoPath,
       model,
-      tenantId: input.tenantId,
       mcpServers: input.mcpServers,
-      onOutput: input.onOutput,
+      signal: input.signal,
     });
 
     if (plan.status === "error") {
@@ -233,9 +273,8 @@ export async function runTask(
       prompt: promptForAgent("plan+implementer", input.prompt, plan.result),
       repoPath: input.repoPath,
       model,
-      tenantId: input.tenantId,
       mcpServers: input.mcpServers,
-      onOutput: input.onOutput,
+      signal: input.signal,
     });
 
     return {
@@ -252,9 +291,8 @@ export async function runTask(
     prompt: promptForAgent(agent, input.prompt),
     repoPath: input.repoPath,
     model,
-    tenantId: input.tenantId,
     mcpServers: input.mcpServers,
-    onOutput: input.onOutput,
+    signal: input.signal,
   });
 
   return {
