@@ -1,12 +1,15 @@
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
+import { promisify } from "node:util";
 import {
   DEFAULT_STAGE_TIMEOUT_MS,
+  resolveStageLogSink,
   resolveTimeoutMs,
   runnerRegistry,
   wrapStagePrompt,
   type HarnessRunner,
   type HarnessStage,
   type StageInput,
+  type StageLogSink,
   type StageOutput,
 } from "./harness-runner.js";
 
@@ -16,6 +19,7 @@ export interface OpenCodeExecRequest {
   prompt: string;
   timeoutMs: number;
   options?: Record<string, unknown>;
+  onLog?: StageLogSink;
 }
 
 export interface OpenCodeExecResult {
@@ -24,9 +28,50 @@ export interface OpenCodeExecResult {
   stderr: string;
   artifacts?: string[];
   status?: "success" | "failed" | "error";
+  gitStatusPorcelain?: string;
 }
 
 export type OpenCodeExecFn = (request: OpenCodeExecRequest) => Promise<OpenCodeExecResult>;
+
+const execFileAsync = promisify(execFile);
+
+function forwardStreamChunk(
+  chunk: Buffer | string,
+  stream: "stdout" | "stderr",
+  buffer: { value: string },
+  onLog?: StageLogSink,
+): void {
+  const text = String(chunk);
+  buffer.value += text;
+  if (!onLog || text.length === 0) return;
+  onLog(stream === "stderr" ? `[stderr] ${text}` : text);
+}
+
+export async function captureGitStatusPorcelain(
+  repoPath: string,
+): Promise<{ porcelain?: string; skippedReason?: string }> {
+  try {
+    const { stdout } = await execFileAsync("git", ["status", "--porcelain"], {
+      cwd: repoPath,
+      timeout: 10_000,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    return { porcelain: stdout };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    const code = (err as NodeJS.ErrnoException).code;
+    if (code === "ENOENT") {
+      return { skippedReason: "git command not found" };
+    }
+    if (
+      msg.includes("not a git repository") ||
+      msg.includes("Not a git repository")
+    ) {
+      return { skippedReason: "not a git repository" };
+    }
+    return { skippedReason: `git status failed: ${msg}` };
+  }
+}
 
 export function normalizeOpenCodeResult(
   stage: HarnessStage,
@@ -51,12 +96,15 @@ export function normalizeOpenCodeResult(
     status = "failed";
   }
 
-  const artifacts =
-    result.artifacts && result.artifacts.length > 0
-      ? result.artifacts
-      : result.stdout.trim()
-        ? [result.stdout.trim()]
-        : undefined;
+  const artifacts: string[] = [];
+  if (result.artifacts && result.artifacts.length > 0) {
+    artifacts.push(...result.artifacts);
+  } else if (result.stdout.trim()) {
+    artifacts.push(result.stdout.trim());
+  }
+  if (result.gitStatusPorcelain !== undefined) {
+    artifacts.push(`git-status:\n${result.gitStatusPorcelain}`);
+  }
 
   const output: StageOutput = {
     stage,
@@ -66,7 +114,7 @@ export function normalizeOpenCodeResult(
     rawResult: result,
   };
 
-  if (artifacts?.length) {
+  if (artifacts.length > 0) {
     output.artifacts = artifacts;
   }
   if (status !== "success") {
@@ -78,7 +126,10 @@ export function normalizeOpenCodeResult(
   return output;
 }
 
-function execOpenCodeCli(request: OpenCodeExecRequest): Promise<OpenCodeExecResult> {
+export function execOpenCodeCli(
+  request: OpenCodeExecRequest,
+  spawnImpl: typeof spawn = spawn,
+): Promise<OpenCodeExecResult> {
   const bin = process.env.OPENCODE_BIN?.trim() || "opencode";
   const model = request.options?.model as string | undefined;
   const args: string[] = [];
@@ -97,14 +148,14 @@ function execOpenCodeCli(request: OpenCodeExecRequest): Promise<OpenCodeExecResu
   return new Promise((resolve, reject) => {
     const env: NodeJS.ProcessEnv = { ...process.env };
 
-    const child = spawn(bin, args, {
+    const child = spawnImpl(bin, args, {
       cwd: request.repoPath,
       env,
       stdio: ["ignore", "pipe", "pipe"],
     });
 
-    let stdout = "";
-    let stderr = "";
+    const stdout = { value: "" };
+    const stderr = { value: "" };
     let settled = false;
 
     const timer = setTimeout(() => {
@@ -115,10 +166,10 @@ function execOpenCodeCli(request: OpenCodeExecRequest): Promise<OpenCodeExecResu
     }, request.timeoutMs);
 
     child.stdout?.on("data", (chunk: Buffer | string) => {
-      stdout += String(chunk);
+      forwardStreamChunk(chunk, "stdout", stdout, request.onLog);
     });
     child.stderr?.on("data", (chunk: Buffer | string) => {
-      stderr += String(chunk);
+      forwardStreamChunk(chunk, "stderr", stderr, request.onLog);
     });
 
     child.on("error", (err) => {
@@ -135,10 +186,10 @@ function execOpenCodeCli(request: OpenCodeExecRequest): Promise<OpenCodeExecResu
       const exitCode = code ?? 1;
       resolve({
         exitCode,
-        stdout,
-        stderr,
+        stdout: stdout.value,
+        stderr: stderr.value,
         status: exitCode === 0 ? "success" : "failed",
-        artifacts: stdout.trim() ? [stdout.trim()] : [],
+        artifacts: stdout.value.trim() ? [stdout.value.trim()] : [],
       });
     });
   });
@@ -179,6 +230,7 @@ export class OpenCodeRunner implements HarnessRunner {
       }
 
       const timeoutMs = resolveTimeoutMs(input.options);
+      const onLog = resolveStageLogSink(input.options);
       const prompt = wrapStagePrompt(input.stage, input.prompt);
 
       logs.push(`Resolved timeoutMs=${timeoutMs}`);
@@ -189,6 +241,7 @@ export class OpenCodeRunner implements HarnessRunner {
         prompt,
         timeoutMs,
         options: input.options,
+        onLog,
       };
 
       const runPromise = this.openCodeExec(request);
@@ -213,6 +266,13 @@ export class OpenCodeRunner implements HarnessRunner {
             logs,
             error: errorMsg,
           };
+        }
+
+        const git = await captureGitStatusPorcelain(input.repoPath);
+        if (git.porcelain !== undefined) {
+          raced.r.gitStatusPorcelain = git.porcelain;
+        } else if (git.skippedReason) {
+          logs.push(`Git status skipped: ${git.skippedReason}`);
         }
 
         const durationMs = Date.now() - startTime;

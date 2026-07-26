@@ -1,8 +1,11 @@
-import { describe, it } from "node:test";
+import { describe, it, afterEach } from "node:test";
 import assert from "node:assert";
 import {
   HermesRunner,
+  buildHermesCliArgs,
+  isHermesCliResolvable,
   normalizeHermesResult,
+  resolveHermesBin,
   resolveHermesSkills,
   type HermesExecFn,
   type HermesExecRequest,
@@ -80,6 +83,49 @@ describe("normalizeHermesResult", () => {
     );
     assert.strictEqual(out.status, "failed");
     assert.strictEqual(out.error, "boom");
+  });
+});
+
+describe("buildHermesCliArgs", () => {
+  it("should build chat -q one-shot argv without skills", () => {
+    assert.deepStrictEqual(
+      buildHermesCliArgs({ prompt: "implement feature", skills: [] }),
+      ["chat", "-q", "implement feature"],
+    );
+  });
+
+  it("should append -s skills comma-separated", () => {
+    assert.deepStrictEqual(
+      buildHermesCliArgs({ prompt: "run tests", skills: ["coding", "testing"] }),
+      ["chat", "-q", "run tests", "-s", "coding,testing"],
+    );
+  });
+});
+
+describe("resolveHermesBin", () => {
+  const original = process.env.HERMES_BIN;
+  afterEach(() => {
+    if (original === undefined) delete process.env.HERMES_BIN;
+    else process.env.HERMES_BIN = original;
+  });
+
+  it("should default to hermes when HERMES_BIN unset", () => {
+    delete process.env.HERMES_BIN;
+    assert.strictEqual(resolveHermesBin(), "hermes");
+  });
+
+  it("should use HERMES_BIN override", () => {
+    process.env.HERMES_BIN = "/opt/hermes/bin/hermes";
+    assert.strictEqual(resolveHermesBin(), "/opt/hermes/bin/hermes");
+  });
+});
+
+describe("isHermesCliResolvable", () => {
+  it("should return false for a nonexistent absolute path", async () => {
+    assert.strictEqual(
+      await isHermesCliResolvable("/nonexistent/hermes-missing-12345"),
+      false,
+    );
   });
 });
 
@@ -172,10 +218,35 @@ describe("HermesRunner.executeStage", () => {
     assert.ok(out.error?.includes("timed out"));
   });
 
-  it("should report healthy without live binary", async () => {
-    const runner = new HermesRunner();
-    const health = await runner.healthCheck();
-    assert.strictEqual(health.healthy, true);
-    assert.ok(health.details);
+  it("should report healthy when HERMES_API_URL is set", async () => {
+    const originalUrl = process.env.HERMES_API_URL;
+    process.env.HERMES_API_URL = "http://localhost:8080";
+    try {
+      const runner = new HermesRunner();
+      const health = await runner.healthCheck();
+      assert.strictEqual(health.healthy, true);
+      assert.ok(health.details?.includes("HERMES_API_URL"));
+    } finally {
+      if (originalUrl === undefined) delete process.env.HERMES_API_URL;
+      else process.env.HERMES_API_URL = originalUrl;
+    }
+  });
+
+  it("should report unhealthy when CLI binary is missing", async () => {
+    const originalUrl = process.env.HERMES_API_URL;
+    const originalBin = process.env.HERMES_BIN;
+    delete process.env.HERMES_API_URL;
+    process.env.HERMES_BIN = "/nonexistent/hermes-missing-12345";
+    try {
+      const runner = new HermesRunner();
+      const health = await runner.healthCheck();
+      assert.strictEqual(health.healthy, false);
+      assert.ok(health.details?.includes("not found"));
+    } finally {
+      if (originalUrl === undefined) delete process.env.HERMES_API_URL;
+      else process.env.HERMES_API_URL = originalUrl;
+      if (originalBin === undefined) delete process.env.HERMES_BIN;
+      else process.env.HERMES_BIN = originalBin;
+    }
   });
 });
