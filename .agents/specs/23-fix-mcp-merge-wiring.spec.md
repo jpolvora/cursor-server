@@ -5,6 +5,7 @@ title: "Fix MCP merge-at-task-init and diagnostics"
 source: local
 specDate: 2026-07-25
 complexity: low
+status: completed
 ---
 
 # Specification — Fix MCP merge-at-task-init and diagnostics

@@ -5,6 +5,7 @@ title: "Fix scheduled review jobs: hygiene, enable gate, Agent.resume"
 source: local
 specDate: 2026-07-25
 complexity: standard
+status: draft
 ---
 
 # Specification — Fix scheduled review jobs: hygiene, enable gate, Agent.resume
@@ -31,4 +32,4 @@ Parent verify: `.agents/plans/scheduled-review-jobs/step-05-scheduled-review-job
 
 ## Delivery status
 
-- Batch `ms-20260726T004403Z`: worker reported **shipped** (PR #14 open). Not merged to develop/master yet.
+- Batch `ms-20260726T004403Z`: worker reported **shipped** (PR #14 open). **Not merged** to develop/master; PR #14 closed. Branch `fix/25-scheduled-review-jobs` remains the re-land source. Index status: `[ ]` todo / frontmatter `draft`.

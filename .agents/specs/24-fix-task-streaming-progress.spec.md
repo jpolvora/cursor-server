@@ -5,6 +5,7 @@ title: "Fix task SSE progress output and EventSource auth"
 source: local
 specDate: 2026-07-25
 complexity: low
+status: completed
 ---
 
 # Specification — Fix task SSE progress output and EventSource auth

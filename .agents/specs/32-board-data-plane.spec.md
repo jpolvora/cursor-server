@@ -1,6 +1,6 @@
 ---
 id: null
-slug: board-data-plane
+slug: 32-board-data-plane
 title: "Board data plane (SQLite cards, repos, import/export)"
 source: local
 specDate: 2026-07-25

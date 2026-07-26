@@ -5,6 +5,7 @@ title: "Fix QualifiedSpec frontmatter stages/dependencies parsing"
 source: local
 specDate: 2026-07-25
 complexity: low
+status: completed
 ---
 
 # Specification — Fix QualifiedSpec frontmatter stages/dependencies parsing

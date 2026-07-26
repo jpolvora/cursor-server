@@ -5,6 +5,7 @@ title: "Fix stale running/queued tasks after process restart"
 source: local
 specDate: 2026-07-25
 complexity: low
+status: completed
 ---
 
 # Specification — Fix stale running/queued tasks after process restart

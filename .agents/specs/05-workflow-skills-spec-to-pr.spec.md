@@ -1,3 +1,11 @@
+---
+id: null
+slug: 05-workflow-skills-spec-to-pr
+title: "Workflow-Skills Spec-to-PR Runner Integration"
+source: local
+status: completed
+---
+
 # Spec: Workflow-Skills Spec-to-PR Runner Integration (`workflow-skills-spec-to-pr`)
 
 ## Context

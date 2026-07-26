@@ -1,0 +1,17 @@
+---
+description: Always load ws-spec-index for feature map / specs / roadmap work
+alwaysApply: true
+---
+
+# Always load ws-spec-index
+
+Before planning, implementing, shipping, or documenting product features in this repo:
+
+1. Read and follow [`.agents/skills/ws-spec-index/SKILL.md`](../../.agents/skills/ws-spec-index/SKILL.md) (modes: `init`, `sync`, `promote`).
+2. Treat [`.agents/specs/index.PRD`](../../.agents/specs/index.PRD) as the living feature map; deep ACs live in `.agents/specs/*.spec.md`.
+3. After delivery / ship with E1 evidence, run `/ws-spec-index sync` (never invent `Verified:`).
+4. New unscheduled ideas → Inbox; promote with `/ws-spec-index promote` before writing a full feature spec.
+5. When vision or shipped status changes, keep `index.PRD`, README Roadmap, and AGENTS Planned areas aligned in the same turn.
+6. Do not overwrite a non-empty `index.PRD` via `init` unless the user explicitly passes `--force` / asks to redo the index.
+
+Reference details: [`.agents/skills/ws-spec-index/REFERENCE.md`](../../.agents/skills/ws-spec-index/REFERENCE.md).

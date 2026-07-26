@@ -4,6 +4,7 @@ slug: scheduled-review-jobs
 title: "Scheduled Review Jobs (Cron Review Automation & Agent Resume)"
 source: local
 specDate: 2026-07-25
+status: partial
 ---
 
 # Specification — Scheduled Review Jobs (Cron Review Automation & Agent Resume)

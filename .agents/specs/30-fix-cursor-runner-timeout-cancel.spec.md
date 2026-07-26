@@ -5,6 +5,7 @@ title: "Fix Cursor SDK harness runner timeout cancellation"
 source: local
 specDate: 2026-07-25
 complexity: low
+status: completed
 ---
 
 # Specification — Fix Cursor SDK harness runner timeout cancellation

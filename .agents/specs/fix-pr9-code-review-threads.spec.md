@@ -1,3 +1,11 @@
+---
+id: null
+slug: fix-pr9-code-review-threads
+title: "Fix PR #9 Code Review Threads"
+source: local
+status: completed
+---
+
 # Fix PR #9 Code Review Threads
 
 Resolve 6 open threads from the agentic code review pipeline on PR #9.
@@ -21,11 +29,11 @@ GET and POST `/:repo/mcp` endpoints don't enforce tenant repo access. Fix: add `
 
 ## Acceptance
 
-- [ ] AC1: process.env restored after agent execution
-- [ ] AC2: parse failures emit console.error; parsed count logged
-- [ ] AC3: tasks.ts and events.ts use `checkRepoAccess`; dead exports removed
-- [ ] AC4: no-SERVER_API_KEY deployments work; warning message accurate
-- [ ] AC5: MCP endpoints reject repos not in allowedRepos
-- [ ] All 6 threads on PR #9 resolvable
-- [ ] `npm run typecheck` passes
-- [ ] `npm run build` passes
+- [x] AC1: process.env restored after agent execution
+- [x] AC2: parse failures emit console.error; parsed count logged
+- [x] AC3: tasks.ts and events.ts use `checkRepoAccess`; dead exports removed
+- [x] AC4: no-SERVER_API_KEY deployments work; warning message accurate
+- [x] AC5: MCP endpoints reject repos not in allowedRepos
+- [x] All 6 threads on PR #9 resolvable
+- [x] `npm run typecheck` passes
+- [x] `npm run build` passes

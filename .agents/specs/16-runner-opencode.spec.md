@@ -4,7 +4,7 @@ title: OpenCode Autonomous Coding Runner Adapter
 slug: 16-runner-opencode
 source: local
 specDate: 2026-07-25
-status: draft
+status: completed
 version: 0.1.0
 ---
 

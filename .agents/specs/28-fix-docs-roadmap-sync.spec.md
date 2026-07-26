@@ -5,6 +5,7 @@ title: "Fix AGENTS/README roadmap sync for shipped features"
 source: local
 specDate: 2026-07-25
 complexity: low
+status: completed
 ---
 
 # Specification — Fix AGENTS/README roadmap sync for shipped features

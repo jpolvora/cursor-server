@@ -4,7 +4,7 @@ title: Multi-Tenant Workspace & Security Isolation
 slug: 17-multi-tenant-isolation
 source: local
 specDate: 2026-07-25
-status: draft
+status: completed
 version: 0.1.0
 ---
 

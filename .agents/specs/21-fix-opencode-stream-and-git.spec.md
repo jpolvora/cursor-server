@@ -5,6 +5,7 @@ title: "Fix OpenCode runner real-time stream and git-status artifacts"
 source: local
 specDate: 2026-07-25
 complexity: low
+status: completed
 ---
 
 # Specification — Fix OpenCode runner real-time stream and git-status artifacts

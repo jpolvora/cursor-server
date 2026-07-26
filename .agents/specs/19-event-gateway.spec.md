@@ -1,3 +1,11 @@
+---
+id: null
+slug: 19-event-gateway
+title: "Event Gateway"
+source: local
+status: completed
+---
+
 # Spec: Event Gateway (`event-gateway`)
 
 ## Context

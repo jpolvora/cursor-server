@@ -5,6 +5,7 @@ title: "Fix multi-tenant isolation: limits, env, IDOR, harness ACL"
 source: local
 specDate: 2026-07-25
 complexity: standard
+status: completed
 ---
 
 # Specification — Fix multi-tenant isolation: limits, env, IDOR, harness ACL

@@ -1,6 +1,6 @@
 ---
 id: null
-slug: board-ui
+slug: 33-board-ui
 title: "Board UI Kanban dashboard (/ui/board)"
 source: local
 specDate: 2026-07-25

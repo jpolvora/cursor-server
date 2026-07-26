@@ -70,8 +70,10 @@ src/
 | `planner` | Plan-only prompt (no implement) |
 | `implementer` | Implement-focused single run |
 | `plan+implementer` | Plan phase, then implement with that plan |
+| `spec-to-pr` | Drive installed `ws-spec-to-pr` / `spec-to-pr` skill in the target repo |
+| `spec-to-pr-lite` | Drive installed lite orchestrator in the target repo |
 
-List via `GET /agents`. Future workflow-skills exclusive agents (`spec-to-pr*`) are a separate Phase 2 roadmap item — do not conflate with these roles.
+List via `GET /agents`.
 
 `GET /tasks/:id/stream` emits SSE `status`, `output`, and `done` events for async tasks. Auth accepts `X-API-Key`, `Authorization: Bearer`, or query `apiKey` / `access_token` (for `EventSource`).
 
@@ -153,16 +155,15 @@ New runners plug in via `runnerRegistry.register()` behind the same spec → sta
 
 ## Planned areas (remaining gaps)
 
-Treat these as design placeholders or partial implementations — confirm with the owner before expanding scope:
+Living feature map: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD). Confirm major new items with the owner before expanding scope:
 
-- **WebSocket streaming** — task output streams via SSE (`GET /tasks/:id/stream`); WebSocket not implemented
-- **MCP wiring polish** — `mcp-config.ts` merges global/repo/task overrides; end-to-end merge into agent runs may have gaps (see `23-fix-mcp-merge-wiring`)
-- **Multi-tenant hardening** — `TENANTS` JSON + per-tenant `allowedRepos` scoping exists; stronger isolation if multiple clients share one host is partial (see `22-fix-multi-tenant-isolation`)
-- **Scheduled review robustness** — default cron jobs register at startup; operational edge cases tracked in `25-fix-scheduled-review-jobs`
-- **Task streaming progress** — SSE status/output events exist; richer progress semantics tracked in `24-fix-task-streaming-progress`
-- **Spec editor aspirational UI** — AC builder, dependency graph, stage designer beyond MVP Markdown editor
-- **Umbrel App Store manifest** — Compose path documented; store listing not built
-- **workflow-skills `spec-to-pr*` exclusive agents** — installed skills present; dedicated server agent profile for driving orchestrators end-to-end is a separate Phase 2 item
+- **Scheduled review robustness** — cron jobs register at startup; hygiene + enable gate + `Agent.resume` tracked in `25-fix-scheduled-review-jobs` (re-land; PR #14 closed)
+- **Homelab Kanban board** — SQLite data plane, `/ui/board`, Start/Pause/Finish (`32` → `33` → `34`); design under `docs/superpowers/specs/`
+- **WebSocket streaming** — SSE exists (`GET /tasks/:id/stream`); WebSocket not implemented (inbox)
+- **Spec editor aspirational UI** — AC builder, dependency graph, stage designer beyond MVP Markdown editor (inbox)
+- **Umbrel App Store manifest** — Compose path documented; store listing not built (inbox)
+
+Shipped recently (do not re-open as gaps): MCP merge (`23`), multi-tenant ACL (`22`), SSE progress/auth (`24`), Hermes CLI/health (`20`), OpenCode stream/git (`21`), harness default stages (`26`), frontmatter stages (`27`), `spec-to-pr*` agent roles (`05`).
 
 ## Testing changes
 
@@ -178,7 +179,7 @@ For task endpoints, a real `CURSOR_API_KEY` and a clone under `repos/` are requi
 
 - Do not switch to cloud runtime without an explicit requirement (this server is local-first / homelab-first).
 - Do not add large frameworks or ORMs for the initial API surface.
-- Do not expand remaining roadmap gaps (Umbrel App Store manifest, aspirational spec-editor UI, WebSocket streaming, workflow-skills exclusive agents) without explicit owner go-ahead — but **do** keep README/AGENTS roadmap sections updated when shipped code or vision changes.
+- Do not expand inbox gaps (Umbrel App Store manifest, aspirational spec-editor UI, WebSocket streaming) without explicit owner go-ahead — but **do** keep README/AGENTS/`index.PRD` updated when shipped code or vision changes. Prefer `/ws-spec-index` for feature-map edits.
 
 ---
 
@@ -201,11 +202,11 @@ This repo consumes the **full** package. Skills live under `.agents/skills/`. Do
 ### How to use
 
 1. Load the shared hub first for routing: [`.agents/skills/shared/AGENTS.md`](.agents/skills/shared/AGENTS.md).
-2. Autoload Layer 0 from the hub (`caveman`, `gabarito`, `karpathy-guidelines`).
+2. Autoload Layer 0 from the hub (`caveman`, `gabarito`, `karpathy-guidelines`) **and** always load [`ws-spec-index`](.agents/skills/ws-spec-index/SKILL.md) for feature-map / roadmap / `*.spec.md` work (also enforced by `.cursor/rules/ws-spec-index.mdc`).
 3. Invoke orchestrators by intent: `/spec-to-pr`, `/spec-to-pr-lite`, `/fable-method`, `/configure-project`, `/check-harness`, `/ship-pr`, `/fix-pr`, etc.
 4. Expand path tokens (`{skillsRoot}`, `{sharedDir}`, `{plansDir}`) from `config.json` per `shared/tools.md` before file ops.
 5. Never invent alternate pipeline folder ids; dispatch steps via the orchestrator (`00`–`09`, `goal-fix-pr`, `update-plan-implementation`).
-6. **After every task is ready (mandatory completion gate):** run [`ws-sync-spec`](.agents/skills/ws-sync-spec/SKILL.md), then `self-learning`, then `changelog`. Spec drift sync proposes updates and waits for approval before writing; if no matching `*.spec.md`, report and continue.
+6. **After every task is ready (mandatory completion gate):** run [`ws-sync-spec`](.agents/skills/ws-sync-spec/SKILL.md), then `self-learning`, then `changelog`. Spec drift sync proposes updates and waits for approval before writing; if no matching `*.spec.md`, report and continue. On ship/delivery, also run `/ws-spec-index sync`.
 
 ### Install / update / uninstall
 

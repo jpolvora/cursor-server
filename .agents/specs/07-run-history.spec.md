@@ -1,3 +1,11 @@
+---
+id: null
+slug: 07-run-history
+title: "Run History and Persistence"
+source: local
+status: completed
+---
+
 # Spec: Run History and Persistence (`run-history`)
 
 ## Context

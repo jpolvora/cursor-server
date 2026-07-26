@@ -11,7 +11,7 @@ This server is the execution layer for a remote client IDE workflow:
 - **Task delegation** — clients send prompts; the server runs Cursor agents in the appropriate local repo directory and returns run metadata and results.
 - **Scheduled jobs** — cron-driven automation for recurring work (triage, hygiene, nightly reviews).
 - **Continuous reviews** — deliver / deploy / exec review loops that keep remote clients aligned with repo state without running agents locally.
-- **Spec-driven development** — a hosted spec editor and environment where fully qualified, detailed specifications drive an implementation harness end-to-end: implement → build → test → deploy → review. The harness is pluggable — Cursor SDK agents today, with room for other runners (e.g. [OpenCode](https://opencode.ai), [Hermes Agent](https://hermes-agent.nousresearch.com)).
+- **Spec-driven development** — a hosted spec editor and environment where fully qualified, detailed specifications drive an implementation harness end-to-end: implement → build → test → review (`deploy` optional). The harness is pluggable — Cursor SDK agents today, with room for other runners (e.g. [OpenCode](https://opencode.ai), [Hermes Agent](https://hermes-agent.nousresearch.com)).
 
 Feature scope and API design are still open — see [AGENTS.md](./AGENTS.md) for architecture notes, roadmap, and conventions.
 
@@ -35,24 +35,26 @@ Example health check: `curl http://100.x.y.z:3000/health` (or your MagicDNS name
 
 ## Roadmap
 
+Living detail: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD).
+
 | Phase | Focus | Status |
 |-------|--------|--------|
 | **Homelab-ready** | Docker Compose, Tailscale docs, client auth (`SERVER_API_KEY` / `TENANTS`), repo validation | **Landed** |
-| **API depth** | Async tasks (`202` + poll), run history, SSE streaming, event gateway, scheduled review jobs | **Landed** (see caveats below) |
+| **API depth** | Async tasks (`202` + poll), run history, SSE streaming, event gateway, MCP merge, `spec-to-pr*` agent roles | **Landed** (scheduled-review enable-gate still open: `25`) |
 | **Spec harness** | Qualified spec schema, stage orchestration, spec editor UI, pluggable runners | **MVP landed** |
 | **Runners** | Cursor SDK (default), Hermes (`hermes`), OpenCode (`opencode`) | **Registered** — CLIs must be installed |
-| **Next** | workflow-skills `spec-to-pr*` exclusive server agent; WebSocket streaming; spec-editor aspirational UI | Open |
+| **Next** | Re-land `25-fix-scheduled-review-jobs`; Homelab Kanban board (`32`→`34`) | Open |
 
-**Caveats (honest gaps):** Hermes/OpenCode adapters require external CLIs on PATH; health checks and CLI edge cases are still being hardened. MCP merge into live agent runs, multi-tenant isolation, task-streaming progress semantics, and scheduled-review robustness have open fix specs (`20`–`25` in `.agents/specs/`). See [AGENTS.md](./AGENTS.md) for the full remaining-gaps list.
+**Caveats (honest gaps):** Hermes/OpenCode adapters require external CLIs on PATH. Scheduled review jobs still need real hygiene + enable gate (`25-fix-scheduled-review-jobs`; PR #14 closed, not on develop). Inbox (not active): WebSocket streaming, aspirational spec-editor UI, Umbrel App Store manifest. See [AGENTS.md](./AGENTS.md) and [`index.PRD`](./.agents/specs/index.PRD).
 
-The spec harness is the flagship long-term feature: authors write complete, machine-actionable specs in a served environment; the server executes them through specialized stage agents with full traceability from spec item to review outcome.
+The spec harness is the flagship long-term feature: authors write complete, machine-actionable specs in a served environment; the server executes them through specialized stage agents (`implement → build → test → review`; `deploy` optional) with full traceability from spec item to review outcome.
 
 ## Status
 
 Homelab-ready API with spec harness MVP. Implemented today:
 
 - `GET /health` — liveness
-- `GET /agents` — task role allowlist (`default`, `planner`, `implementer`, `plan+implementer`)
+- `GET /agents` — task role allowlist (`default`, `planner`, `implementer`, `plan+implementer`, `spec-to-pr`, `spec-to-pr-lite`)
 - `GET /ui/spec-editor` — hosted Markdown spec editor (validate / save / Save & Run)
 - `POST /tasks` — async task execution (default `async: true` → `202` + `taskId`; `async: false` for sync wait)
 - `GET /tasks`, `GET /tasks/:id` — list / fetch task history (persisted under `REPOS_ROOT`)
