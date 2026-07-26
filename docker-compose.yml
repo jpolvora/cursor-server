@@ -9,9 +9,12 @@ services:
       HOST: "0.0.0.0"
       PORT: "3000"
       REPOS_ROOT: /data/repos
+      BOARD_DB_PATH: /data/board.db
     volumes:
       - repos_data:/data/repos
+      - board_data:/data
     restart: unless-stopped
 
 volumes:
   repos_data:
+  board_data:
