@@ -35,26 +35,36 @@ Example health check: `curl http://100.x.y.z:3000/health` (or your MagicDNS name
 
 ## Roadmap
 
-| Phase | Focus |
-|-------|--------|
-| **Now** | Local task API (incl. `agent` roles + `GET /agents`), scheduler hook, SDK integration, Docker Compose, Tailscale bind/client access docs |
-| **Next** | Client auth, repo validation, then workflow-skills `spec-to-pr*` runner (soon) |
-| **Hermes** | Integration with [Hermes Agent](https://github.com/NousResearch/hermes-agent) (Nous Research) for orchestration, scheduling, and delegation to specialized coding agents |
-| **Spec harness** | MVP editor at `GET /ui/spec-editor` + qualified spec format landed; pipeline stages: **implement → build → test → deploy → review** (Hermes/OpenCode still open) |
-| **Pluggable runners** | Harness abstraction so OpenCode, Hermes Agent, or Cursor SDK can execute the same spec pipeline |
+| Phase | Focus | Status |
+|-------|--------|--------|
+| **Homelab-ready** | Docker Compose, Tailscale docs, client auth (`SERVER_API_KEY` / `TENANTS`), repo validation | **Landed** |
+| **API depth** | Async tasks (`202` + poll), run history, SSE streaming, event gateway, scheduled review jobs | **Landed** (see caveats below) |
+| **Spec harness** | Qualified spec schema, stage orchestration, spec editor UI, pluggable runners | **MVP landed** |
+| **Runners** | Cursor SDK (default), Hermes (`hermes`), OpenCode (`opencode`) | **Registered** — CLIs must be installed |
+| **Next** | workflow-skills `spec-to-pr*` exclusive server agent; WebSocket streaming; spec-editor aspirational UI | Open |
 
-The spec harness is the flagship long-term feature: authors write complete, machine-actionable specs in a served environment; the server executes them through specialized stage agents with full traceability from spec item to deploy artifact and review outcome.
+**Caveats (honest gaps):** Hermes/OpenCode adapters require external CLIs on PATH; health checks and CLI edge cases are still being hardened. MCP merge into live agent runs, multi-tenant isolation, task-streaming progress semantics, and scheduled-review robustness have open fix specs (`20`–`25` in `.agents/specs/`). See [AGENTS.md](./AGENTS.md) for the full remaining-gaps list.
+
+The spec harness is the flagship long-term feature: authors write complete, machine-actionable specs in a served environment; the server executes them through specialized stage agents with full traceability from spec item to review outcome.
 
 ## Status
 
-Early scaffold. Implemented today:
+Homelab-ready API with spec harness MVP. Implemented today:
 
 - `GET /health` — liveness
 - `GET /agents` — task role allowlist (`default`, `planner`, `implementer`, `plan+implementer`)
 - `GET /ui/spec-editor` — hosted Markdown spec editor (validate / save / Save & Run)
-- `POST /tasks` — run a local agent task against a named repo under `REPOS_ROOT` (optional `agent` / `model`)
-- Job scheduler hook (no default jobs registered yet)
+- `POST /tasks` — async task execution (default `async: true` → `202` + `taskId`; `async: false` for sync wait)
+- `GET /tasks`, `GET /tasks/:id` — list / fetch task history (persisted under `REPOS_ROOT`)
+- `GET /tasks/:id/stream` — SSE status and log output while a task runs
+- `POST /events` — event gateway (Hermes/Umbrel/IDE → async task)
+- `GET /jobs` — registered cron jobs + review execution history
+- `POST /specs/validate`, `GET/PUT /repos/:repo/specs[/:file]` — qualified spec IO
+- `POST /harness/runs` — stage pipeline (implement → build → test → review); runners: `cursor-local`, `cursor-sdk`, `hermes`, `opencode`
+- Client auth — `SERVER_API_KEY` and/or `TENANTS` JSON; `X-API-Key` or `Authorization: Bearer` (disabled when neither is set)
+- Repo validation — exist + git working tree checks before agent start
 - Docker Compose packaging + Tailscale bind/client access docs
+- Scheduled review jobs — `pr-diff-review` and `branch-sync-check` register at startup
 
 ## Prerequisites
 
@@ -108,7 +118,7 @@ Interactive Markdown spec editor (no auth on the page). Lists/opens specs under 
 
 ### `POST /tasks`
 
-Run a prompt against a repo by name (relative to `REPOS_ROOT`).
+Run a prompt against a repo by name (relative to `REPOS_ROOT`). **Async by default** (`async: true` → `202` with `taskId`; poll `GET /tasks/:id` or stream `GET /tasks/:id/stream`). Pass `async: false` for synchronous wait (legacy behavior).
 
 **Request**
 
@@ -117,7 +127,10 @@ Run a prompt against a repo by name (relative to `REPOS_ROOT`).
   "prompt": "Review uncommitted changes for security issues",
   "repo": "my-app",
   "model": "composer-2",
-  "agent": "default"
+  "agent": "default",
+  "async": true,
+  "webhookUrl": "https://example.com/hook",
+  "source": "api"
 }
 ```
 
@@ -127,6 +140,12 @@ Run a prompt against a repo by name (relative to `REPOS_ROOT`).
 | `repo` | yes | Folder name under `REPOS_ROOT` |
 | `model` | no | Override `CURSOR_MODEL` |
 | `agent` | no | Role: `default` (generic), `planner`, `implementer`, `plan+implementer`. Unknown / missing → `default`. Alias: `generic` → `default`. |
+| `async` | no | Default `true` (`202` + background run). `false` = sync wait. |
+| `webhookUrl` | no | POST completion payload when task finishes |
+| `source` | no | `ide` \| `hermes` \| `umbrel` \| `api` (default `api`) |
+| `mcpServers` | no | Per-task MCP server overrides (merged with global/repo config) |
+
+**Auth:** When `SERVER_API_KEY` or `TENANTS` is configured, send `X-API-Key: <key>` or `Authorization: Bearer <key>`.
 
 **Agents**
 
@@ -137,7 +156,19 @@ Run a prompt against a repo by name (relative to `REPOS_ROOT`).
 | `implementer` | Implement-focused single run |
 | `plan+implementer` | Plan phase, then implement using that plan |
 
-**Response** `202 Accepted`
+**Response** `202 Accepted` (async default)
+
+```json
+{
+  "taskId": "task_...",
+  "status": "pending",
+  "repo": "my-app",
+  "agent": "default",
+  "createdAt": "2026-07-25T..."
+}
+```
+
+**Response** `200 OK` (when `async: false`)
 
 ```json
 {
@@ -156,7 +187,19 @@ Run a prompt against a repo by name (relative to `REPOS_ROOT`).
 }
 ```
 
-For `plan+implementer`, the body also includes a `plan` phase object alongside `run`.
+For `plan+implementer`, the sync body also includes a `plan` phase object alongside `run`.
+
+### `GET /tasks/:id/stream`
+
+Server-Sent Events stream of `status`, `output`, and `done` events while a task runs.
+
+### `POST /events`
+
+Event gateway — same shape as task creation (`event`, `prompt`, `repo`, optional `agent`/`model`/`webhookUrl`, `source`). Returns `202` with `taskId`.
+
+### `GET /jobs`
+
+Lists registered cron jobs and recent review-job execution history.
 
 ## Environment
 
@@ -167,6 +210,12 @@ For `plan+implementer`, the body also includes a `plan` phase object alongside `
 | `HOST` | HTTP bind address | `0.0.0.0` |
 | `REPOS_ROOT` | Directory containing repo clones | `./repos` |
 | `CURSOR_MODEL` | Default model for local runs | `composer-2` |
+| `SERVER_API_KEY` | Master API key for protected routes (`X-API-Key` or Bearer) | — (auth disabled when unset and no `TENANTS`) |
+| `TENANTS` | JSON array of `{ id, apiKey, allowedRepos[] }` for multi-tenant scoping | — |
+| `MCP_CONFIG_PATH` | Global MCP servers JSON (default `config/mcp.json`) | — |
+| `HERMES_BIN` | Hermes CLI binary for `hermes` runner | `hermes` |
+| `OPENCODE_BIN` | OpenCode CLI binary for `opencode` runner | `opencode` |
+| `OPENCODE_API_KEY` | OpenCode API key (CI / agentic-code-reviewers) | — |
 
 ## Scripts
 
