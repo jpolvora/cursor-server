@@ -169,6 +169,8 @@ export function createUiRoutes() {
     .badge.workflow-full { color: var(--ok); }
     .badge.workflow-lite { color: var(--warn); }
     .badge.run { color: var(--warn); border-color: var(--warn); }
+    .badge.failed { color: var(--bad); border-color: var(--bad); }
+    .badge.paused-run { color: var(--warn); border-color: var(--warn); }
     .step-chip {
       font-family: var(--mono);
       font-size: 0.68rem;
@@ -219,6 +221,48 @@ export function createUiRoutes() {
       border-top: 1px solid var(--border);
       font-family: var(--mono);
     }
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 1rem;
+    }
+    .modal.hidden { display: none; }
+    .modal-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.1rem;
+      width: min(420px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    .modal-panel h2 { margin: 0; font-size: 1rem; }
+    .modal-panel fieldset {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.5rem 0.65rem;
+      margin: 0;
+    }
+    .modal-panel fieldset label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-right: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--text);
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
   </style>
 </head>
 <body>
@@ -244,6 +288,32 @@ export function createUiRoutes() {
   </div>
   <div id="status-bar">Loading…</div>
   <div id="toast" role="status"></div>
+  <div id="start-modal" class="modal hidden" role="dialog" aria-labelledby="start-modal-title">
+    <div class="modal-panel">
+      <h2 id="start-modal-title">Start card</h2>
+      <p id="start-modal-card" class="sub" style="margin:0;font-size:0.85rem;color:var(--muted);"></p>
+      <div>
+        <label for="start-workflow">Workflow</label>
+        <select id="start-workflow" style="width:100%;">
+          <option value="full">full — spec-to-pr</option>
+          <option value="lite">lite — spec-to-pr-lite</option>
+        </select>
+      </div>
+      <div>
+        <label for="start-model">Model (optional)</label>
+        <input id="start-model" type="text" placeholder="host default" style="width:100%;" />
+      </div>
+      <fieldset>
+        <legend style="font-size:0.75rem;color:var(--muted);">Flags</legend>
+        <label><input type="checkbox" id="start-flag-auto" checked /> auto</label>
+        <label><input type="checkbox" id="start-flag-dry" /> dry-run</label>
+      </fieldset>
+      <div class="modal-actions">
+        <button type="button" class="secondary" id="start-cancel">Cancel</button>
+        <button type="button" id="start-confirm">Start</button>
+      </div>
+    </div>
+  </div>
   <script>
 (function () {
   const KEY_STORAGE = "cursor-server-api-key";
@@ -264,12 +334,21 @@ export function createUiRoutes() {
     btnRefresh: document.getElementById("btn-refresh"),
     statusBar: document.getElementById("status-bar"),
     toast: document.getElementById("toast"),
+    startModal: document.getElementById("start-modal"),
+    startModalCard: document.getElementById("start-modal-card"),
+    startWorkflow: document.getElementById("start-workflow"),
+    startModel: document.getElementById("start-model"),
+    startFlagAuto: document.getElementById("start-flag-auto"),
+    startFlagDry: document.getElementById("start-flag-dry"),
+    startCancel: document.getElementById("start-cancel"),
+    startConfirm: document.getElementById("start-confirm"),
   };
 
   let repos = [];
   let cards = [];
   let pollTimer = null;
   let dragCardId = null;
+  let pendingStartCardId = null;
 
   el.apiKey.value = sessionStorage.getItem(KEY_STORAGE) || "";
   el.apiKey.addEventListener("change", function () {
@@ -408,13 +487,13 @@ export function createUiRoutes() {
     const menu = document.createElement("div");
     menu.className = "card-menu";
 
-    function addMenuItem(label, fn, disabled) {
+    function addMenuItem(label, fn, disabled, disabledTitle) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.textContent = label;
       if (disabled) {
         btn.disabled = true;
-        btn.title = "Available in execution control (spec 34)";
+        if (disabledTitle) btn.title = disabledTitle;
       } else {
         btn.addEventListener("click", function (e) {
           e.stopPropagation();
@@ -425,6 +504,10 @@ export function createUiRoutes() {
       menu.appendChild(btn);
     }
 
+    const hasRun = !!card.active_run_id;
+    const isPaused = card.lane === "paused";
+    const isBlocked = card.lane === "blocked";
+
     addMenuItem("Open in spec-editor", function () {
       const file = deriveSpecFilename(card.spec_markdown);
       const params = new URLSearchParams();
@@ -433,9 +516,10 @@ export function createUiRoutes() {
       window.location.href = "/ui/spec-editor?" + params.toString();
     });
     menu.appendChild(document.createElement("div")).className = "sep";
-    addMenuItem("Start", null, true);
-    addMenuItem("Pause", null, true);
-    addMenuItem("Finish", null, true);
+    addMenuItem("Start", function () { showStartDialog(card); }, hasRun, "Card already has an active run");
+    addMenuItem("Resume", function () { resumeCardRun(card.id); }, !(hasRun && isPaused), "Resume is available when a run is paused");
+    addMenuItem("Pause", function () { pauseCardRun(card.id); }, !(hasRun && !isPaused), "Pause is available while a run is active");
+    addMenuItem("Finish", function () { finishCardRun(card); }, !hasRun, "Finish is available while a run is active");
     menu.appendChild(document.createElement("div")).className = "sep";
     addMenuItem("Export spec", function () { exportCard(card.id); });
     addMenuItem("Delete", function () {
@@ -476,8 +560,16 @@ export function createUiRoutes() {
 
     if (locked) {
       const run = document.createElement("span");
-      run.className = "badge run";
-      run.textContent = "run active";
+      if (isBlocked) {
+        run.className = "badge failed";
+        run.textContent = "failed";
+      } else if (isPaused) {
+        run.className = "badge paused-run";
+        run.textContent = "paused";
+      } else {
+        run.className = "badge run";
+        run.textContent = "run active";
+      }
       badges.appendChild(run);
     }
 
@@ -566,6 +658,98 @@ export function createUiRoutes() {
     toast("Card deleted", "ok");
     await refresh();
   }
+
+  function hideStartDialog() {
+    pendingStartCardId = null;
+    el.startModal.classList.add("hidden");
+  }
+
+  function showStartDialog(card) {
+    pendingStartCardId = card.id;
+    el.startModalCard.textContent = card.title;
+    el.startWorkflow.value = card.workflow === "lite" ? "lite" : "full";
+    el.startModel.value = "";
+    el.startFlagAuto.checked = true;
+    el.startFlagDry.checked = false;
+    el.startModal.classList.remove("hidden");
+  }
+
+  async function startCardRun(cardId, payload) {
+    const { res, body } = await api("/board/cards/" + cardId + "/start", {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      toast("Start failed: " + (body && body.error ? body.error : res.status), "bad");
+      return false;
+    }
+    const label = body && body.resumed ? "Run resumed" : "Run started";
+    toast(label + " (" + (body.taskId || "task") + ")", "ok");
+    await refresh();
+    return true;
+  }
+
+  async function pauseCardRun(cardId) {
+    const { res, body } = await api("/board/cards/" + cardId + "/pause", {
+      method: "POST",
+      headers: jsonHeaders(),
+    });
+    if (!res.ok) {
+      toast("Pause failed: " + (body && body.error ? body.error : res.status), "bad");
+      return;
+    }
+    toast("Run paused", "ok");
+    await refresh();
+  }
+
+  async function resumeCardRun(cardId) {
+    const { res, body } = await api("/board/cards/" + cardId + "/resume", {
+      method: "POST",
+      headers: jsonHeaders(),
+    });
+    if (!res.ok) {
+      toast("Resume failed: " + (body && body.error ? body.error : res.status), "bad");
+      return;
+    }
+    toast("Run resumed", "ok");
+    await refresh();
+  }
+
+  async function finishCardRun(card) {
+    if (!confirm('Finish and close "' + card.title + '"? This cancels any in-flight run.')) return;
+    const { res, body } = await api("/board/cards/" + card.id + "/finish", {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ confirm: true }),
+    });
+    if (!res.ok) {
+      toast("Finish failed: " + (body && body.error ? body.error : res.status), "bad");
+      return;
+    }
+    toast("Card finished", "ok");
+    await refresh();
+  }
+
+  el.startCancel.addEventListener("click", hideStartDialog);
+  el.startModal.addEventListener("click", function (e) {
+    if (e.target === el.startModal) hideStartDialog();
+  });
+  el.startConfirm.addEventListener("click", async function () {
+    if (!pendingStartCardId) return;
+    const flags = [];
+    if (el.startFlagAuto.checked) flags.push("auto");
+    if (el.startFlagDry.checked) flags.push("dry-run");
+    const payload = {
+      workflow: el.startWorkflow.value,
+      confirm: true,
+      flags: flags,
+    };
+    const model = el.startModel.value.trim();
+    if (model) payload.model = model;
+    const ok = await startCardRun(pendingStartCardId, payload);
+    if (ok) hideStartDialog();
+  });
 
   async function loadRepos() {
     const { res, body } = await api("/board/repos", { headers: authHeaders() });
