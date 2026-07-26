@@ -1,0 +1,473 @@
+# Instincts generated from https://github.com/jpolvora/cursor-server
+# Generated: 2026-07-26T05:19:45.814Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: cursor-server-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/jpolvora/cursor-server
+---
+
+# Cursor Server Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: fix, docs
+
+## Evidence
+
+- 3 commits analyzed
+- Detected conventional commit pattern
+- Examples: fix: scheduled review jobs hygiene, enable gate, and Agent.resume, docs(config): document SCHEDULED_REVIEW_JOBS gate and fix test configs
+
+---
+id: cursor-server-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/jpolvora/cursor-server
+---
+
+# Cursor Server Commit Length
+
+## Action
+
+Write moderate-length commit messages (~69 characters)
+
+## Evidence
+
+- Average commit message length: 69 chars
+- Based on 3 commits
+
+---
+id: cursor-server-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/jpolvora/cursor-server
+---
+
+# Cursor Server Naming Files
+
+## Action
+
+Use camelCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: camelCase
+
+---
+id: cursor-server-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/jpolvora/cursor-server
+---
+
+# Cursor Server Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: cursor-server-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/jpolvora/cursor-server
+---
+
+# Cursor Server Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: cursor-server-arch-type-based
+trigger: "when adding new code"
+confidence: 0.8
+domain: architecture
+source: repo-analysis
+source_repo: https://github.com/jpolvora/cursor-server
+---
+
+# Cursor Server Arch Type Based
+
+## Action
+
+Place code in the appropriate type folder (components/, services/, utils/, etc.)
+
+## Evidence
+
+- Type-based module organization detected
+- Folders: jobs, middleware, routes, services
+
+---
+id: cursor-server-test-colocate
+trigger: "when writing tests"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/jpolvora/cursor-server
+---
+
+# Cursor Server Test Colocate
+
+## Action
+
+Place test file next to the source file (e.g., Button.test.tsx next to Button.tsx)
+
+## Evidence
+
+- Colocated test pattern detected
+- Tests live alongside source files
+
+---
+id: cursor-server-test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/jpolvora/cursor-server
+---
+
+# Cursor Server Test Naming
+
+## Action
+
+Name test files using the pattern: *.test.ts
+
+## Evidence
+
+- File pattern: *.test.ts
+- Consistent across test files
+
+---
+id: cursor-server-test-types
+trigger: "when planning tests for a feature"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/jpolvora/cursor-server
+---
+
+# Cursor Server Test Types
+
+## Action
+
+Write unit, integration tests to match project standards
+
+## Evidence
+
+- Test types detected: unit, integration
+- Coverage config: no
+
+---
+id: cursor-server-workflow-feature-implementation-with-tests
+trigger: "when doing feature implementation with tests"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/jpolvora/cursor-server
+---
+
+# Cursor Server Workflow Feature Implementation With Tests
+
+## Action
+
+Follow the feature-implementation-with-tests workflow:
+1. Edit or create main logic file(s) in src/jobs/ or src/services/
+2. Edit or create corresponding test file(s) in src/jobs/ or src/services/ with .test.ts suffix
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: src/jobs/review-jobs.ts, src/jobs/review-jobs.test.ts, src/jobs/scheduler.ts
+
+---
+id: cursor-server-workflow-config-or-env-change-with-documentation
+trigger: "when doing config or env change with documentation"
+confidence: 0.55
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/jpolvora/cursor-server
+---
+
+# Cursor Server Workflow Config Or Env Change With Documentation
+
+## Action
+
+Follow the config-or-env-change-with-documentation workflow:
+1. Edit src/config.ts to add or change config/env logic
+2. Update .env.example to reflect new/changed variables
+3. Update README.md and/or AGENTS.md to document the change
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~1x per month
+- Files: src/config.ts, .env.example, README.md
+
+---
+id: cursor-server-instinct-file-naming
+trigger: "When creating or renaming a file in the codebase"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: jpolvora/cursor-server
+---
+
+# Cursor Server Instinct File Naming
+
+## Action
+
+Use camelCase for file names
+
+## Evidence
+
+- Pattern in namingConventions.files
+- Files in src/ use camelCase
+
+---
+id: cursor-server-instinct-function-naming
+trigger: "When defining a function"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: jpolvora/cursor-server
+---
+
+# Cursor Server Instinct Function Naming
+
+## Action
+
+Use camelCase for function names
+
+## Evidence
+
+- Pattern in namingConventions.functions
+- Functions in src/services/repo-hygiene.ts use camelCase
+
+---
+id: cursor-server-instinct-class-naming
+trigger: "When defining a class"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: jpolvora/cursor-server
+---
+
+# Cursor Server Instinct Class Naming
+
+## Action
+
+Use PascalCase for class names
+
+## Evidence
+
+- Pattern in namingConventions.classes
+
+---
+id: cursor-server-instinct-constant-naming
+trigger: "When defining a constant"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: jpolvora/cursor-server
+---
+
+# Cursor Server Instinct Constant Naming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for constant names
+
+## Evidence
+
+- Pattern in namingConventions.constants
+
+---
+id: cursor-server-instinct-import-style
+trigger: "When importing modules"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: jpolvora/cursor-server
+---
+
+# Cursor Server Instinct Import Style
+
+## Action
+
+Use relative import paths
+
+## Evidence
+
+- Pattern in importStyle
+- Examples in src/services/repo-hygiene.ts
+
+---
+id: cursor-server-instinct-export-style
+trigger: "When exporting functions or classes"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: jpolvora/cursor-server
+---
+
+# Cursor Server Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in exportStyle
+- Examples in src/jobs/review-jobs.ts
+
+---
+id: cursor-server-instinct-test-file-location
+trigger: "When adding or updating tests"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: jpolvora/cursor-server
+---
+
+# Cursor Server Instinct Test File Location
+
+## Action
+
+Place test files next to the code they test, using the .test.ts suffix
+
+## Evidence
+
+- Pattern in testLocation: colocated
+- Files like src/jobs/review-jobs.test.ts
+
+---
+id: cursor-server-instinct-test-file-pattern
+trigger: "When naming a test file"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: jpolvora/cursor-server
+---
+
+# Cursor Server Instinct Test File Pattern
+
+## Action
+
+Use the pattern *.test.ts
+
+## Evidence
+
+- Pattern in testing.filePattern
+- Files like src/services/scheduled-review-runner.test.ts
+
+---
+id: cursor-server-instinct-test-type
+trigger: "When writing tests"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: jpolvora/cursor-server
+---
+
+# Cursor Server Instinct Test Type
+
+## Action
+
+Write both unit and integration tests as appropriate
+
+## Evidence
+
+- Pattern in testing.testTypes
+- Presence of both unit and integration tests in src/services/
+
+---
+id: cursor-server-instinct-commit-format
+trigger: "When writing a commit message"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: jpolvora/cursor-server
+---
+
+# Cursor Server Instinct Commit Format
+
+## Action
+
+Use conventional commits with prefixes like fix: or docs:, and keep messages concise (~69 chars)
+
+## Evidence
+
+- fix: scheduled review jobs hygiene, enable gate, and Agent.resume
+- docs(config): document SCHEDULED_REVIEW_JOBS gate and fix test configs
+- Pattern in commits.prefixes and averageLength
+
+---
+id: cursor-server-instinct-feature-implementation-with-tests
+trigger: "When adding or modifying job/service logic"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: jpolvora/cursor-server
+---
+
+# Cursor Server Instinct Feature Implementation With Tests
+
+## Action
+
+Immediately add or update corresponding .test.ts files in the same folder
+
+## Evidence
+
+- Workflow: feature-implementation-with-tests
+- Files: src/jobs/review-jobs.ts and src/jobs/review-jobs.test.ts
+
+---
+id: cursor-server-instinct-config-env-change-with-docs
+trigger: "When adding or changing a config/env variable"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: jpolvora/cursor-server
+---
+
+# Cursor Server Instinct Config Env Change With Docs
+
+## Action
+
+Update .env.example and README.md/AGENTS.md to document the change
+
+## Evidence
+
+- Workflow: config-or-env-change-with-documentation
+- Files: src/config.ts, .env.example, README.md, AGENTS.md
+
