@@ -35,7 +35,7 @@ src/
   agents.ts             # Task agent allowlist + resolveAgent (fallback → default)
   routes/
     health.ts           # GET /health
-    tasks.ts            # POST /tasks (optional agent)
+    tasks.ts            # POST /tasks; GET /tasks/:id/stream (SSE)
     ui.ts               # GET /ui/spec-editor (public HTML editor)
     specs.ts            # POST /specs/validate; GET/PUT /repos/:repo/specs[/:file]
     harness.ts          # createHarnessRoutes — stage pipeline runs
@@ -58,6 +58,8 @@ src/
 | `plan+implementer` | Plan phase, then implement with that plan |
 
 List via `GET /agents`. Future workflow-skills exclusive agents (`spec-to-pr*`) are a separate Phase 2 roadmap item — do not conflate with these roles.
+
+`GET /tasks/:id/stream` emits SSE `status`, `output`, and `done` events for async tasks. Auth accepts `X-API-Key`, `Authorization: Bearer`, or query `apiKey` / `access_token` (for `EventSource`).
 
 ### Runtime choice
 
@@ -137,7 +139,6 @@ Treat these as design placeholders — confirm with the owner before building:
 - Async job queue (fire-and-forget tasks, status polling, webhooks)
 - Run history and persistence
 - Repo registration and validation (ensure path exists, is a git repo)
-- Streaming task output to clients (SSE / WebSocket)
 - Scheduled review jobs (PR diff review, branch sync checks)
 - MCP server configuration per task or per repo
 - Spec editor aspirational UI (AC builder, dependency graph, stage designer) beyond MVP Markdown editor

@@ -12,6 +12,7 @@ export type RunTaskInput = {
   tenantId?: string;
   allowedRepos?: string[];
   mcpServers?: McpServers;
+  onOutput?: (chunk: string) => void;
 };
 
 export type RunPhaseResult = {
@@ -104,9 +105,46 @@ function promptForAgent(agent: AgentId, userPrompt: string, planText?: string): 
   }
 }
 
+async function forwardRunStream(
+  run: Awaited<ReturnType<Awaited<ReturnType<typeof Agent.create>>["send"]>>,
+  onOutput?: (chunk: string) => void,
+): Promise<void> {
+  if (!onOutput) return;
+
+  for await (const event of run.stream()) {
+    switch (event.type) {
+      case "assistant":
+        for (const block of event.message.content) {
+          if (block.type === "text" && block.text) {
+            onOutput(block.text);
+          }
+        }
+        break;
+      case "thinking":
+        if (event.text) {
+          onOutput(`[thinking] ${event.text}\n`);
+        }
+        break;
+      case "tool_call":
+        onOutput(`[tool] ${event.name} ${event.status}\n`);
+        break;
+      case "status":
+        onOutput(`[status] ${event.status}\n`);
+        break;
+      case "task":
+        if (event.text) {
+          onOutput(`[task] ${event.text}\n`);
+        }
+        break;
+      default:
+        break;
+    }
+  }
+}
+
 async function runAgentPhase(
   config: Config,
-  input: { prompt: string; repoPath: string; model: string; tenantId?: string; allowedRepos?: string[]; mcpServers?: McpServers },
+  input: { prompt: string; repoPath: string; model: string; tenantId?: string; allowedRepos?: string[]; mcpServers?: McpServers; onOutput?: (chunk: string) => void },
 ): Promise<RunPhaseResult> {
   const cleanupEnv = applyTenantEnv(input);
   const cleanupLimits = applyTenantResourceLimits(resolveTenantResourceLimits(config, input.tenantId));
@@ -128,6 +166,13 @@ async function runAgentPhase(
 
   try {
     const run = await agent.send(input.prompt);
+    if (input.onOutput) {
+      try {
+        await forwardRunStream(run, input.onOutput);
+      } catch (streamErr) {
+        console.error(`Run stream error after agent.send succeeded:`, streamErr);
+      }
+    }
     const result = await run.wait();
 
     return {
@@ -165,6 +210,7 @@ export async function runTask(
       model,
       tenantId: input.tenantId,
       mcpServers: input.mcpServers,
+      onOutput: input.onOutput,
     });
 
     if (plan.status === "error") {
@@ -189,6 +235,7 @@ export async function runTask(
       model,
       tenantId: input.tenantId,
       mcpServers: input.mcpServers,
+      onOutput: input.onOutput,
     });
 
     return {
@@ -207,6 +254,7 @@ export async function runTask(
     model,
     tenantId: input.tenantId,
     mcpServers: input.mcpServers,
+    onOutput: input.onOutput,
   });
 
   return {
