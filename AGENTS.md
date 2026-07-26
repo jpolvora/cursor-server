@@ -16,6 +16,7 @@ Primary use cases (shipped; see caveats below for rough edges):
 6. **Ops Kanban** — SQLite board data plane, `GET /ui/board`, Start/Pause/Finish for `spec-to-pr*`.
 7. **Agent prompt widget** — `GET /ui/prompt` (standalone + embeddable).
 8. **Unified ops console** — one shared shell (left menu, compact top bar, single main container) renders every view by route: `GET /` dashboard, `/ui/board`, `/ui/prompt`, `/ui/spec-editor`, `/ui/projects`, `/ui/config`. Login gate collects the API key once; host prefs via `GET`/`PUT /settings` (`app_settings` in board DB); Projects CRUD over `/board/repos` with soft-block delete when cards remain.
+9. **Product website** — GitHub Pages static site (`website/`, `npm run deploy:pages`); release-triggered deploy from `master` via `.github/workflows/deploy-pages.yml`.
 
 Prefer small, reviewable increments; confirm major new roadmap items with the owner before building.
 
@@ -138,7 +139,7 @@ Log `agentId` and `run.id` after `send()` in production paths.
 
 ## Roadmap (design intent)
 
-Documented here so agents understand direction. **Shipped** items are summarized above; this section covers remaining gaps and aspirational work.
+Documented here so agents understand direction. **Shipped** items are summarized above; this section covers **remaining gaps** and runner operational caveats.
 
 ### Hermes integration (landed with caveats)
 
@@ -156,9 +157,7 @@ spec (qualified) → implement → build → test → review
 
 (`deploy` is optional per spec frontmatter; default stage list omits it.)
 
-**Landed:** `GET /ui/spec-editor`, QualifiedSpec parse/validate, stage orchestration, resumable runs (`POST /harness/runs`, stage store), and pluggable runners. Each stage is observable (logs, artifacts, pass/fail).
-
-**Still open:** Aspirational UI (AC builder, dependency graph, stage designer) beyond MVP Markdown editor.
+**Landed:** `GET /ui/spec-editor`, QualifiedSpec parse/validate, stage orchestration, resumable runs (`POST /harness/runs`, stage store), and pluggable runners. Each stage is observable (logs, artifacts, pass/fail). Aspirational UI panels (AC builder, dependency graph, stage designer — spec `36`) shipped as progressive enhancement on the editor.
 
 ### Pluggable harness abstraction (landed)
 

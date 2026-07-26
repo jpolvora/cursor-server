@@ -4,7 +4,7 @@ slug: 41-github-pages-product-website
 title: "GitHub Pages product website"
 source: local
 specDate: 2026-07-26
-status: implemented
+status: completed
 version: 0.1.0
 ---
 
