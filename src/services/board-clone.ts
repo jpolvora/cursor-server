@@ -130,6 +130,13 @@ export async function ensureClone(
       return { ok: true };
     } catch (err: unknown) {
       const raw = err instanceof Error ? err.message : String(err);
+      if (fs.existsSync(localPath)) {
+        try {
+          fs.rmSync(localPath, { recursive: true, force: true });
+        } catch {
+          // ignore cleanup errors after failed clone
+        }
+      }
       return { ok: false, error: sanitizeCloneError(raw) };
     }
   } finally {

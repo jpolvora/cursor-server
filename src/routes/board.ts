@@ -45,8 +45,8 @@ const UpdateRepoSchema = z.object({
 
 const CreateCardSchema = z.object({
   repo_id: z.number().int().positive(),
-  title: z.string().min(1),
-  spec_markdown: z.string().min(1),
+  title: z.string().min(1).max(256),
+  spec_markdown: z.string().min(1).max(512_000),
   lane: z.enum(BOARD_LANES as unknown as [string, ...string[]]).optional(),
   workflow: z.string().optional().nullable(),
   active_run_id: z.string().optional().nullable(),
@@ -55,8 +55,8 @@ const CreateCardSchema = z.object({
 });
 
 const UpdateCardSchema = z.object({
-  title: z.string().min(1).optional(),
-  spec_markdown: z.string().min(1).optional(),
+  title: z.string().min(1).max(256).optional(),
+  spec_markdown: z.string().min(1).max(512_000).optional(),
   lane: z.enum(BOARD_LANES as unknown as [string, ...string[]]).optional(),
   workflow: z.string().optional().nullable(),
   active_run_id: z.string().optional().nullable(),
@@ -151,11 +151,19 @@ export function createBoardRoutes(config: Config) {
       return c.json({ error: "Invalid repository path (must stay under REPOS_ROOT)" }, 400);
     }
 
-    const repo = boardDb.createRepo({
-      ...parsed.data,
-      local_path: localPath,
-    });
-    return c.json({ repo: repoResponse(repo) }, 201);
+    try {
+      const repo = boardDb.createRepo({
+        ...parsed.data,
+        local_path: localPath,
+      });
+      return c.json({ repo: repoResponse(repo) }, 201);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.toLowerCase().includes("unique") || message.toLowerCase().includes("constraint")) {
+        return c.json({ error: `Repository '${parsed.data.name}' already exists` }, 409);
+      }
+      throw err;
+    }
   });
 
   board.get("/repos/:id", (c) => {
@@ -398,7 +406,10 @@ export function createBoardRoutes(config: Config) {
         ...parsed.data,
         lane: parsed.data.lane as BoardLane | undefined,
       });
-      return c.json({ card: cardResponse(card!) });
+      if (!card) {
+        return c.json({ error: "Card not found" }, 404);
+      }
+      return c.json({ card: cardResponse(card) });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       return c.json({ error: message }, 400);
@@ -454,7 +465,10 @@ export function createBoardRoutes(config: Config) {
     }
 
     const card = boardDb.updateCard(id, { lane: targetLane });
-    return c.json({ card: cardResponse(card!) });
+    if (!card) {
+      return c.json({ error: "Card not found" }, 404);
+    }
+    return c.json({ card: cardResponse(card) });
   });
 
   board.post("/cards/:id/export-spec", (c) => {
