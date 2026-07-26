@@ -7,8 +7,11 @@ import { taskStore } from "../services/task-store.js";
 import { processTaskInBackground } from "../services/task-worker.js";
 import { checkRepoAccess } from "../services/tenant-context.js";
 
+/** Default event type when clients omit `event` (generic task ingestion). */
+export const DEFAULT_EVENT_TYPE = "task";
+
 const createEventSchema = z.object({
-  event: z.string().min(1),
+  event: z.string().min(1).default(DEFAULT_EVENT_TYPE),
   source: z.enum(["hermes", "umbrel", "ide", "api"]).default("api"),
   prompt: z.string().min(1).max(100_000),
   repo: z.string().min(1),
