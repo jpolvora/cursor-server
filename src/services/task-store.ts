@@ -40,7 +40,10 @@ export interface CreateTaskOptions {
   mcpServers?: McpServers;
 }
 
-class TaskStore {
+export const STALE_TASK_RESTART_ERROR =
+  "Server process restarted; task was not recovered (worker was interrupted on startup).";
+
+export class TaskStore {
   private tasks = new Map<string, TaskRecord>();
   private storagePath: string | null = null;
   public readonly events = new EventEmitter();
@@ -48,6 +51,33 @@ class TaskStore {
   public init(reposRoot: string) {
     this.storagePath = path.resolve(reposRoot, ".tasks.json");
     this.loadFromDisk();
+  }
+
+  private reconcileStaleTasks(records: TaskRecord[]): TaskRecord[] {
+    const reconciledIds: string[] = [];
+    const now = new Date().toISOString();
+
+    const reconciled = records.map((record) => {
+      if (record.status !== "running" && record.status !== "queued") {
+        return record;
+      }
+
+      reconciledIds.push(record.id);
+      return {
+        ...record,
+        status: "failed" as const,
+        error: STALE_TASK_RESTART_ERROR,
+        completedAt: record.completedAt ?? now,
+      };
+    });
+
+    if (reconciledIds.length > 0) {
+      console.warn(
+        `Reconciled ${reconciledIds.length} stale task(s) after restart: ${reconciledIds.join(", ")}`
+      );
+    }
+
+    return reconciled;
   }
 
   private loadFromDisk() {
@@ -58,8 +88,17 @@ class TaskStore {
     try {
       const data = fs.readFileSync(this.storagePath, "utf-8");
       const records: TaskRecord[] = JSON.parse(data);
-      for (const record of records) {
+      const reconciled = this.reconcileStaleTasks(records);
+      const didReconcile = reconciled.some(
+        (record, index) => record !== records[index]
+      );
+
+      for (const record of reconciled) {
         this.tasks.set(record.id, record);
+      }
+
+      if (didReconcile) {
+        this.saveToDisk();
       }
     } catch (err) {
       console.error("Failed to load tasks from disk:", err);

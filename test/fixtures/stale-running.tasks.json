@@ -1,0 +1,60 @@
+[
+  {
+    "id": "task_running_stale",
+    "tenantId": "default",
+    "prompt": "running task",
+    "repo": "test-repo",
+    "repoPath": "/repos/test-repo",
+    "agent": "default",
+    "model": "test-model",
+    "source": "api",
+    "status": "running",
+    "createdAt": "2026-07-25T10:00:00.000Z",
+    "startedAt": "2026-07-25T10:00:01.000Z"
+  },
+  {
+    "id": "task_queued_stale",
+    "tenantId": "default",
+    "prompt": "queued task",
+    "repo": "test-repo",
+    "repoPath": "/repos/test-repo",
+    "agent": "default",
+    "model": "test-model",
+    "source": "api",
+    "status": "queued",
+    "createdAt": "2026-07-25T10:01:00.000Z"
+  },
+  {
+    "id": "task_completed_ok",
+    "tenantId": "default",
+    "prompt": "completed task",
+    "repo": "test-repo",
+    "repoPath": "/repos/test-repo",
+    "agent": "default",
+    "model": "test-model",
+    "source": "api",
+    "status": "completed",
+    "createdAt": "2026-07-25T09:00:00.000Z",
+    "completedAt": "2026-07-25T09:05:00.000Z",
+    "result": {
+      "agent": "default",
+      "status": "completed",
+      "durationMs": 1000,
+      "run": { "status": "completed", "result": "done" }
+    }
+  },
+  {
+    "id": "task_failed_ok",
+    "tenantId": "default",
+    "prompt": "failed task",
+    "repo": "test-repo",
+    "repoPath": "/repos/test-repo",
+    "agent": "default",
+    "model": "test-model",
+    "source": "api",
+    "status": "failed",
+    "createdAt": "2026-07-25T08:00:00.000Z",
+    "completedAt": "2026-07-25T08:01:00.000Z",
+    "error": "agent error"
+  }
+]
