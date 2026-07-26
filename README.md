@@ -201,6 +201,28 @@ Event gateway — same shape as task creation (`event`, `prompt`, `repo`, option
 
 Lists registered cron jobs and recent review-job execution history.
 
+### `GET /tasks/:id/stream`
+
+Server-Sent Events stream for task lifecycle and live output.
+
+**Auth** (when `SERVER_API_KEY` or `TENANTS` are configured): same as other protected routes — `X-API-Key`, `Authorization: Bearer <key>`, or query parameters `apiKey` or `access_token` (query form is required for browser `EventSource`, which cannot set custom headers).
+
+**Events**
+
+| Event | Payload | When |
+|-------|---------|------|
+| `status` | `{ id, status, result?, error? }` | On connect and on status change |
+| `output` | `{ id, chunk }` | Worker lifecycle lines and agent run stream chunks |
+| `done` | `{ id, status }` | Task reaches `completed`, `failed`, or `cancelled`; connection closes |
+
+Example (Node / curl):
+
+```bash
+curl -N -H "X-API-Key: $SERVER_API_KEY" "http://localhost:3000/tasks/task_…/stream"
+# EventSource in browser:
+# new EventSource(`/tasks/${taskId}/stream?apiKey=${encodeURIComponent(key)}`)
+```
+
 ## Environment
 
 | Variable | Description | Default |

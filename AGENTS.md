@@ -73,6 +73,8 @@ src/
 
 List via `GET /agents`. Future workflow-skills exclusive agents (`spec-to-pr*`) are a separate Phase 2 roadmap item — do not conflate with these roles.
 
+`GET /tasks/:id/stream` emits SSE `status`, `output`, and `done` events for async tasks. Auth accepts `X-API-Key`, `Authorization: Bearer`, or query `apiKey` / `access_token` (for `EventSource`).
+
 ### Runtime choice
 
 Use **local** Cursor SDK runtime for all task execution unless explicitly designing a cloud feature:

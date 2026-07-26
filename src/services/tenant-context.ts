@@ -10,3 +10,20 @@ export function checkRepoAccess(allowedRepos: string[], repoName: string): strin
   }
   return undefined;
 }
+
+/** Master (and anonymous/no-auth) may access any tenant resource; others only their own. */
+export function canAccessTenantResource(requestTenantId: string, resourceTenantId: string): boolean {
+  if (requestTenantId === "master" || requestTenantId === "anonymous") {
+    return true;
+  }
+  return requestTenantId === resourceTenantId;
+}
+
+/** When listing, master sees all tenants; others are scoped to their tenantId. */
+export function listTenantFilter(requestTenantId: string | undefined): string | undefined {
+  if (!requestTenantId || requestTenantId === "master" || requestTenantId === "anonymous") {
+    return undefined;
+  }
+  return requestTenantId;
+}
+

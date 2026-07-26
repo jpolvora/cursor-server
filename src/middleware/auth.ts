@@ -8,7 +8,12 @@ declare module "hono" {
   }
 }
 
-export function resolveTenant(config: Config, authHeader?: string, customHeader?: string): { tenant: { tenantId: string; allowedRepos: string[] } | null; error?: string } {
+export function resolveTenant(
+  config: Config,
+  authHeader?: string,
+  customHeader?: string,
+  queryKey?: string,
+): { tenant: { tenantId: string; allowedRepos: string[] } | null; error?: string } {
   const masterKey = config.SERVER_API_KEY;
   const tenants = config.TENANTS;
 
@@ -18,6 +23,8 @@ export function resolveTenant(config: Config, authHeader?: string, customHeader?
     providedKey = customHeader;
   } else if (authHeader && authHeader.startsWith("Bearer ")) {
     providedKey = authHeader.substring(7).trim();
+  } else if (queryKey) {
+    providedKey = queryKey;
   }
 
   if (!providedKey) {
@@ -45,10 +52,12 @@ export function authMiddleware(config: Config): MiddlewareHandler {
       return next();
     }
 
+    const queryKey = c.req.query("apiKey") ?? c.req.query("access_token");
     const { tenant, error } = resolveTenant(
       config,
       c.req.header("Authorization"),
       c.req.header("X-API-Key"),
+      queryKey,
     );
 
     if (!tenant) {
