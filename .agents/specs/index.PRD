@@ -4,8 +4,8 @@ Living progressive-disclosure index. Status and short scope live here; acceptanc
 
 | Field | Value |
 |-------|-------|
-| Updated | 2026-07-26 (`ws-spec-index` promote: `35-agent-prompt-widget`) |
-| Priority order | Re-land `25-fix-scheduled-review-jobs` → Phase 4 Kanban `32` → `33` → `34` → agent prompt widget `35` |
+| Updated | 2026-07-26 (`ws-spec-index` promote: `36`–`38`) |
+| Priority order | Spec-editor aspirational UI `36` → WebSocket `37` → Umbrel App Store `38` |
 | Spec folder | `.agents/specs/` |
 
 ---
@@ -37,7 +37,7 @@ Living progressive-disclosure index. Status and short scope live here; acceptanc
 
 **cursor-server** is the local-first execution layer for remote IDE clients: an HTTP API on a home-lab host that runs agent tasks against git checkouts under `REPOS_ROOT`. Clients on Tailscale send prompts or qualified specs; this host is where the work runs.
 
-Flagship direction: machine-actionable specs + pluggable harness (`implement → build → test → review`; `deploy` optional per frontmatter) with Cursor SDK, Hermes, OpenCode, and future runners behind one contract. Next product surfaces: homelab Kanban board (specs 32–34), then a simple OpenCode-inspired agent prompt widget (spec 35) for direct task interaction in the UI.
+Flagship direction: machine-actionable specs + pluggable harness (`implement → build → test → review`; `deploy` optional per frontmatter) with Cursor SDK, Hermes, OpenCode, and future runners behind one contract. Homelab Kanban board (specs 32–34) and agent prompt widget (spec 35) are landed. Next scheduled: aspirational spec-editor UI (`36`), WebSocket streaming (`37`), Umbrel App Store manifest (`38`).
 
 ## 4. Problems
 
@@ -49,12 +49,12 @@ Flagship direction: machine-actionable specs + pluggable harness (`implement →
 ## 5. Primary use cases
 
 1. **Remote task execution** — `POST /tasks` (async default) + roles via `GET /agents`.
-2. **Scheduled automation** — `node-cron` review jobs; inspect via `GET /jobs` (enable-gate polish still open: fix-25).
+2. **Scheduled automation** — `node-cron` review jobs; inspect via `GET /jobs` (`SCHEDULED_REVIEW_JOBS` opt-in; hygiene + `Agent.resume` via fix-25).
 3. **Continuous review loops** — scheduled runner + `POST /events` gateway.
 4. **Spec-driven pipeline** — `GET /ui/spec-editor`, QualifiedSpec schema, `POST /harness/runs`.
 5. **Pluggable harnesses** — `cursor-local` / `cursor-sdk` / `hermes` / `opencode`.
-6. **Ops Kanban (planned)** — SQLite cards + UI + Start/Pause/Finish driving `spec-to-pr*`.
-7. **Agent prompt widget (planned)** — minimal prompt/TUI surface to submit prompts, stream/query tasks; embeddable in board and other UIs.
+6. **Ops Kanban** — SQLite cards + `GET /ui/board` + Start/Pause/Finish driving `spec-to-pr*`.
+7. **Agent prompt widget** — minimal prompt surface (`GET /ui/prompt`); embeddable in board and other UIs.
 
 ## 6. Constraints & non-goals
 
@@ -62,7 +62,7 @@ Flagship direction: machine-actionable specs + pluggable harness (`implement →
 - Local Cursor SDK runtime by default (`cwd` = repo path, `settingSources: []`).
 - Prefer Docker Compose (Umbrel-friendly); thin Hono routes; Zod; no heavy ORMs.
 - Confirm major roadmap items with the owner; small reviewable increments.
-- Out of scope without go-ahead: Umbrel App Store manifest, aspirational spec-editor UI (AC builder / graphs), WebSocket streaming (SSE exists), public cloud runtime.
+- Out of scope without go-ahead: public cloud runtime; richer MCP diagnostics remain Inbox until promoted.
 
 ## 7. Feature map by phase
 
@@ -77,46 +77,49 @@ Status: **done**. Sync HTTP + local SDK + scheduler hook.
 
 ### Phase 1 — Homelab-ready
 
-Status: **done**.
+Status: **partial** (Compose landed; Umbrel store listing open).
 
 - [x] Docker Compose packaging (`spec: 01-docker-compose.spec.md`)
 - [x] Tailscale bind / client access docs (`spec: 02-tailscale-homelab-docs.spec.md`)
 - [x] Client authentication (`spec: 03-client-auth.spec.md`)
 - [x] Repo validation (`spec: 04-repo-validation.spec.md`)
+- [ ] Umbrel App Store manifest (`spec: 38-umbrel-app-store.spec.md`)
 
 ### Phase 2 — API depth and operations
 
-Status: **partial** (core landed; scheduled-review enable-gate/hygiene still open).
+Status: **partial** (SSE landed; WebSocket open).
 
 - [x] Workflow-skills `spec-to-pr` / `spec-to-pr-lite` agent roles (`spec: 05-workflow-skills-spec-to-pr.spec.md`)
 - [x] Async task queue (`spec: 06-async-task-queue.spec.md`)
 - [x] Run history + stale running reconciliation (`spec: 07-run-history.spec.md`, fix `29`)
 - [x] SSE task streaming + EventSource auth (`spec: 08-task-streaming.spec.md`, fix `24`)
-- [~] Scheduled review jobs — base cron jobs landed; hygiene + enable gate + resume not on develop (`spec: 09-scheduled-review-jobs.spec.md`, open fix `25`)
+- [ ] WebSocket task streaming (`spec: 37-websocket-streaming.spec.md`)
+- [x] Scheduled review jobs — hygiene + `SCHEDULED_REVIEW_JOBS` gate + `Agent.resume` (`spec: 09-scheduled-review-jobs.spec.md`, fix `25`)
 - [x] Event gateway (`spec: 19-event-gateway.spec.md`, fix `31`)
 - [x] MCP config merge into tasks (`spec: 18-mcp-config.spec.md`, fix `23`)
 
 ### Phase 3 — Spec harness and pluggable runners
 
-Status: **MVP done** (CLI runners need host binaries; default stages omit `deploy`).
+Status: **MVP done** (CLI runners need host binaries; aspirational editor UI open).
 
 - [x] Qualified spec schema + frontmatter stages/deps (`spec: 10-spec-schema.spec.md`, fix `27`)
 - [x] Stage orchestration + default stages (`spec: 12-stage-orchestration.spec.md`, fix `26`)
 - [x] Harness runner interface (`spec: 11-harness-runner-interface.spec.md`)
 - [x] Cursor SDK runner + timeout cancel (`spec: 13-runner-cursor-sdk.spec.md`, fix `30`)
 - [x] Spec editor UI (`spec: 14-spec-editor.spec.md`)
+- [ ] Spec-editor aspirational UI — AC builder, dependency graph, stage designer (`spec: 36-spec-editor-aspirational-ui.spec.md`)
 - [x] Hermes integration + CLI/health honesty (`spec: 15-hermes-integration.spec.md`, fix `20`)
 - [x] OpenCode runner + stream/git (`spec: 16-runner-opencode.spec.md`, fix `21`)
 - [x] Multi-tenant isolation hardening (`spec: 17-multi-tenant-isolation.spec.md`, fix `22`)
 
 ### Phase 4 — Homelab Kanban board (ops UI)
 
-Status: **todo**. Design: `docs/superpowers/specs/2026-07-25-kanban-board-design.md`.
+Status: **done**. Design: `docs/superpowers/specs/2026-07-25-kanban-board-design.md`.
 
-- [ ] Board data plane (`spec: 32-board-data-plane.spec.md`)
-- [ ] Board UI (`spec: 33-board-ui.spec.md`)
-- [ ] Board execution control (`spec: 34-board-execution-control.spec.md`)
-- [ ] Agent prompt / TUI widget — OpenCode-like, simpler; submit prompts, stream/query tasks; standalone + embeddable (`spec: 35-agent-prompt-widget.spec.md`)
+- [x] Board data plane (`spec: 32-board-data-plane.spec.md`)
+- [x] Board UI (`spec: 33-board-ui.spec.md`)
+- [x] Board execution control (`spec: 34-board-execution-control.spec.md`)
+- [x] Agent prompt / TUI widget — OpenCode-like, simpler; submit prompts, stream/query tasks; standalone + embeddable (`spec: 35-agent-prompt-widget.spec.md`)
 
 ## 8. Next specs
 
@@ -124,19 +127,14 @@ Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 
 | # | Spec | Status | Target Phase | Notes |
 |---|------|--------|--------------|-------|
-| 1 | `25-fix-scheduled-review-jobs` | `[ ]` todo | Phase 2 | PR #14 closed; branch `fix/25-scheduled-review-jobs` — re-land |
-| 2 | `32-board-data-plane` | `[ ]` todo | Phase 4 | SQLite cards/repos; clone ensure/cleanup; import/export |
-| 3 | `33-board-ui` | `[ ]` todo | Phase 4 | `GET /ui/board` Kanban; depends on 32 |
-| 4 | `34-board-execution-control` | `[ ]` todo | Phase 4 | Start/Pause/Resume/Finish; depends on 32–33 |
-| 5 | `35-agent-prompt-widget` | `[ ]` todo | Phase 4 | Prompt UI (OpenCode-inspired, simpler); after or parallel to board; embeddable |
+| 1 | `36-spec-editor-aspirational-ui` | `[ ]` todo | Phase 3 | AC builder, dependency graph, stage designer |
+| 2 | `37-websocket-streaming` | `[ ]` todo | Phase 2 | Alongside SSE; do not replace EventSource |
+| 3 | `38-umbrel-app-store` | `[ ]` todo | Phase 1 | Store manifest on existing Compose path |
 
-**Immediate next:** re-open/ship `25-fix-scheduled-review-jobs`, then start `32-board-data-plane`.
+**Immediate next:** deliver `36-spec-editor-aspirational-ui` (then `37`, `38`) via `/ws-multi-spec` or `/ws-spec-to-pr`.
 
 ## 9. Inbox (unscheduled ideas)
 
-- Spec-editor aspirational UI (AC builder, dependency graph, stage designer)
-- WebSocket streaming (SSE already covers task progress)
-- Umbrel App Store manifest
 - Richer MCP diagnostics beyond fix-23 (only if new gaps appear)
 
 ## 10. Done log
@@ -152,7 +150,7 @@ Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 | 2026-07-25 | `06-async-task-queue` | Async `202` + poll | Phase 2 |
 | 2026-07-25 | `07-run-history` | Persist/list tasks | Phase 2 |
 | 2026-07-25 | `08-task-streaming` | SSE stream | Phase 2 / #4 |
-| 2026-07-25 | `09-scheduled-review-jobs` | Base cron jobs (partial; see fix-25) | Phase 2 |
+| 2026-07-25 | `09-scheduled-review-jobs` | Scheduled review jobs (completed via fix-25) | Phase 2 / #21 |
 | 2026-07-25 | `10`–`17` | Spec schema, runners, editor, tenants | Phase 3 |
 | 2026-07-25 | `18-mcp-config` | MCP merge config | Phase 2 / #9 |
 | 2026-07-25 | `19-event-gateway` | `POST /events` | Phase 2 |
@@ -162,12 +160,17 @@ Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 | 2026-07-26 | `22-fix-multi-tenant-isolation` | Tenant ACL hardening | #11 |
 | 2026-07-26 | `23-fix-mcp-merge-wiring` | MCP at POST /tasks | #12 |
 | 2026-07-26 | `24-fix-task-streaming-progress` | SSE progress + auth | #13 |
+| 2026-07-26 | `25-fix-scheduled-review-jobs` | Hygiene + enable gate + Agent.resume | #21 |
 | 2026-07-26 | `26-fix-harness-default-stages` | Drop deploy default | #15 |
 | 2026-07-26 | `27-fix-spec-schema-frontmatter-stages` | Frontmatter stages/deps | #16 |
 | 2026-07-26 | `28-fix-docs-roadmap-sync` | README/AGENTS sync | #17 |
 | 2026-07-26 | `29-fix-task-store-stale-running` | Stale running on load | #18 |
 | 2026-07-26 | `30-fix-cursor-runner-timeout-cancel` | Cancel on timeout | #19 |
 | 2026-07-26 | `31-fix-event-gateway-contract` | Optional `event` default | #20 |
+| 2026-07-26 | `32-board-data-plane` | SQLite board data plane | #23 |
+| 2026-07-26 | `33-board-ui` | Kanban UI `/ui/board` | #24 |
+| 2026-07-26 | `34-board-execution-control` | Start/Pause/Resume/Finish | #25 |
+| 2026-07-26 | `35-agent-prompt-widget` | Agent prompt widget `/ui/prompt` | #26 |
 
 ## 11. Maintenance checklist
 
