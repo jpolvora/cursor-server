@@ -16,8 +16,22 @@ describe("UI routes", () => {
     assert.ok(body.includes("Spec Editor"));
     assert.ok(body.includes("textarea") || body.includes("<textarea"));
     assert.ok(body.includes("Save") && body.includes("Run"));
+    assert.ok(body.includes("/ui/spec-editor-client.js"));
+    assert.ok(body.includes("AC Builder"));
+    assert.ok(body.includes("Stage Designer"));
+    assert.ok(body.includes("Dependencies"));
+  });
+
+  it("serves spec editor client script", async () => {
+    const res = await app.request("/ui/spec-editor-client.js");
+    assert.strictEqual(res.status, 200);
+    const contentType = res.headers.get("content-type") || "";
+    assert.ok(contentType.includes("javascript"));
+    const body = await res.text();
+    assert.ok(body.includes("parseACs"));
     assert.ok(body.includes("/specs/validate"));
     assert.ok(body.includes("/harness/runs"));
+    assert.ok(body.includes("detectCycles"));
   });
 
   it("serves agent prompt UI", async () => {

@@ -5,7 +5,7 @@ title: "Fix scheduled review jobs: hygiene, enable gate, Agent.resume"
 source: local
 specDate: 2026-07-25
 complexity: standard
-status: draft
+status: completed
 ---
 
 # Specification — Fix scheduled review jobs: hygiene, enable gate, Agent.resume

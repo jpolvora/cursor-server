@@ -13,6 +13,8 @@ Primary use cases (shipped; see caveats below for rough edges):
 3. **Continuous review loops** — scheduled review runner + `POST /events` gateway for Hermes/Umbrel/IDE triggers.
 4. **Spec-driven pipeline** — `GET /ui/spec-editor`, qualified spec schema, stage orchestration, and `POST /harness/runs`.
 5. **Pluggable harnesses** — runner registry with Cursor SDK (`cursor-local`, `cursor-sdk`), [Hermes Agent](https://github.com/NousResearch/hermes-agent) (`hermes`), and OpenCode (`opencode`).
+6. **Ops Kanban** — SQLite board data plane, `GET /ui/board`, Start/Pause/Finish for `spec-to-pr*`.
+7. **Agent prompt widget** — `GET /ui/prompt` (standalone + embeddable).
 
 Prefer small, reviewable increments; confirm major new roadmap items with the owner before building.
 
@@ -157,13 +159,12 @@ New runners plug in via `runnerRegistry.register()` behind the same spec → sta
 
 Living feature map: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD). Confirm major new items with the owner before expanding scope:
 
-- **Homelab Kanban board** — SQLite data plane, `/ui/board`, Start/Pause/Finish (`32` → `33` → `34`); design under `docs/superpowers/specs/`
-- **Agent prompt / TUI widget** — OpenCode-inspired, simpler prompt surface for submit/stream/query tasks; standalone + embeddable (`35-agent-prompt-widget`)
-- **WebSocket streaming** — SSE exists (`GET /tasks/:id/stream`); WebSocket not implemented (inbox)
-- **Spec editor aspirational UI** — AC builder, dependency graph, stage designer beyond MVP Markdown editor (inbox)
-- **Umbrel App Store manifest** — Compose path documented; store listing not built (inbox)
+- **WebSocket streaming** — alongside SSE (`37-websocket-streaming`)
+- **Umbrel App Store manifest** — store listing on existing Compose path (`38-umbrel-app-store`)
 
-Shipped recently (do not re-open as gaps): scheduled review jobs (`25` — hygiene scan, `SCHEDULED_REVIEW_JOBS` gate, `Agent.resume`), MCP merge (`23`), multi-tenant ACL (`22`), SSE progress/auth (`24`), Hermes CLI/health (`20`), OpenCode stream/git (`21`), harness default stages (`26`), frontmatter stages (`27`), `spec-to-pr*` agent roles (`05`).
+Inbox (not scheduled): richer MCP diagnostics beyond fix-23 (only if new gaps appear).
+
+Shipped recently (do not re-open as gaps): spec-editor aspirational UI (`36` — AC builder, dependency graph, stage designer), Kanban board (`32`–`34`), agent prompt widget (`35`), scheduled review jobs (`25` — hygiene scan, `SCHEDULED_REVIEW_JOBS` gate, `Agent.resume`), MCP merge (`23`), multi-tenant ACL (`22`), SSE progress/auth (`24`), Hermes CLI/health (`20`), OpenCode stream/git (`21`), harness default stages (`26`), frontmatter stages (`27`), `spec-to-pr*` agent roles (`05`).
 
 ## Testing changes
 
@@ -179,7 +180,7 @@ For task endpoints, a real `CURSOR_API_KEY` and a clone under `repos/` are requi
 
 - Do not switch to cloud runtime without an explicit requirement (this server is local-first / homelab-first).
 - Do not add large frameworks or ORMs for the initial API surface.
-- Do not expand inbox gaps (Umbrel App Store manifest, aspirational spec-editor UI, WebSocket streaming) without explicit owner go-ahead — but **do** keep README/AGENTS/`index.PRD` updated when shipped code or vision changes. Prefer `/ws-spec-index` for feature-map edits.
+- Do not expand beyond Next specs / Inbox without explicit owner go-ahead — but **do** keep README/AGENTS/`index.PRD` updated when shipped code or vision changes. Prefer `/ws-spec-index` for feature-map edits.
 
 ---
 

@@ -4,7 +4,7 @@ slug: 34-board-execution-control
 title: "Board execution control (Start / Pause / Finish / status sync)"
 source: local
 specDate: 2026-07-25
-status: draft
+status: completed
 version: 0.1.0
 ---
 

@@ -4,7 +4,7 @@ slug: 32-board-data-plane
 title: "Board data plane (SQLite cards, repos, import/export)"
 source: local
 specDate: 2026-07-25
-status: draft
+status: completed
 version: 0.1.0
 ---
 

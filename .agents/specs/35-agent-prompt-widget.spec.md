@@ -4,7 +4,7 @@ slug: 35-agent-prompt-widget
 title: "Agent prompt / TUI widget (OpenCode-like, simpler)"
 source: local
 specDate: 2026-07-26
-status: draft
+status: completed
 version: 0.1.0
 ---
 
