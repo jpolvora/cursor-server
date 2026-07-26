@@ -1,6 +1,6 @@
-import { describe, it } from "node:test";
+import { describe, it, afterEach } from "node:test";
 import assert from "node:assert";
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { EventEmitter } from "node:events";
@@ -95,6 +95,14 @@ describe("normalizeOpenCodeResult", () => {
 });
 
 describe("OpenCodeRunner.executeStage", () => {
+  const tempDirs: string[] = [];
+  afterEach(async () => {
+    for (const d of tempDirs) {
+      await rm(d, { recursive: true, force: true });
+    }
+    tempDirs.length = 0;
+  });
+
   it("should dispatch to injectable exec with stage prompt", async () => {
     let seen: OpenCodeExecRequest | undefined;
     const runner = new OpenCodeRunner(
@@ -237,6 +245,7 @@ describe("OpenCodeRunner.executeStage", () => {
 
   it("should attach git status from a temp repo", async () => {
     const dir = await mkdtemp(path.join(tmpdir(), "opencode-git-"));
+    tempDirs.push(dir);
     const runner = new OpenCodeRunner(
       mockExec(async () => ({
         exitCode: 0,
@@ -268,6 +277,7 @@ describe("OpenCodeRunner.executeStage", () => {
 
   it("should skip git status gracefully when not a git repo", async () => {
     const dir = await mkdtemp(path.join(tmpdir(), "opencode-nogit-"));
+    tempDirs.push(dir);
     const runner = new OpenCodeRunner(
       mockExec(async () => ({
         exitCode: 0,
@@ -327,8 +337,17 @@ describe("execOpenCodeCli streaming", () => {
 });
 
 describe("captureGitStatusPorcelain", () => {
+  const tempDirs: string[] = [];
+  afterEach(async () => {
+    for (const d of tempDirs) {
+      await rm(d, { recursive: true, force: true });
+    }
+    tempDirs.length = 0;
+  });
+
   it("returns porcelain for initialized repo", async () => {
     const dir = await mkdtemp(path.join(tmpdir(), "opencode-capture-"));
+    tempDirs.push(dir);
     const { execFile } = await import("node:child_process");
     const { promisify } = await import("node:util");
     const execFileAsync = promisify(execFile);
@@ -342,6 +361,7 @@ describe("captureGitStatusPorcelain", () => {
 
   it("returns skippedReason when not a git repo", async () => {
     const dir = await mkdtemp(path.join(tmpdir(), "opencode-capture-ng-"));
+    tempDirs.push(dir);
     const result = await captureGitStatusPorcelain(dir);
     assert.strictEqual(result.porcelain, undefined);
     assert.ok(result.skippedReason?.includes("not a git repository"));

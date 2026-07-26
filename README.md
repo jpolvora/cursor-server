@@ -40,12 +40,12 @@ Living detail: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD).
 | Phase | Focus | Status |
 |-------|--------|--------|
 | **Homelab-ready** | Docker Compose, Tailscale docs, client auth (`SERVER_API_KEY` / `TENANTS`), repo validation | **Landed** |
-| **API depth** | Async tasks (`202` + poll), run history, SSE streaming, event gateway, MCP merge, `spec-to-pr*` agent roles | **Landed** (scheduled-review enable-gate still open: `25`) |
+| **API depth** | Async tasks (`202` + poll), run history, SSE streaming, event gateway, MCP merge, `spec-to-pr*` agent roles, scheduled review jobs (opt-in) | **Landed** |
 | **Spec harness** | Qualified spec schema, stage orchestration, spec editor UI, pluggable runners | **MVP landed** |
 | **Runners** | Cursor SDK (default), Hermes (`hermes`), OpenCode (`opencode`) | **Registered** — CLIs must be installed |
-| **Next** | Re-land `25-fix-scheduled-review-jobs`; Homelab Kanban board (`32`→`34`); agent prompt widget (`35`) | Open |
+| **Next** | Homelab Kanban board (`32`→`34`); agent prompt widget (`35`) | Open |
 
-**Caveats (honest gaps):** Hermes/OpenCode adapters require external CLIs on PATH. Scheduled review jobs still need real hygiene + enable gate (`25-fix-scheduled-review-jobs`; PR #14 closed, not on develop). Planned after board: OpenCode-inspired agent prompt widget (`35-agent-prompt-widget`). Inbox (not active): WebSocket streaming, aspirational spec-editor UI, Umbrel App Store manifest. See [AGENTS.md](./AGENTS.md) and [`index.PRD`](./.agents/specs/index.PRD).
+**Caveats (honest gaps):** Hermes/OpenCode adapters require external CLIs on PATH. Scheduled review jobs are **off by default** — set `SCHEDULED_REVIEW_JOBS=true` to register cron handlers. Planned after board: OpenCode-inspired agent prompt widget (`35-agent-prompt-widget`). Inbox (not active): WebSocket streaming, aspirational spec-editor UI, Umbrel App Store manifest. See [AGENTS.md](./AGENTS.md) and [`index.PRD`](./.agents/specs/index.PRD).
 
 The spec harness is the flagship long-term feature: authors write complete, machine-actionable specs in a served environment; the server executes them through specialized stage agents (`implement → build → test → review`; `deploy` optional) with full traceability from spec item to review outcome.
 
@@ -66,7 +66,7 @@ Homelab-ready API with spec harness MVP. Implemented today:
 - Client auth — `SERVER_API_KEY` and/or `TENANTS` JSON; `X-API-Key` or `Authorization: Bearer` (disabled when neither is set)
 - Repo validation — exist + git working tree checks before agent start
 - Docker Compose packaging + Tailscale bind/client access docs
-- Scheduled review jobs — `pr-diff-review` and `branch-sync-check` register at startup
+- Scheduled review jobs — `pr-diff-review` and `repo-hygiene-check` when `SCHEDULED_REVIEW_JOBS=true` (default off)
 
 ## Prerequisites
 
@@ -240,6 +240,8 @@ curl -N -H "X-API-Key: $SERVER_API_KEY" "http://localhost:3000/tasks/task_…/st
 | `HERMES_BIN` | Hermes CLI binary for `hermes` runner | `hermes` |
 | `OPENCODE_BIN` | OpenCode CLI binary for `opencode` runner | `opencode` |
 | `OPENCODE_API_KEY` | OpenCode API key (CI / agentic-code-reviewers) | — |
+| `SCHEDULED_REVIEW_JOBS` | Register `pr-diff-review` and `repo-hygiene-check` cron jobs at startup | `false` |
+| `SCHEDULED_REVIEW_RESUME_AGENT_ID` | Optional Cursor agent id for `Agent.resume` on scheduled pr-diff-review | — |
 
 ## Scripts
 

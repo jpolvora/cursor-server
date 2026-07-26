@@ -37,6 +37,7 @@ describe("tenant isolation routes", () => {
     HOST: "0.0.0.0",
     REPOS_ROOT: reposRoot,
     CURSOR_MODEL: "composer-2",
+    SCHEDULED_REVIEW_JOBS: false,
     TENANTS: [],
   };
 
