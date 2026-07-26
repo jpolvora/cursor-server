@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="cursor-server runs Cursor agents against repositories on your own home-lab host."
+    >
+    <title>cursor-server | Local-first agent execution</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    >
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="atmosphere" aria-hidden="true"></div>
+    <header class="site-header">
+      <a class="mark" href="#top">cursor-server</a>
+      <a class="header-link" href="https://github.com/jpolvora/cursor-server">GitHub</a>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="brand">
+        <h1 id="brand" class="brand">cursor-server</h1>
+        <p class="headline">Local agents. Your repos. Your host.</p>
+        <p class="lede">
+          An HTTP API that runs Cursor agents against checked-out repositories on a
+          home-lab machine, reachable over Tailscale from the IDE you already use.
+        </p>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/jpolvora/cursor-server">View source</a>
+          <a class="button secondary" href="https://github.com/jpolvora/cursor-server#setup">Get started</a>
+        </div>
+      </section>
+
+      <section class="why" aria-labelledby="why-title">
+        <h2 id="why-title">Built for the machine that already holds your code</h2>
+        <p class="section-lede">
+          Keep clones on your host. Clients send prompts; the server does the work in place.
+        </p>
+        <ul class="feature-list">
+          <li>
+            <span class="feature-name">Run locally</span>
+            <span class="feature-copy">Agents operate against repositories under your own REPOS_ROOT.</span>
+          </li>
+          <li>
+            <span class="feature-name">Work remotely</span>
+            <span class="feature-copy">Tailscale clients hit a small HTTP API from home or work laptops.</span>
+          </li>
+          <li>
+            <span class="feature-name">Automate safely</span>
+            <span class="feature-copy">Async tasks, scheduled reviews, and a stage-observable harness.</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="workflow" aria-labelledby="workflow-title">
+        <h2 id="workflow-title">From request to result</h2>
+        <ol class="steps">
+          <li>Send a prompt and repository name from your IDE or automation.</li>
+          <li>cursor-server validates the repo and starts a local agent run.</li>
+          <li>Stream progress, inspect results, or let scheduled jobs handle the loop.</li>
+        </ol>
+      </section>
+    </main>
+
+    <footer>
+      <a href="https://github.com/jpolvora/cursor-server">cursor-server on GitHub</a>
+      <span>Private, local-first, and built for the homelab.</span>
+    </footer>
+  </body>
+</html>

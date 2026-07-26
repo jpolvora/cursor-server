@@ -1,0 +1,69 @@
+name: Deploy product website
+
+on:
+  release:
+    types: [published]
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out released tag
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+
+      - name: Confirm release was created from master
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin master
+          release_commit="$(git rev-list -n 1 "${{ github.event.release.tag_name }}")"
+          if ! git merge-base --is-ancestor "$release_commit" origin/master; then
+            echo "::error::Release tag ${{ github.event.release.tag_name }} is not reachable from master."
+            exit 1
+          fi
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build Pages deployment output
+        run: npm run deploy:pages
+
+      - name: Verify generated site
+        run: node scripts/verify-pages-site.mjs
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist/pages
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
