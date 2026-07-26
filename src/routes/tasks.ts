@@ -7,7 +7,7 @@ import { runTask } from "../services/agent-runner.js";
 import { validateRepoPath } from "../services/repo-validator.js";
 import { taskStore } from "../services/task-store.js";
 import { processTaskInBackground } from "../services/task-worker.js";
-import type { McpServers } from "../services/mcp-config.js";
+import { resolveMcpForTask, type McpServers } from "../services/mcp-config.js";
 import { checkRepoAccess, canAccessTenantResource, listTenantFilter } from "../services/tenant-context.js";
 
 const mcpServerSchema = z.record(
@@ -172,6 +172,13 @@ export function createTaskRoutes(config: Config) {
     const model = parsed.data.model ?? config.CURSOR_MODEL;
     const tenantId = c.get("tenantId") as string;
 
+    const mergedMcpServers = resolveMcpForTask(
+      config.REPOS_ROOT,
+      parsed.data.repo,
+      parsed.data.mcpServers as McpServers | undefined,
+    );
+    const mcpServersForTask = Object.keys(mergedMcpServers).length > 0 ? mergedMcpServers : undefined;
+
     const task = taskStore.createTask({
       tenantId,
       prompt: parsed.data.prompt,
@@ -181,7 +188,7 @@ export function createTaskRoutes(config: Config) {
       model,
       source: parsed.data.source,
       webhookUrl: parsed.data.webhookUrl,
-      mcpServers: parsed.data.mcpServers as McpServers | undefined,
+      mcpServers: mcpServersForTask,
     });
 
     if (parsed.data.async === false) {
@@ -202,7 +209,7 @@ export function createTaskRoutes(config: Config) {
           agent,
           tenantId,
           allowedRepos,
-          mcpServers: parsed.data.mcpServers as McpServers | undefined,
+          mcpServers: mcpServersForTask,
         });
 
         const endTime = Date.now();
