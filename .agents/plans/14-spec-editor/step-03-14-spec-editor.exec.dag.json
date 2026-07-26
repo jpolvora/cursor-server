@@ -1,0 +1,17 @@
+{
+  "execMode": "sequential",
+  "reason": "3 steps, 6 files, 2 layers — within dagThresholds (maxImplementationSteps: 3, maxExpectedFiles: 6, maxLayers: 2)",
+  "planPath": ".agents/plans/14-spec-editor/step-01-14-spec-editor.plan.md",
+  "metrics": {
+    "implementationSteps": 3,
+    "expectedFiles": 6,
+    "layers": 2,
+    "thresholds": {
+      "maxImplementationSteps": 3,
+      "maxExpectedFiles": 6,
+      "maxLayers": 2
+    }
+  },
+  "tasks": [],
+  "levels": []
+}

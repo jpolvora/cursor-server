@@ -104,6 +104,7 @@ class WorkflowChecker:
         self.simulation_results: Dict[str, Dict] = {
             "standard": {"steps": {}, "status": "PASS"},
             "lite": {"steps": {}, "status": "PASS"},
+            "multi_spec": {"steps": {}, "status": "PASS"},
         }
         self.deps_map: Dict[str, List[str]] = {}
         self.deps_loaded: bool = False
@@ -326,6 +327,58 @@ class WorkflowChecker:
         elif any(info["status"] == "FAIL" for info in self.simulation_results["lite"]["steps"].values()):
             self.simulation_results["lite"]["status"] = "FAIL"
 
+    def simulate_multi_spec_workflow(self) -> None:
+        """Simulate Smart Multi-Spec ws-multi-spec workflow."""
+        ms_skill_path = SKILLS_DIR / "ws-multi-spec" / "SKILL.md"
+        if not ms_skill_path.exists():
+            self.add_issue(
+                "CRITICAL",
+                "Workflow Structure",
+                "ws-multi-spec/SKILL.md",
+                "ws-multi-spec SKILL.md file is missing.",
+                "Ensure .agents/skills/ws-multi-spec/SKILL.md exists.",
+            )
+            self.simulation_results["multi_spec"]["status"] = "FAIL"
+            return
+
+        ms_files = ["PROTOCOL.md", "STATE.md", "EXAMPLES.md", "evals/evals.json"]
+        for fname in ms_files:
+            fpath = SKILLS_DIR / "ws-multi-spec" / fname
+            if not fpath.exists():
+                self.add_issue(
+                    "CRITICAL",
+                    "Workflow Structure",
+                    f"ws-multi-spec/{fname}",
+                    f"ws-multi-spec artifact {fname} is missing.",
+                    f"Create .agents/skills/ws-multi-spec/{fname}.",
+                )
+                self.simulation_results["multi_spec"]["status"] = "FAIL"
+            else:
+                self.simulation_results["multi_spec"]["steps"][f"Artifact: {fname}"] = {
+                    "status": "PASS",
+                    "skill": "ws-multi-spec",
+                    "details": [f"File verified: {fname}"],
+                }
+
+        # Check target orchestrators spec-to-pr and spec-to-pr-lite exist
+        for target in ["spec-to-pr", "spec-to-pr-lite"]:
+            tpath = SKILLS_DIR / target / "SKILL.md"
+            if not tpath.exists():
+                self.add_issue(
+                    "CRITICAL",
+                    "Worker Target Link",
+                    f"ws-multi-spec -> {target}",
+                    f"ws-multi-spec dispatches missing worker target '{target}'.",
+                    f"Ensure .agents/skills/{target}/SKILL.md exists.",
+                )
+                self.simulation_results["multi_spec"]["status"] = "FAIL"
+            else:
+                self.simulation_results["multi_spec"]["steps"][f"Worker Target: {target}"] = {
+                    "status": "PASS",
+                    "skill": target,
+                    "details": [f"Worker target verified: {target}"],
+                }
+
     def check_scripts_syntax(self) -> None:
         """Deep check script syntax (.py and .cjs/.js) across workflow packages."""
         scripts_to_check: List[Path] = []
@@ -416,6 +469,7 @@ class WorkflowChecker:
     def run_all(self) -> None:
         self.simulate_standard_workflow()
         self.simulate_lite_workflow()
+        self.simulate_multi_spec_workflow()
         self.check_scripts_syntax()
         self.check_state_isolation_and_config()
 
@@ -433,7 +487,7 @@ class WorkflowChecker:
         lines.append("## 🔄 Workflow Simulations")
         lines.append("")
 
-        for wf_key, wf_title in [("standard", "Standard (`spec-to-pr`)"), ("lite", "Lite (`spec-to-pr-lite`)")]:
+        for wf_key, wf_title in [("standard", "Standard (`spec-to-pr`)"), ("lite", "Lite (`spec-to-pr-lite`)"), ("multi_spec", "Smart Multi-Spec (`ws-multi-spec`)")]:
             wf_data = self.simulation_results[wf_key]
             wf_status_icon = "✅" if wf_data["status"] == "PASS" else "❌"
             lines.append(f"### {wf_title} — {wf_status_icon} {wf_data['status']}")
