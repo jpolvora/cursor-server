@@ -38,7 +38,9 @@ specsDir: .agents/specs
 | `slug` | Basename of spec without `.spec.md` (stable id) |
 | `specPath` | Repo-relative path to source `*.spec.md` |
 | `reason` | Required when `skipped` or `failed` (e.g. `already-implemented`, error summary) |
-| `prNumber` / `prUrl` | Set on `shipped` |
+| `prNumber` / `prUrl` | Set on PR creation and retained on `shipped` |
+
+*Note on `shipped`:* An item is terminal `shipped` ONLY when the PR is fully merged (`merged: true`) with 0 open review threads (`activeThreads: 0`). Open, unmerged PRs are non-terminal and must complete Phase 4b delivery convergence before advancing to the next spec.
 
 ## Worker `step-output` Contract
 
@@ -51,10 +53,14 @@ step-output:
   flowMode: lite|standard
   prNumber: {n|null}
   prUrl: {url|null}
+  merged: true|false
+  activeThreads: {n}
+  checksStatus: green|red|pending
+  mergeCommit: {sha|null}
   evidence: {one-line cite}
 ```
 
-Missing or unparseable output is treated as `status: failed`.
+Missing or unparseable output (or `merged: false` when PR exists) is treated as non-terminal, triggering Phase 4b convergence via `ws-goal-fix-pr` and `ws-ship-pr` merge.
 
 ## Already-Implemented Probe
 
@@ -62,11 +68,11 @@ Before evaluating flow mode or dispatching a worker, run the probe check:
 
 | # | Check | Evidence | Action |
 |---|-------|----------|--------|
-| 1 | Item already terminal in state | `shipped` or `skipped` in state table | Skip worker |
+| 1 | Item already terminal in state | `shipped` (with confirmed merge) or `skipped` in state table | Skip worker |
 | 2 | Prior delivery result for slug | `Glob` `{plansDir}/{slug}/**/step-08-*.result.md` exists and cites merged PR / commit | Mark `skipped` + `reason: already-implemented` |
 | 3 | SCM merged PR for slug | Provider `gh` / SCM list shows merged PR referencing slug / title | Mark `skipped` + `reason: already-implemented` |
 
-If ambiguous (e.g., unmerged open PR or missing evidence), do **not** skip. Proceed to flow auto-detection and worker execution.
+If ambiguous (e.g., unmerged open PR or missing evidence), do **not** skip. Proceed to Phase 4b convergence gate or worker execution.
 
 ## Blank-List Scan
 
@@ -81,5 +87,6 @@ When invoked without args or state file:
 
 When loading an existing `{plansDir}/ws-multi-spec/*.state.md`:
 1. Retain original queue ordering and assigned `flowMode`.
-2. Skip items marked `shipped` or `skipped`.
-3. Resume execution at the first `pending`, `in_progress` (reset to `pending`), or `failed` item.
+2. Skip items marked `shipped` (with `merged: true` confirmed) or `skipped`.
+3. Rows with open PRs (`merged: false` / unmerged) must re-enter Phase 4b convergence gate to run `ws-goal-fix-pr` and merge.
+4. Resume execution at the first `pending`, `in_progress` (reset to `pending`), or `failed` item.

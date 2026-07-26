@@ -16,8 +16,11 @@ flowchart TD
   FlowDetect -->|High Complexity| DispatchFull[Dispatch ws-spec-to-pr Worker]
   DispatchLite --> WorkerOutcome
   DispatchFull --> WorkerOutcome
-  WorkerOutcome{Worker Result} -->|Success| P5[5 Record Outcome - Shipped]
+  WorkerOutcome{Worker Result} -->|Success| ConvergeGate{PR merged + threads 0 + checks green?}
   WorkerOutcome -->|Failure| PauseGate[Pause Gate: Resume / Skip / Abort]
+  ConvergeGate -->|No| RunGoalFixPr[Dispatch ws-goal-fix-pr + merge via SCM provider]
+  RunGoalFixPr --> ConvergeGate
+  ConvergeGate -->|Yes| P5[5 Record Outcome - Merged & Shipped]
   PauseGate -->|Resume| FlowDetect
   PauseGate -->|Skip| P5
   PauseGate -->|Abort| P6
@@ -26,7 +29,7 @@ flowchart TD
 
 ### Phase 1: Entry / Resume
 - Parse raw arguments:
-  - Existing state file (`{plansDir}/ws-multi-spec/*.state.md`) → load state, skip scan, continue at first non-terminal item.
+  - Existing state file (`{plansDir}/ws-multi-spec/*.state.md`) → load state, skip scan, continue at first non-terminal item (unmerged PR rows re-enter Phase 4b convergence gate).
   - Explicit spec list (`*.spec.md` paths) → construct new run queue with items marked `pending`.
   - No arguments → proceed to Phase 2 (Blank-list scan).
 
@@ -58,16 +61,28 @@ Evaluate the target `*.spec.md` file:
   - Command: if `flowMode == lite`: `/ws-spec-to-pr-lite full auto {specPath}` else: `/ws-spec-to-pr full auto {specPath}` (pass `dryRun` if set).
 - Await completion or worker exit `step-output`.
 
+### Phase 4b: Delivery Convergence & PR Merge Verification
+- Read worker `step-output` and query SCM provider (`gh` CLI / ADO API):
+  1. Check if PR was created (`prNumber` / `prUrl`).
+  2. Verify PR thread status: `activeThreads == 0` (via `list-threads`).
+  3. Verify required CI / automated code-review checks are green.
+  4. Verify PR is merged (`merged: true`).
+- If worker exited after PR creation without completing thread resolution or merge:
+  - Master dispatches [`ws-goal-fix-pr`](../ws-goal-fix-pr/SKILL.md) for `<prNumber>` to wait 30s for code-review actions, poll checks, and resolve review threads until `activeThreads == 0`.
+  - Once threads are 0 and checks green, merge PR via SCM provider [`ws-ship-pr`](../ws-ship-pr/SKILL.md) merge step.
+- **Strict Block:** Master orchestrator MUST NOT dispatch the next spec worker until the current spec PR is fully merged (`merged: true`, `activeThreads == 0`).
+- If convergence fails (max iterations, checks red, escalation): mark item `status: failed` and present Phase 5 `user-gate` failure menu.
+
 ### Phase 5: Record Outcome
-- Read worker `step-output`:
-  - On `status: shipped`: update item `status: shipped`, set `prNumber`, `prUrl`, `updatedAt`.
-  - On failure or missing `step-output`: mark item `status: failed`, present `user-gate` failure menu:
-    - **Resume (Recommended):** Re-dispatch worker for same spec.
+- Update state item:
+  - On full merge convergence: set `status: shipped`, `merged: true`, `activeThreads: 0`, `prNumber`, `prUrl`, `updatedAt`.
+  - On failure or unresolvable PR state: mark item `status: failed`, present `user-gate` failure menu:
+    - **Resume (Recommended):** Re-dispatch worker or convergence gate for same spec.
     - **Skip:** Mark item `status: skipped`, record `reason`, proceed to next item.
     - **Abort run:** Mark run state `status: paused`, exit loop to Phase 6.
 
 ### Phase 6: Final Report
-- Summarize run metrics (total items, shipped, skipped, failed, open PRs, flow mode breakdown).
+- Summarize run metrics (total items, shipped & merged, skipped, failed, flow mode breakdown).
 - Set overall run state `status: completed` (or `status: paused` if aborted).
 - Present summary report to the user.
 
@@ -77,5 +92,7 @@ Evaluate the target `*.spec.md` file:
 |------|--------|
 | Per-spec Standard FSM | [`../ws-spec-to-pr/SKILL.md`](../ws-spec-to-pr/SKILL.md) |
 | Per-spec Lite FSM | [`../ws-spec-to-pr-lite/SKILL.md`](../ws-spec-to-pr-lite/SKILL.md) |
+| PR Delivery & Checklist | [`../ws-ship-pr/SKILL.md`](../ws-ship-pr/SKILL.md) |
+| Thread Convergence Loop | [`../ws-goal-fix-pr/SKILL.md`](../ws-goal-fix-pr/SKILL.md) |
 | State schema & probe | [`STATE.md`](STATE.md) |
 | Usage examples | [`EXAMPLES.md`](EXAMPLES.md) |

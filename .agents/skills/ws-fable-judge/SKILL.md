@@ -1,11 +1,12 @@
 ---
 
+
 name: ws-fable-judge
 description: >
   Adversarial verification of finished work. Diff Ground Truth against claims, re-run verifications,
   and detect the 4 classic frauds (weakened checks, false completion claims, scope creep, unauthorized action).
   Delivers an evidence-based verdict (VERIFIED, VERIFIED WITH CAVEATS, REFUTED).
-version: 0.0.90
+version: 0.0.91
 invocation_names:
   - ws-fable-judge
   - /ws-fable-judge

@@ -1,7 +1,8 @@
 ---
 
+
 name: ws-multi-spec
-version: 0.0.90
+version: 0.0.91
 description: >-
   Sequential smart multi-spec batch delivery orchestrator. Evaluates spec complexity to dispatch ws-spec-to-pr or ws-spec-to-pr-lite workers.
   Invoke: /ws-multi-spec | @[ws-multi-spec].
@@ -16,7 +17,7 @@ description: >-
 | **Protocol & State** | [`PROTOCOL.md`](PROTOCOL.md) · [`STATE.md`](STATE.md) |
 | **Examples & Evals** | [`EXAMPLES.md`](EXAMPLES.md) · [`evals/evals.json`](evals/evals.json) |
 
-**Always-on load:** this file + [`PROTOCOL.md`](PROTOCOL.md). **On demand:** [`STATE.md`](STATE.md) · [`EXAMPLES.md`](EXAMPLES.md) · [`../ws-spec-to-pr/SKILL.md`](../ws-spec-to-pr/SKILL.md) · [`../ws-spec-to-pr-lite/SKILL.md`](../ws-spec-to-pr-lite/SKILL.md) · [`../shared/tools.md`](../shared/tools.md). Language: **en-us** only.
+**Always-on load:** this file + [`PROTOCOL.md`](PROTOCOL.md). **On demand:** [`STATE.md`](STATE.md) · [`EXAMPLES.md`](EXAMPLES.md) · [`../ws-spec-to-pr/SKILL.md`](../ws-spec-to-pr/SKILL.md) · [`../ws-spec-to-pr-lite/SKILL.md`](../ws-spec-to-pr-lite/SKILL.md) · [`../ws-ship-pr/SKILL.md`](../ws-ship-pr/SKILL.md) · [`../ws-goal-fix-pr/SKILL.md`](../ws-goal-fix-pr/SKILL.md) · [`../shared/tools.md`](../shared/tools.md). Language: **en-us** only.
 
 ## Native tool contract
 
@@ -47,7 +48,8 @@ Sequential multi-spec batch delivery orchestrator with **smart complexity & flow
 |-------|------|
 | Sequential | Exactly one spec worker active at a time |
 | Flow Auto-Detect | `ws-spec-to-pr-lite` when ≤3 steps / ≤6 files / ≤2 layers / frontmatter `complexity: low`; `ws-spec-to-pr` otherwise |
-| Merge | Worker merges PR only after `ws-goal-fix-pr` converges and CI checks pass |
+| Merge & Convergence | Worker or master MUST run `ws-ship-pr` + `ws-goal-fix-pr` until `activeThreads == 0`, required CI checks pass, and PR is merged (`merged: true`) before item is terminal |
+| Next-Spec Block | Master orchestrator MUST NOT dispatch the next spec until prior spec PR is fully merged with 0 active review threads |
 | Isolation | Fresh worker context per spec; no shared scratch across specs |
 | Pause on fail | No silent continue on worker failure; gate required |
 | Skip done | Probe already-implemented items before dispatching |
