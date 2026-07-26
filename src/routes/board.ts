@@ -58,9 +58,6 @@ const UpdateCardSchema = z.object({
   title: z.string().min(1).max(256).optional(),
   spec_markdown: z.string().min(1).max(512_000).optional(),
   lane: z.enum(BOARD_LANES as unknown as [string, ...string[]]).optional(),
-  workflow: z.string().optional().nullable(),
-  active_run_id: z.string().optional().nullable(),
-  step_label: z.string().optional().nullable(),
   sort_order: z.number().int().optional(),
 });
 
@@ -403,8 +400,10 @@ export function createBoardRoutes(config: Config) {
 
     try {
       const card = boardDb.updateCard(id, {
-        ...parsed.data,
+        title: parsed.data.title,
+        spec_markdown: parsed.data.spec_markdown,
         lane: parsed.data.lane as BoardLane | undefined,
+        sort_order: parsed.data.sort_order,
       });
       if (!card) {
         return c.json({ error: "Card not found" }, 404);
