@@ -16,6 +16,14 @@ import {
   resolveRepoLocalPath,
 } from "../services/board-clone.js";
 import { exportCardSpec, importSpecsFromClone } from "../services/board-import-export.js";
+import {
+  finishCard,
+  getCardStatus,
+  initBoardExecutionSync,
+  pauseCard,
+  resumeCard,
+  startCard,
+} from "../services/board-execution.js";
 
 const remoteUrlSchema = z
   .string()
@@ -65,6 +73,17 @@ const MoveCardSchema = z.object({
   lane: z.enum(BOARD_LANES as unknown as [string, ...string[]]),
 });
 
+const StartCardSchema = z.object({
+  workflow: z.enum(["full", "lite"]),
+  flags: z.array(z.string()).optional(),
+  model: z.string().optional(),
+  confirm: z.literal(true),
+});
+
+const FinishCardSchema = z.object({
+  confirm: z.literal(true),
+});
+
 function repoResponse(repo: ReturnType<typeof boardDb.getRepo>) {
   if (!repo) return null;
   return {
@@ -106,6 +125,7 @@ function checkRepoTenantAccess(c: { get: (key: "allowedRepos") => string[] }, re
 }
 
 export function createBoardRoutes(config: Config) {
+  initBoardExecutionSync();
   const board = new Hono();
 
   // --- Repos ---
@@ -475,6 +495,131 @@ export function createBoardRoutes(config: Config) {
       return c.json({ error: "Card not found" }, 404);
     }
     return c.json({ card: cardResponse(card) });
+  });
+
+  board.post("/cards/:id/start", async (c) => {
+    const id = parseIdParam(c.req.param("id"));
+    if (!id) return c.json({ error: "Invalid card id" }, 400);
+
+    const existing = boardDb.getCard(id);
+    if (!existing) return c.json({ error: "Card not found" }, 404);
+
+    const repo = boardDb.getRepo(existing.repo_id);
+    if (!repo) return c.json({ error: "Repository not found" }, 404);
+
+    const accessError = checkRepoTenantAccess(c, repo.name);
+    if (accessError) return c.json({ error: accessError }, 403);
+
+    const body = await c.req.json().catch(() => null);
+    const parsed = StartCardSchema.safeParse(body);
+    if (!parsed.success) {
+      return c.json({ error: "Invalid request", details: parsed.error.issues }, 400);
+    }
+
+    const tenantId = (c.get("tenantId") as string) ?? "master";
+    const result = await startCard(config, id, parsed.data, tenantId);
+    if (!result.ok) {
+      return c.json(
+        {
+          error: result.error,
+          ...(result.errors ? { errors: result.errors } : {}),
+          ...(result.issues ? { issues: result.issues } : {}),
+        },
+        result.status as 400 | 404 | 409 | 422 | 500,
+      );
+    }
+
+    return c.json({ card: result.card, taskId: result.taskId, resumed: result.resumed }, result.resumed ? 200 : 202);
+  });
+
+  board.post("/cards/:id/pause", (c) => {
+    const id = parseIdParam(c.req.param("id"));
+    if (!id) return c.json({ error: "Invalid card id" }, 400);
+
+    const existing = boardDb.getCard(id);
+    if (!existing) return c.json({ error: "Card not found" }, 404);
+
+    const repo = boardDb.getRepo(existing.repo_id);
+    if (!repo) return c.json({ error: "Repository not found" }, 404);
+
+    const accessError = checkRepoTenantAccess(c, repo.name);
+    if (accessError) return c.json({ error: accessError }, 403);
+
+    const result = pauseCard(id);
+    if (!result.ok) {
+      return c.json({ error: result.error }, result.status as 404 | 409);
+    }
+
+    return c.json({ card: result.card });
+  });
+
+  board.post("/cards/:id/resume", async (c) => {
+    const id = parseIdParam(c.req.param("id"));
+    if (!id) return c.json({ error: "Invalid card id" }, 400);
+
+    const existing = boardDb.getCard(id);
+    if (!existing) return c.json({ error: "Card not found" }, 404);
+
+    const repo = boardDb.getRepo(existing.repo_id);
+    if (!repo) return c.json({ error: "Repository not found" }, 404);
+
+    const accessError = checkRepoTenantAccess(c, repo.name);
+    if (accessError) return c.json({ error: accessError }, 403);
+
+    const result = await resumeCard(config, id);
+    if (!result.ok) {
+      return c.json({ error: result.error }, result.status as 404 | 409);
+    }
+
+    return c.json({ card: result.card }, 202);
+  });
+
+  board.post("/cards/:id/finish", async (c) => {
+    const id = parseIdParam(c.req.param("id"));
+    if (!id) return c.json({ error: "Invalid card id" }, 400);
+
+    const existing = boardDb.getCard(id);
+    if (!existing) return c.json({ error: "Card not found" }, 404);
+
+    const repo = boardDb.getRepo(existing.repo_id);
+    if (!repo) return c.json({ error: "Repository not found" }, 404);
+
+    const accessError = checkRepoTenantAccess(c, repo.name);
+    if (accessError) return c.json({ error: accessError }, 403);
+
+    const body = await c.req.json().catch(() => ({}));
+    const parsed = FinishCardSchema.safeParse(body);
+    if (!parsed.success) {
+      return c.json({ error: "Invalid request", details: parsed.error.issues }, 400);
+    }
+
+    const result = finishCard(id, parsed.data);
+    if (!result.ok) {
+      return c.json({ error: result.error }, result.status as 400 | 404);
+    }
+
+    return c.json({ card: result.card });
+  });
+
+  board.get("/cards/:id/status", (c) => {
+    const id = parseIdParam(c.req.param("id"));
+    if (!id) return c.json({ error: "Invalid card id" }, 400);
+
+    const existing = boardDb.getCard(id);
+    if (!existing) return c.json({ error: "Card not found" }, 404);
+
+    const repo = boardDb.getRepo(existing.repo_id);
+    if (!repo) return c.json({ error: "Repository not found" }, 404);
+
+    const accessError = checkRepoTenantAccess(c, repo.name);
+    if (accessError) return c.json({ error: accessError }, 403);
+
+    const result = getCardStatus(id);
+    if (!result.ok) {
+      return c.json({ error: result.error }, result.status as 404);
+    }
+
+    return c.json(result.status);
   });
 
   board.post("/cards/:id/export-spec", (c) => {
