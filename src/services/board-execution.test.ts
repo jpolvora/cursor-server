@@ -189,7 +189,7 @@ Execution control test spec.
       workflow: "lite",
     });
 
-    const result = resumeCard(config, cardId);
+    const result = await resumeCard(config, cardId);
     assert.strictEqual(result.ok, true);
     if (result.ok) {
       assert.strictEqual(result.card.active_run_id, task.id);

@@ -27,8 +27,9 @@ const IMPLEMENT_PATTERNS = [
   /\bimplement/i,
   /\bstep[- ]?0[345]\b/i,
   /\bF[23]\b/,
-  /\bstep[- ]?0[12]\b/i, // lite early steps
 ];
+
+const LITE_EARLY_PATTERNS = [/\bstep[- ]?0[12]\b/i];
 
 const PLAN_PATTERNS = [/\bplan\b/i, /\bstep[- ]?0[12]\b/i, /\bF[01]\b/];
 
@@ -60,16 +61,24 @@ export function mapProgressHint(
     }
   }
 
+  if (workflow === "full") {
+    for (const pattern of PLAN_PATTERNS) {
+      if (pattern.test(text)) {
+        return { lane: "implementing", stepLabel: text || "planning" };
+      }
+    }
+  }
+
   for (const pattern of IMPLEMENT_PATTERNS) {
     if (pattern.test(text)) {
       return { lane: "implementing", stepLabel: text || "implementing" };
     }
   }
 
-  if (workflow === "full") {
-    for (const pattern of PLAN_PATTERNS) {
+  if (workflow === "lite") {
+    for (const pattern of LITE_EARLY_PATTERNS) {
       if (pattern.test(text)) {
-        return { lane: "implementing", stepLabel: text || "planning" };
+        return { lane: "implementing", stepLabel: text || "implementing" };
       }
     }
   }

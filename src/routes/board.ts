@@ -546,7 +546,7 @@ export function createBoardRoutes(config: Config) {
     return c.json({ card: result.card });
   });
 
-  board.post("/cards/:id/resume", (c) => {
+  board.post("/cards/:id/resume", async (c) => {
     const id = parseIdParam(c.req.param("id"));
     if (!id) return c.json({ error: "Invalid card id" }, 400);
 
@@ -559,7 +559,7 @@ export function createBoardRoutes(config: Config) {
     const accessError = checkRepoTenantAccess(c, repo.name);
     if (accessError) return c.json({ error: accessError }, 403);
 
-    const result = resumeCard(config, id);
+    const result = await resumeCard(config, id);
     if (!result.ok) {
       return c.json({ error: result.error }, result.status as 404 | 409);
     }

@@ -187,7 +187,7 @@ export async function startCard(
   if (!card) return { ok: false, error: "Card not found", status: 404 };
 
   if (card.active_run_id && card.lane === "paused") {
-    const resumed = resumeCard(config, cardId);
+    const resumed = await resumeCard(config, cardId);
     if (!resumed.ok) return resumed;
     const updated = boardDb.getCard(cardId)!;
     return { ok: true, card: cardFields(updated), taskId: updated.active_run_id!, resumed: true };
@@ -256,10 +256,17 @@ export function pauseCard(
   const cancelled = cancelTask(card.active_run_id, "Paused from board");
   if (!cancelled) {
     const task = taskStore.getTask(card.active_run_id);
+    if (task?.status === "cancelled") {
+      const updated = boardDb.updateCard(cardId, {
+        lane: "paused",
+        step_label: card.step_label ?? "paused",
+      });
+      return { ok: true, card: cardFields(updated!) };
+    }
     if (task && (task.status === "completed" || task.status === "failed")) {
       return {
         ok: false,
-        error: `Run already ${task.status}; cannot pause`,
+        error: `Run already ${task.status}; use Finish to close the card`,
         status: 409,
       };
     }
@@ -274,10 +281,10 @@ export function pauseCard(
   return { ok: true, card: cardFields(updated!) };
 }
 
-export function resumeCard(
+export async function resumeCard(
   config: Config,
   cardId: number,
-): { ok: true; card: ReturnType<typeof cardFields> } | { ok: false; error: string; status: number } {
+): Promise<{ ok: true; card: ReturnType<typeof cardFields> } | { ok: false; error: string; status: number }> {
   const card = boardDb.getCard(cardId);
   if (!card) return { ok: false, error: "Card not found", status: 404 };
 
@@ -287,6 +294,14 @@ export function resumeCard(
 
   if (card.lane !== "paused") {
     return { ok: false, error: "Card is not paused", status: 409 };
+  }
+
+  const repo = boardDb.getRepo(card.repo_id);
+  if (!repo) return { ok: false, error: "Repository not found", status: 404 };
+
+  const cloneResult = await ensureRepoClone(config, repo);
+  if (!cloneResult.ok) {
+    return { ok: false, error: cloneResult.error, status: cloneResult.status };
   }
 
   const requeued = requeueTask(config, card.active_run_id);
