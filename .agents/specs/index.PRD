@@ -4,7 +4,7 @@ Living progressive-disclosure index. Status and short scope live here; acceptanc
 
 | Field | Value |
 |-------|-------|
-| Updated | 2026-07-26 (`41` GitHub Pages product website shipped; PR #36 master-branch fix) |
+| Updated | 2026-07-26 (`42` UI shell revamp shipped, PR #41; `41` GitHub Pages product website shipped) |
 | Priority order | — |
 | Spec folder | `.agents/specs/` |
 
@@ -37,7 +37,7 @@ Living progressive-disclosure index. Status and short scope live here; acceptanc
 
 **cursor-server** is the local-first execution layer for remote IDE clients: an HTTP API on a home-lab host that runs agent tasks against git checkouts under `REPOS_ROOT`. Clients on Tailscale send prompts or qualified specs; this host is where the work runs.
 
-Flagship direction: machine-actionable specs + pluggable harness (`implement → build → test → review`; `deploy` optional per frontmatter) with Cursor SDK, Hermes, OpenCode, and future runners behind one contract. Homelab Kanban board (specs 32–34), agent prompt widget (spec 35), aspirational spec-editor UI (spec 36), WebSocket streaming (`37`), Umbrel App Store manifest (`38`), board projects management (`39`), root ops dashboard (`40`), and GitHub Pages product website (`41`) are landed.
+Flagship direction: machine-actionable specs + pluggable harness (`implement → build → test → review`; `deploy` optional per frontmatter) with Cursor SDK, Hermes, OpenCode, and future runners behind one contract. Homelab Kanban board (specs 32–34), agent prompt widget (spec 35), aspirational spec-editor UI (spec 36), WebSocket streaming (`37`), Umbrel App Store manifest (`38`), board projects management (`39`), root ops dashboard (`40`), GitHub Pages product website (`41`), and the unified ops console shell (`42`) are landed.
 
 ## 4. Problems
 
@@ -55,6 +55,7 @@ Flagship direction: machine-actionable specs + pluggable harness (`implement →
 5. **Pluggable harnesses** — `cursor-local` / `cursor-sdk` / `hermes` / `opencode`.
 6. **Ops Kanban** — SQLite cards + `GET /ui/board` + Start/Pause/Finish driving `spec-to-pr*`.
 7. **Agent prompt widget** — minimal prompt surface (`GET /ui/prompt`); embeddable in board and other UIs.
+8. **Unified ops console** — one shell (left menu + main container) renders every view by route; single login gate.
 
 ## 6. Constraints & non-goals
 
@@ -129,6 +130,12 @@ Status: **landed**.
 
 - [x] GitHub Pages product website (`spec: 41-github-pages-product-website.spec.md`)
 
+### Phase 6 — Operator console (UI consolidation)
+
+Status: **landed**. The four disconnected UI surfaces now share one compact SaaS shell.
+
+- [x] UI revamp — shared app shell, design tokens, route-rendered views (`spec: 42-ui-shell-revamp.spec.md`)
+
 ## 8. Next specs
 
 Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
@@ -183,6 +190,7 @@ Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 | 2026-07-26 | `39-board-projects-management` | Board projects CRUD (dashboard Projects pane) | #33 |
 | 2026-07-26 | `40-main-page-dashboard` | Root ops dashboard shell `GET /` + `/settings` | #32 |
 | 2026-07-26 | `41-github-pages-product-website` | GitHub Pages product website | #35, #36 (master-branch deploy fix) |
+| 2026-07-26 | `42-ui-shell-revamp` | Unified ops console shell; route-rendered views | #41 |
 
 ## 11. Maintenance checklist
 

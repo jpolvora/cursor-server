@@ -59,9 +59,11 @@ describe("Dashboard root UI", () => {
     assert.ok(body.includes("login-gate") || body.includes("login-api-key"));
     assert.ok(body.includes("cursor-server"));
     assert.ok(body.includes('id="login-api-key"') || body.includes("API key"));
+    assert.ok(body.includes("#login-error") || body.includes('id="login-error"'));
+    assert.ok(body.includes("btn-logout") || body.includes("Log out"));
   });
 
-  it("HTML includes nav, panes, KEY_STORAGE, and Kanban link", async () => {
+  it("shell nav links every view into the main container", async () => {
     const res = await app.request("/");
     const body = await res.text();
     assert.ok(body.includes("Dashboard"));
@@ -69,23 +71,101 @@ describe("Dashboard root UI", () => {
     assert.ok(body.includes("Projects"));
     assert.ok(body.includes("Configuration"));
     assert.ok(body.includes('id="main-pane"'));
-    assert.ok(body.includes("cursor-server-api-key"));
     assert.ok(body.includes("/ui/board"));
-    assert.ok(body.includes("#login-error") || body.includes('id="login-error"'));
-    assert.ok(body.includes("btn-logout") || body.includes("Log out"));
-    assert.ok(body.includes('id="btn-project-new"') || body.includes("btn-project-new"));
-    assert.ok(body.includes('id="project-modal"') || body.includes("project-modal"));
-    assert.ok(
-      body.includes('id="project-delete-modal"') || body.includes("project-delete-modal"),
-    );
-    assert.ok(!body.includes("39-board-projects-management"));
-    assert.ok(!body.includes("lands-in-39"));
-    assert.ok(body.includes("--accent"));
-    assert.ok(body.includes("#3d8bfd"));
-    assert.ok(!body.toLowerCase().includes("purple-gradient"));
     assert.ok(body.includes("/ui/prompt"));
     assert.ok(body.includes("/ui/spec-editor"));
-    assert.ok(body.includes("data-view") || body.includes("#dashboard"));
+    assert.ok(body.includes("/ui/projects"));
+    assert.ok(body.includes("/ui/config"));
+    assert.ok(body.includes("data-nav"));
+    assert.ok(!body.includes("39-board-projects-management"));
+    assert.ok(!body.includes("lands-in-39"));
+  });
+
+  it("marks exactly one nav entry as current per route", async () => {
+    const cases: Array<[string, string]> = [
+      ["/", "dashboard"],
+      ["/ui/board", "board"],
+      ["/ui/prompt", "prompt"],
+      ["/ui/spec-editor", "specs"],
+      ["/ui/projects", "projects"],
+      ["/ui/config", "config"],
+    ];
+    for (const [route, viewId] of cases) {
+      const body = await (await app.request(route)).text();
+      const current = body.match(/aria-current="page"/g) || [];
+      assert.strictEqual(current.length, 1, `${route} should mark one nav entry`);
+      assert.ok(
+        body.includes(`data-nav="${viewId}" aria-current="page"`),
+        `${route} should mark ${viewId} as current`,
+      );
+    }
+  });
+
+  it("serves shared stylesheet and shell script instead of per-page style blocks", async () => {
+    const css = await app.request("/ui/app.css");
+    assert.strictEqual(css.status, 200);
+    assert.ok((css.headers.get("content-type") || "").includes("text/css"));
+    const cssBody = await css.text();
+    assert.ok(cssBody.includes("--accent"));
+    assert.ok(cssBody.includes("#3d8bfd"));
+    assert.ok(cssBody.includes("--nav-w"));
+    assert.ok(cssBody.includes("--mono"));
+
+    const js = await app.request("/ui/app.js");
+    assert.strictEqual(js.status, 200);
+    assert.ok((js.headers.get("content-type") || "").includes("javascript"));
+    const jsBody = await js.text();
+    assert.ok(jsBody.includes("cursor-server-api-key"));
+    assert.ok(jsBody.includes("cursorServerAuth"));
+    assert.ok(jsBody.includes("/settings"));
+  });
+
+  it("keeps the shipped UI free of AI-slop chrome", async () => {
+    const cssBody = await (await app.request("/ui/app.css")).text();
+    assert.ok(!cssBody.includes("linear-gradient"));
+    assert.ok(!cssBody.includes("radial-gradient"));
+    assert.ok(!cssBody.toLowerCase().includes("purple"));
+
+    const body = await (await app.request("/")).text();
+    assert.ok(!body.toLowerCase().includes("purple-gradient"));
+  });
+
+  it("Projects view exposes CRUD affordances", async () => {
+    const res = await app.request("/ui/projects");
+    assert.strictEqual(res.status, 200);
+    const body = await res.text();
+    assert.ok(body.includes('id="btn-project-new"'));
+    assert.ok(body.includes('id="project-modal"'));
+    assert.ok(body.includes('id="project-delete-modal"'));
+    assert.ok(body.includes("/ui/projects-client.js"));
+
+    const client = await app.request("/ui/projects-client.js");
+    assert.strictEqual(client.status, 200);
+    const clientBody = await client.text();
+    assert.ok(clientBody.includes("/board/repos"));
+    assert.ok(clientBody.includes("DELETE"));
+  });
+
+  it("Configuration view ships the documented default option keys", async () => {
+    const res = await app.request("/ui/config");
+    assert.strictEqual(res.status, 200);
+    const body = await res.text();
+    for (const key of [
+      "default_agent",
+      "default_harness_runner",
+      "ui_theme",
+      "ui_density",
+      "board_default_lane",
+    ]) {
+      assert.ok(body.includes(`cfg-${key}`), `config view should expose ${key}`);
+    }
+    assert.ok(body.includes("/ui/config-client.js"));
+
+    const client = await app.request("/ui/config-client.js");
+    assert.strictEqual(client.status, 200);
+    const clientBody = await client.text();
+    assert.ok(clientBody.includes("/settings"));
+    assert.ok(clientBody.includes("data-density"));
   });
 
   it("GET /health still works", async () => {

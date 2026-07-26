@@ -1,18 +1,24 @@
-/** Shared prompt widget — standalone page and embeddable mount (see PROMPT_WIDGET_CLIENT_JS). */
+/** Shared prompt widget — shell view and embeddable mount (see PROMPT_WIDGET_CLIENT_JS). */
 
+import { renderShellPage } from "./shell.js";
+
+/**
+ * Widget styles. Tokens fall back to literals so the widget also renders
+ * correctly when embedded in a host page that does not load /ui/app.css.
+ */
 export const PROMPT_WIDGET_STYLES = `
 :root {
-  --pw-bg: #0f1419;
-  --pw-panel: #1a2332;
-  --pw-border: #2d3a4d;
-  --pw-text: #e7ecf3;
-  --pw-muted: #8b9bb4;
-  --pw-accent: #3d8bfd;
-  --pw-ok: #3dd68c;
-  --pw-bad: #f07178;
-  --pw-warn: #ffcc66;
-  --pw-mono: "Cascadia Code", "Fira Code", ui-monospace, monospace;
-  --pw-sans: "Segoe UI", system-ui, sans-serif;
+  --pw-bg: var(--bg, #0f1419);
+  --pw-panel: var(--panel, #1a2332);
+  --pw-border: var(--border, #2d3a4d);
+  --pw-text: var(--text, #e7ecf3);
+  --pw-muted: var(--muted, #8b9bb4);
+  --pw-accent: var(--accent, #3d8bfd);
+  --pw-ok: var(--ok, #3dd68c);
+  --pw-bad: var(--bad, #f07178);
+  --pw-warn: var(--warn, #ffcc66);
+  --pw-mono: var(--mono, "Cascadia Code", "Fira Code", ui-monospace, monospace);
+  --pw-sans: var(--sans, "Segoe UI", system-ui, sans-serif);
 }
 .cursor-prompt-widget, .cursor-prompt-page {
   font-family: var(--pw-sans);
@@ -194,6 +200,8 @@ export const PROMPT_WIDGET_CLIENT_JS = `
   function mount(container, options) {
     options = options || {};
     var compact = !!options.compact;
+    // Inside the ops shell the login gate already owns the key; standalone embeds ask for it.
+    var shellAuth = window.cursorServerAuth;
     container.classList.add("cursor-prompt-widget");
     container.innerHTML =
       '<div class="pw-layout">' +
@@ -207,7 +215,9 @@ export const PROMPT_WIDGET_CLIENT_JS = `
           '<div class="pw-row">' +
             '<div><label>Repository</label><input class="pw-repo" placeholder="repo-name" autocomplete="off" /></div>' +
             '<div><label>Agent role</label><select class="pw-agent"></select></div>' +
-            '<div><label>API key (optional)</label><input class="pw-api-key" type="password" placeholder="SERVER_API_KEY" autocomplete="off" /></div>' +
+            (shellAuth
+              ? ''
+              : '<div><label>API key (optional)</label><input class="pw-api-key" type="password" placeholder="SERVER_API_KEY" autocomplete="off" /></div>') +
           '</div>' +
           '<div><label>Prompt</label><textarea class="pw-prompt" rows="' + (compact ? "3" : "4") + '" placeholder="Ask the agent to do something in the selected repo…"></textarea></div>' +
           '<div class="pw-row">' +
@@ -236,12 +246,14 @@ export const PROMPT_WIDGET_CLIENT_JS = `
     var eventSource = null;
     var outputBuffer = {};
 
-    el.apiKey.value = sessionStorage.getItem(KEY_STORAGE) || "";
+    if (el.apiKey) {
+      el.apiKey.value = sessionStorage.getItem(KEY_STORAGE) || "";
+      el.apiKey.addEventListener("change", function () {
+        sessionStorage.setItem(KEY_STORAGE, el.apiKey.value.trim());
+      });
+    }
     el.repo.value = options.defaultRepo || sessionStorage.getItem(REPO_STORAGE) || container.getAttribute("data-default-repo") || "";
 
-    el.apiKey.addEventListener("change", function () {
-      sessionStorage.setItem(KEY_STORAGE, el.apiKey.value.trim());
-    });
     el.repo.addEventListener("change", function () {
       sessionStorage.setItem(REPO_STORAGE, el.repo.value.trim());
       loadTasks();
@@ -446,7 +458,12 @@ export const PROMPT_WIDGET_CLIENT_JS = `
       }
     });
 
-    loadAgents().then(loadTasks);
+    function boot() {
+      loadAgents().then(loadTasks);
+    }
+
+    if (shellAuth) shellAuth.ready(boot);
+    else boot();
   }
 
   window.CursorPromptWidget = { mount: mount };
@@ -470,49 +487,28 @@ export const PROMPT_WIDGET_CLIENT_JS = `
 })();
 `;
 
+const PROMPT_PAGE_STYLES = `${PROMPT_WIDGET_STYLES}
+.cursor-prompt-page { max-width: 1100px; }
+.cursor-prompt-page label { font-size: var(--fs-xs); margin-bottom: var(--sp-1); }
+.cursor-prompt-page input,
+.cursor-prompt-page select,
+.cursor-prompt-page textarea,
+.cursor-prompt-page button { border-radius: var(--r); }
+.pw-panel { background: var(--surface); border-radius: var(--r-lg); padding: var(--sp-4); }
+`;
+
+const PROMPT_BODY = `        <div class="view cursor-prompt-page">
+          <p class="view-intro">prompt → task → stream. Runs against a repository under REPOS_ROOT on this host.</p>
+          <!-- Embed elsewhere: <div data-cursor-prompt-widget></div> + script /ui/prompt-widget.js -->
+          <div data-cursor-prompt-widget></div>
+        </div>`;
+
 export function renderPromptPageHtml(): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Agent Prompt — cursor-server</title>
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: linear-gradient(160deg, #0f1419 0%, #15202b 55%, #0f1419 100%);
-    }
-    .cursor-prompt-page header {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--pw-border);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .cursor-prompt-page header h1 { margin: 0; font-size: 1.15rem; font-weight: 600; }
-    .cursor-prompt-page header .sub { color: var(--pw-muted); font-size: 0.85rem; }
-    .cursor-prompt-page header a { color: var(--pw-accent); text-decoration: none; }
-    .cursor-prompt-page main { padding: 1rem; max-width: 1100px; margin: 0 auto; }
-    ${PROMPT_WIDGET_STYLES}
-  </style>
-</head>
-<body class="cursor-prompt-page">
-  <header>
-    <div>
-      <h1>Agent Prompt</h1>
-      <div class="sub">cursor-server · prompt → task → stream ·
-        <a href="/ui/board">board</a> · <a href="/ui/spec-editor">spec-editor</a>
-      </div>
-    </div>
-  </header>
-  <main>
-  <!-- Embed elsewhere: <div data-cursor-prompt-widget></div> + script /ui/prompt-widget.js -->
-    <div data-cursor-prompt-widget></div>
-  </main>
-  <script src="/ui/prompt-widget.js" defer></script>
-</body>
-</html>`;
+  return renderShellPage({
+    viewId: "prompt",
+    title: "Agent Prompt",
+    styles: PROMPT_PAGE_STYLES,
+    body: PROMPT_BODY,
+    scripts: ["/ui/prompt-widget.js"],
+  });
 }

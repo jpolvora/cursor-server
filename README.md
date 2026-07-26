@@ -43,7 +43,7 @@ Living detail: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD).
 | **API depth** | Async tasks (`202` + poll), run history, SSE + WebSocket streaming, event gateway, MCP merge, `spec-to-pr*` agent roles, scheduled review jobs (opt-in) | **Landed** |
 | **Spec harness** | Qualified spec schema, stage orchestration, spec editor UI, pluggable runners | **MVP landed** |
 | **Runners** | Cursor SDK (default), Hermes (`hermes`), OpenCode (`opencode`) | **Registered** — CLIs must be installed |
-| **Ops UI** | Homelab Kanban board (`32`→`34`); agent prompt widget (`35`); spec-editor aspirational UI (`36`); root dashboard shell (`40` — `GET /`, `/settings`); board projects CRUD (`39`) | **Landed** |
+| **Ops UI** | Homelab Kanban board (`32`→`34`); agent prompt widget (`35`); spec-editor aspirational UI (`36`); root dashboard shell (`40` — `GET /`, `/settings`); board projects CRUD (`39`); unified app shell with route-rendered views (`42`) | **Landed** |
 | **Product website** | GitHub Pages website (`41`) | **Landed** |
 
 **Caveats (honest gaps):** Hermes/OpenCode adapters require external CLIs on PATH. Scheduled review jobs are **off by default** — set `SCHEDULED_REVIEW_JOBS=true` to register cron handlers. Inbox (not active): richer MCP diagnostics (only if new gaps). See [AGENTS.md](./AGENTS.md) and [`index.PRD`](./.agents/specs/index.PRD).
@@ -54,13 +54,16 @@ The spec harness is the flagship long-term feature: authors write complete, mach
 
 Homelab-ready API with spec harness MVP. Implemented today:
 
-- `GET /` — ops dashboard shell (login gate, left nav, config; Projects pane CRUD via `/board/repos`)
+- `GET /` — ops console: one app shell (left menu, compact top bar, single main container) with a login gate that collects the API key once; the dashboard view lands here
 - `GET /health` — liveness
 - `GET /agents` — task role allowlist (`default`, `planner`, `implementer`, `plan+implementer`, `spec-to-pr`, `spec-to-pr-lite`)
 - `GET`/`PUT /settings` — host-level preference store (API key auth; SQLite `app_settings`)
 - `GET /ui/spec-editor` — hosted Markdown spec editor (AC builder, stage designer, dependency graph; validate / save / Save & Run)
 - `GET /ui/board` — Kanban ops UI (cards, lanes, Start/Pause/Finish)
 - `GET /ui/prompt` — agent prompt widget (submit / stream / query tasks)
+- `GET /ui/projects` — board repository CRUD (create / edit / delete, soft-blocked while cards reference the repo)
+- `GET /ui/config` — host preference editor (default agent, harness runner, UI theme/density, board lane)
+- `GET /ui/app.css`, `GET /ui/app.js` — shared design tokens and shell script consumed by every view
 - `POST /tasks` — async task execution (default `async: true` → `202` + `taskId`; `async: false` for sync wait)
 - `GET /tasks`, `GET /tasks/:id` — list / fetch task history (persisted under `REPOS_ROOT`)
 - `GET /tasks/:id/stream` — SSE status and log output while a task runs
