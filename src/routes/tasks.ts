@@ -203,6 +203,7 @@ export function createTaskRoutes(config: Config) {
           tenantId,
           allowedRepos,
           mcpServers: parsed.data.mcpServers as McpServers | undefined,
+          onOutput: (chunk) => taskStore.emitOutput(task.id, chunk),
         });
 
         const endTime = Date.now();

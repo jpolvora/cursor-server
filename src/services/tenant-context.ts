@@ -27,25 +27,3 @@ export function listTenantFilter(requestTenantId: string | undefined): string | 
   return requestTenantId;
 }
 
-export function applyTenantEnv(input: { tenantId?: string; repoPath: string }): () => void {
-  if (!input.tenantId) return () => {};
-
-  const prevTenantId = process.env.CURSOR_TENANT_ID;
-  const prevRepoPath = process.env.CURSOR_TENANT_REPO_PATH;
-
-  process.env.CURSOR_TENANT_ID = input.tenantId;
-  process.env.CURSOR_TENANT_REPO_PATH = input.repoPath;
-
-  return () => {
-    if (prevTenantId !== undefined) {
-      process.env.CURSOR_TENANT_ID = prevTenantId;
-    } else {
-      delete process.env.CURSOR_TENANT_ID;
-    }
-    if (prevRepoPath !== undefined) {
-      process.env.CURSOR_TENANT_REPO_PATH = prevRepoPath;
-    } else {
-      delete process.env.CURSOR_TENANT_REPO_PATH;
-    }
-  };
-}

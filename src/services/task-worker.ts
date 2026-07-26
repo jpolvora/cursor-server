@@ -50,6 +50,7 @@ export function processTaskInBackground(config: Config, taskId: string): void {
         agent: task.agent,
         tenantId: task.tenantId,
         mcpServers: task.mcpServers,
+        onOutput: (chunk) => taskStore.emitOutput(taskId, chunk),
       });
 
       const endTime = Date.now();
