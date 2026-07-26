@@ -13,6 +13,7 @@ describe("tenant-resource-limits", () => {
     CURSOR_MODEL: "composer-2",
     TENANT_CPU_LIMIT: 0.5,
     TENANT_MEMORY_LIMIT_MB: 512,
+    SCHEDULED_REVIEW_JOBS: false,
     TENANTS: [
       {
         id: "tenant-a",

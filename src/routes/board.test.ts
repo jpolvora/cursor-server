@@ -25,6 +25,7 @@ describe("Board API Routes", () => {
     CURSOR_MODEL: "composer-2",
     SERVER_API_KEY: "fake-board-key",
     TENANTS: [],
+    SCHEDULED_REVIEW_JOBS: false,
   };
 
   const app = new Hono();

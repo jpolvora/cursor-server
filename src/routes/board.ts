@@ -102,7 +102,9 @@ export function createBoardRoutes(config: Config) {
   // --- Repos ---
 
   board.get("/repos", (c) => {
-    const repos = boardDb.listRepos();
+    const repos = boardDb
+      .listRepos()
+      .filter((repo) => !checkRepoTenantAccess(c, repo.name));
     return c.json({ repos: repos.map((r) => repoResponse(r)) });
   });
 
@@ -122,9 +124,20 @@ export function createBoardRoutes(config: Config) {
       return c.json({ error: `Repository '${parsed.data.name}' already exists` }, 409);
     }
 
-    const localPath =
-      parsed.data.local_path ??
-      resolveRepoLocalPath(config.REPOS_ROOT, parsed.data.name);
+    const localPath = (() => {
+      try {
+        return resolveRepoLocalPath(
+          config.REPOS_ROOT,
+          parsed.data.name,
+          parsed.data.local_path,
+        );
+      } catch (err: unknown) {
+        return null;
+      }
+    })();
+    if (!localPath) {
+      return c.json({ error: "Invalid repository path (must stay under REPOS_ROOT)" }, 400);
+    }
 
     const repo = boardDb.createRepo({
       ...parsed.data,
@@ -167,6 +180,18 @@ export function createBoardRoutes(config: Config) {
       if (nameAccess) return c.json({ error: nameAccess }, 403);
       if (boardDb.getRepoByName(parsed.data.name)) {
         return c.json({ error: `Repository '${parsed.data.name}' already exists` }, 409);
+      }
+    }
+
+    if (parsed.data.local_path !== undefined) {
+      try {
+        resolveRepoLocalPath(
+          config.REPOS_ROOT,
+          parsed.data.name ?? existing.name,
+          parsed.data.local_path,
+        );
+      } catch {
+        return c.json({ error: "Invalid repository path (must stay under REPOS_ROOT)" }, 400);
       }
     }
 
@@ -282,7 +307,11 @@ export function createBoardRoutes(config: Config) {
       filters.lane = laneRaw as BoardLane;
     }
 
-    const cards = boardDb.listCards(filters);
+    const cards = boardDb.listCards(filters).filter((card) => {
+      const repo = boardDb.getRepo(card.repo_id);
+      if (!repo) return false;
+      return !checkRepoTenantAccess(c, repo.name);
+    });
     return c.json({ cards: cards.map(cardResponse) });
   });
 
@@ -399,8 +428,7 @@ export function createBoardRoutes(config: Config) {
     }
 
     const targetLane = parsed.data.lane as BoardLane;
-    const allowedLanes = PLANNING_LANES.filter((lane) => lane !== "blocked" || !existing.active_run_id);
-    if (!allowedLanes.includes(targetLane)) {
+    if (!PLANNING_LANES.includes(targetLane)) {
       return c.json(
         { error: `Lane '${targetLane}' is not allowed for manual moves (planning lanes only)` },
         400,

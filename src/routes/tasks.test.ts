@@ -23,6 +23,7 @@ describe("Task stream routes", () => {
     BOARD_DB_PATH: "./data/test-board.db",
     CURSOR_MODEL: "composer-2",
     SERVER_API_KEY: "fake-stream",
+    SCHEDULED_REVIEW_JOBS: false,
     TENANTS: [
       { id: "tenant-a", apiKey: "fake-a", allowedRepos: [] },
       { id: "tenant-b", apiKey: "fake-b", allowedRepos: [] },

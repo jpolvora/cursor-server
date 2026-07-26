@@ -11,10 +11,17 @@ export function resolveRepoLocalPath(
   name: string,
   localPath?: string | null,
 ): string {
-  if (localPath && localPath.trim()) {
-    return path.resolve(localPath);
+  const canonicalRoot = path.resolve(reposRoot);
+  const resolved =
+    localPath && localPath.trim()
+      ? path.resolve(localPath)
+      : path.resolve(canonicalRoot, name);
+
+  if (!resolved.startsWith(canonicalRoot + path.sep) && resolved !== canonicalRoot) {
+    throw new Error("Invalid repository path (must stay under REPOS_ROOT)");
   }
-  return path.resolve(reposRoot, name);
+
+  return resolved;
 }
 
 export function isCloneMissingOrEmpty(localPath: string): boolean {
