@@ -1,0 +1,30 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: cursor-server_server_1
+      APP_PORT: 3000
+      # API clients use X-API-Key / Bearer; avoid Umbrel login in front of /tasks.
+      PROXY_AUTH_ADD: "false"
+
+  server:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    restart: on-failure
+    stop_grace_period: 1m
+    volumes:
+      - ${APP_DATA_DIR}/repos:/data/repos
+      - ${APP_DATA_DIR}/board.db:/data/board.db
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "3000"
+      REPOS_ROOT: /data/repos
+      BOARD_DB_PATH: /data/board.db
+      # Required — set in Umbrel app settings (never commit).
+      CURSOR_API_KEY: ${CURSOR_API_KEY}
+      # Optional overrides (same contract as root docker-compose.yml / docs/docker.md)
+      CURSOR_MODEL: ${CURSOR_MODEL:-composer-2}
+      SERVER_API_KEY: ${SERVER_API_KEY:-}
+      SCHEDULED_REVIEW_JOBS: ${SCHEDULED_REVIEW_JOBS:-false}
