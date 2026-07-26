@@ -5,6 +5,7 @@ import { stageStore, type PipelineRunRecord } from "./stage-store.js";
 import type { QualifiedSpec } from "./spec-schema.js";
 
 export interface StageRunOptions {
+  tenantId?: string;
   runnerId?: string;
   agent?: string;
   model?: string;
@@ -21,6 +22,7 @@ export class StageOrchestrator {
     options?: StageRunOptions
   ): Promise<PipelineRunRecord> {
     const runRecord = stageStore.createRun({
+      tenantId: options?.tenantId ?? "master",
       spec,
       repoPath,
       runnerId: options?.runnerId,
@@ -38,6 +40,7 @@ export class StageOrchestrator {
     options?: StageRunOptions
   ): PipelineRunRecord {
     const runRecord = stageStore.createRun({
+      tenantId: options?.tenantId ?? "master",
       spec,
       repoPath,
       runnerId: options?.runnerId,

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "packageVersion": "0.0.82",
+  "packageVersion": "0.0.85",
   "upstream": {
     "repo": "jpolvora/workflow-skills",
     "url": "https://github.com/jpolvora/workflow-skills",
@@ -53,7 +53,8 @@
         "configure-project",
         "fable-method",
         "fable-judge",
-        "fable-domain"
+        "fable-domain",
+        "ws-multi-spec"
       ],
       "ensureHub": true,
       "shortcut": "w",
@@ -158,6 +159,13 @@
       "self-learning"
     ],
     "fable-judge": [
+      "caveman",
+      "gabarito",
+      "karpathy-guidelines"
+    ],
+    "ws-multi-spec": [
+      "spec-to-pr",
+      "spec-to-pr-lite",
       "caveman",
       "gabarito",
       "karpathy-guidelines"

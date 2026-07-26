@@ -5,6 +5,7 @@ import type { Config } from "../config.js";
 import { validateRepoPath } from "../services/repo-validator.js";
 import { taskStore } from "../services/task-store.js";
 import { processTaskInBackground } from "../services/task-worker.js";
+import { checkRepoAccess } from "../services/tenant-context.js";
 
 const createEventSchema = z.object({
   event: z.string().min(1),
@@ -35,10 +36,17 @@ export function createEventRoutes(config: Config) {
       );
     }
 
+    const accessError = checkRepoAccess(c.get("allowedRepos") as string[] ?? [], parsed.data.repo);
+    if (accessError) {
+      return c.json({ error: accessError }, 403);
+    }
+
     const agent = resolveAgent(parsed.data.agent);
     const model = parsed.data.model ?? config.CURSOR_MODEL;
+    const tenantId = c.get("tenantId") as string;
 
     const task = taskStore.createTask({
+      tenantId,
       prompt: parsed.data.prompt,
       repo: parsed.data.repo,
       repoPath: validation.resolvedPath,

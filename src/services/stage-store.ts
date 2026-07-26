@@ -20,6 +20,7 @@ export interface PipelineStageRecord {
 
 export interface PipelineRunRecord {
   id: string;
+  tenantId: string;
   specId: string;
   specTitle: string;
   repoPath: string;
@@ -36,6 +37,7 @@ export interface PipelineRunRecord {
 }
 
 export interface CreatePipelineRunOptions {
+  tenantId: string;
   spec: QualifiedSpec;
   repoPath: string;
   runnerId?: string;
@@ -92,6 +94,7 @@ export class StageStore {
 
     const record: PipelineRunRecord = {
       id,
+      tenantId: options.tenantId,
       specId: options.spec.id,
       specTitle: options.spec.title,
       repoPath: options.repoPath,
@@ -158,9 +161,12 @@ export class StageStore {
     return updated;
   }
 
-  public listRuns(filter?: { status?: string; specId?: string }): PipelineRunRecord[] {
+  public listRuns(filter?: { status?: string; specId?: string; tenantId?: string }): PipelineRunRecord[] {
     let records = Array.from(this.runs.values());
 
+    if (filter?.tenantId) {
+      records = records.filter((r) => r.tenantId === filter.tenantId);
+    }
     if (filter?.status) {
       records = records.filter((r) => r.status === filter.status);
     }

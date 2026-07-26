@@ -23,7 +23,11 @@ taskStore.init(config.REPOS_ROOT);
 stageStore.init(config.REPOS_ROOT);
 
 if (!config.SERVER_API_KEY) {
-  console.warn("⚠️ SERVER_API_KEY is not set. Authentication is disabled for task, event & jobs endpoints.");
+  if (config.TENANTS.length > 0) {
+    console.warn("⚠️ SERVER_API_KEY is not set but TENANTS are configured. API key auth enforced via TENANTS.");
+  } else {
+    console.warn("⚠️ SERVER_API_KEY is not set and no TENANTS configured. Authentication is disabled — anonymous access allowed.");
+  }
 }
 
 app.route("/", healthRoutes);

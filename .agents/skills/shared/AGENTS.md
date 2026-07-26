@@ -123,6 +123,7 @@ Install packages and dependency map: upstream `bin/skill-dependencies.json` in [
 |--------|------|
 | Spec → PR E2E | `spec-to-pr` |
 | Spec → PR lite | `spec-to-pr-lite` |
+| Batch spec delivery | `ws-multi-spec` |
 | Fable Method 7-step loop | `fable-method` |
 | Adversarial audit / fraud scan | `fable-judge` |
 | Domain adapters (DevOps/Data/Research) | `fable-domain` |

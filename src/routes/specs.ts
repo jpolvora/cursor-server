@@ -8,6 +8,12 @@ import {
   validateSpecPayload,
   writeRepoSpecFile,
 } from "../services/spec-schema.js";
+import {
+  resolveMcpServers,
+  maskSensitiveEnv,
+  validateMcpServers,
+} from "../services/mcp-config.js";
+import { checkRepoAccess } from "../services/tenant-context.js";
 
 const WriteSpecBodySchema = z.object({
   content: z.string(),
@@ -122,6 +128,62 @@ export function createRepoSpecRoutes(config: Config) {
       const message = err instanceof Error ? err.message : String(err);
       return c.json({ error: message }, 400);
     }
+  });
+
+  repoSpecs.get("/:repo/mcp", (c) => {
+    const repo = c.req.param("repo");
+    const accessError = checkRepoAccess(c.get("allowedRepos") as string[] ?? [], repo);
+    if (accessError) {
+      return c.json({ error: accessError }, 403);
+    }
+    const repoResult = validateRepoPath(config.REPOS_ROOT, repo);
+    if (!repoResult.valid || !repoResult.resolvedPath) {
+      return c.json({ error: repoResult.error }, repoResult.status === 404 ? 404 : 400);
+    }
+
+    const resolved = resolveMcpServers(config.REPOS_ROOT, repo);
+    const masked = maskSensitiveEnv(resolved.merged);
+
+    return c.json({
+      repo,
+      mcpServers: masked,
+      sources: {
+        global: Object.keys(resolved.global),
+        repo: Object.keys(resolved.repo),
+      },
+    });
+  });
+
+  repoSpecs.post("/:repo/mcp/validate", async (c) => {
+    const repo = c.req.param("repo");
+    const accessError = checkRepoAccess(c.get("allowedRepos") as string[] ?? [], repo);
+    if (accessError) {
+      return c.json({ error: accessError }, 403);
+    }
+    const repoResult = validateRepoPath(config.REPOS_ROOT, repo);
+    if (!repoResult.valid || !repoResult.resolvedPath) {
+      return c.json({ error: repoResult.error }, repoResult.status === 404 ? 404 : 400);
+    }
+
+    const body = await c.req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return c.json({ error: "Invalid JSON body" }, 400);
+    }
+
+    const servers = (body as Record<string, unknown>).mcpServers;
+    if (!servers) {
+      return c.json({ error: "Missing mcpServers in request body" }, 400);
+    }
+
+    const valid = validateMcpServers(servers);
+    if (!valid) {
+      return c.json({ valid: false, error: "Invalid MCP server configuration structure" }, 400);
+    }
+
+    const resolved = resolveMcpServers(config.REPOS_ROOT, repo, servers as any);
+    const merged = maskSensitiveEnv(resolved.merged);
+
+    return c.json({ valid: true, merged });
   });
 
   return repoSpecs;

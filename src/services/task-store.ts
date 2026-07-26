@@ -3,12 +3,14 @@ import fs from "node:fs";
 import path from "node:path";
 import type { AgentId } from "../agents.js";
 import type { RunTaskResult } from "./agent-runner.js";
+import type { McpServers } from "./mcp-config.js";
 
 export type TaskSource = "ide" | "hermes" | "umbrel" | "api";
 export type TaskStatus = "queued" | "running" | "completed" | "failed" | "cancelled";
 
 export interface TaskRecord {
   id: string;
+  tenantId: string;
   prompt: string;
   repo: string;
   repoPath: string;
@@ -23,9 +25,11 @@ export interface TaskRecord {
   result?: RunTaskResult;
   error?: string;
   webhookUrl?: string;
+  mcpServers?: McpServers;
 }
 
 export interface CreateTaskOptions {
+  tenantId: string;
   prompt: string;
   repo: string;
   repoPath: string;
@@ -33,6 +37,7 @@ export interface CreateTaskOptions {
   model: string;
   source?: TaskSource;
   webhookUrl?: string;
+  mcpServers?: McpServers;
 }
 
 class TaskStore {
@@ -80,6 +85,7 @@ class TaskStore {
     const id = `task_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
     const record: TaskRecord = {
       id,
+      tenantId: options.tenantId,
       prompt: options.prompt,
       repo: options.repo,
       repoPath: options.repoPath,
@@ -89,6 +95,7 @@ class TaskStore {
       status: "queued",
       createdAt: new Date().toISOString(),
       webhookUrl: options.webhookUrl,
+      mcpServers: options.mcpServers,
     };
 
     this.tasks.set(id, record);
@@ -122,9 +129,12 @@ class TaskStore {
     this.events.emit("task:output", { id, chunk });
   }
 
-  public listTasks(filter?: { status?: string; repo?: string; source?: string }): TaskRecord[] {
+  public listTasks(filter?: { status?: string; repo?: string; source?: string; tenantId?: string }): TaskRecord[] {
     let records = Array.from(this.tasks.values());
 
+    if (filter?.tenantId) {
+      records = records.filter((r) => r.tenantId === filter.tenantId);
+    }
     if (filter?.status) {
       records = records.filter((r) => r.status === filter.status);
     }
