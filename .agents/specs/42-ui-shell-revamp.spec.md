@@ -4,7 +4,7 @@ slug: 42-ui-shell-revamp
 title: "UI revamp — unified SaaS app shell with route-rendered views"
 source: local
 specDate: 2026-07-26
-status: implemented
+status: completed
 version: 0.1.0
 ---
 
