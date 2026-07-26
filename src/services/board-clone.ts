@@ -6,6 +6,53 @@ import { sanitizeCloneError } from "./board-secret.js";
 
 const execFileAsync = promisify(execFile);
 
+const CLONE_LOCK_STALE_MS = 15 * 60 * 1000;
+
+function cloneLockPath(localPath: string): string {
+  return `${localPath}.clone.lock`;
+}
+
+function isCloneLockStale(lockPath: string): boolean {
+  try {
+    const stat = fs.statSync(lockPath);
+    return Date.now() - stat.mtimeMs > CLONE_LOCK_STALE_MS;
+  } catch {
+    return true;
+  }
+}
+
+function acquireCloneLock(lockPath: string): number | null {
+  try {
+    return fs.openSync(lockPath, "wx");
+  } catch {
+    if (isCloneLockStale(lockPath)) {
+      try {
+        fs.unlinkSync(lockPath);
+        return fs.openSync(lockPath, "wx");
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+}
+
+export function isCloneInProgress(localPath: string): boolean {
+  const lockPath = cloneLockPath(localPath);
+  if (!fs.existsSync(lockPath)) {
+    return false;
+  }
+  if (isCloneLockStale(lockPath)) {
+    try {
+      fs.unlinkSync(lockPath);
+    } catch {
+      // ignore stale cleanup errors
+    }
+    return false;
+  }
+  return true;
+}
+
 export function resolveRepoLocalPath(
   reposRoot: string,
   name: string,
@@ -59,11 +106,9 @@ export async function ensureClone(
     return { ok: true };
   }
 
-  const lockPath = `${localPath}.clone.lock`;
-  let lockFd: number | undefined;
-  try {
-    lockFd = fs.openSync(lockPath, "wx");
-  } catch {
+  const lockPath = cloneLockPath(localPath);
+  const lockFd = acquireCloneLock(lockPath);
+  if (lockFd === null) {
     return { ok: false, error: "Clone already in progress for this repository" };
   }
 
@@ -88,9 +133,7 @@ export async function ensureClone(
       return { ok: false, error: sanitizeCloneError(raw) };
     }
   } finally {
-    if (lockFd !== undefined) {
-      fs.closeSync(lockFd);
-    }
+    fs.closeSync(lockFd);
     try {
       fs.unlinkSync(lockPath);
     } catch {
@@ -100,6 +143,9 @@ export async function ensureClone(
 }
 
 export function cleanupClone(localPath: string): { ok: true } | { ok: false; error: string } {
+  if (isCloneInProgress(localPath)) {
+    return { ok: false, error: "Clone in progress; try again later" };
+  }
   if (!fs.existsSync(localPath)) {
     return { ok: true };
   }
