@@ -4,7 +4,7 @@ slug: 38-umbrel-app-store
 title: "Umbrel App Store manifest"
 source: local
 specDate: 2026-07-26
-status: draft
+status: shipped
 version: 0.1.0
 ---
 
