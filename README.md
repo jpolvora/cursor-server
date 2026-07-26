@@ -40,11 +40,11 @@ Living detail: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD).
 | Phase | Focus | Status |
 |-------|--------|--------|
 | **Homelab-ready** | Docker Compose, Tailscale docs, client auth (`SERVER_API_KEY` / `TENANTS`), repo validation | **Landed** |
-| **API depth** | Async tasks (`202` + poll), run history, SSE streaming, event gateway, MCP merge, `spec-to-pr*` agent roles, scheduled review jobs (opt-in) | **Landed** |
+| **API depth** | Async tasks (`202` + poll), run history, SSE + WebSocket streaming, event gateway, MCP merge, `spec-to-pr*` agent roles, scheduled review jobs (opt-in) | **Landed** |
 | **Spec harness** | Qualified spec schema, stage orchestration, spec editor UI, pluggable runners | **MVP landed** |
 | **Runners** | Cursor SDK (default), Hermes (`hermes`), OpenCode (`opencode`) | **Registered** — CLIs must be installed |
 | **Ops UI** | Homelab Kanban board (`32`→`34`); agent prompt widget (`35`); spec-editor aspirational UI (`36`) | **Landed** |
-| **Next** | WebSocket streaming (`37`); Umbrel App Store (`38`) | Open |
+| **Next** | Umbrel App Store (`38`) | Open |
 
 **Caveats (honest gaps):** Hermes/OpenCode adapters require external CLIs on PATH. Scheduled review jobs are **off by default** — set `SCHEDULED_REVIEW_JOBS=true` to register cron handlers. Inbox (not active): richer MCP diagnostics (only if new gaps). See [AGENTS.md](./AGENTS.md) and [`index.PRD`](./.agents/specs/index.PRD).
 
@@ -62,6 +62,7 @@ Homelab-ready API with spec harness MVP. Implemented today:
 - `POST /tasks` — async task execution (default `async: true` → `202` + `taskId`; `async: false` for sync wait)
 - `GET /tasks`, `GET /tasks/:id` — list / fetch task history (persisted under `REPOS_ROOT`)
 - `GET /tasks/:id/stream` — SSE status and log output while a task runs
+- `GET /tasks/:id/ws` — WebSocket stream with the same `status`, `output`, and `done` events as SSE
 - `POST /events` — event gateway (Hermes/Umbrel/IDE → async task)
 - `GET /jobs` — registered cron jobs + review execution history
 - `POST /specs/validate`, `GET/PUT /repos/:repo/specs[/:file]` — qualified spec IO
@@ -226,6 +227,34 @@ Example (Node / curl):
 curl -N -H "X-API-Key: $SERVER_API_KEY" "http://localhost:3000/tasks/task_…/stream"
 # EventSource in browser:
 # new EventSource(`/tasks/${taskId}/stream?apiKey=${encodeURIComponent(key)}`)
+```
+
+### `GET /tasks/:id/ws`
+
+WebSocket alternative to SSE for task lifecycle and live output. Same auth and event semantics as `GET /tasks/:id/stream`.
+
+**URL:** `ws://<host>:<port>/tasks/<taskId>/ws` (use `wss://` when TLS terminates in front of the server).
+
+**Auth** (when `SERVER_API_KEY` or `TENANTS` are configured): `X-API-Key`, `Authorization: Bearer <key>`, or query `apiKey` / `access_token` (query form is required for browser `WebSocket`, which cannot set custom headers on the handshake).
+
+**Messages** — each WebSocket frame is JSON: `{ "event": "<name>", "data": <payload> }`
+
+| Event | Payload | When |
+|-------|---------|------|
+| `status` | `{ id, status, result?, error? }` | On connect and on status change |
+| `output` | `{ id, chunk }` | Worker lifecycle lines and agent run stream chunks |
+| `done` | `{ id, status }` | Task reaches `completed`, `failed`, or `cancelled`; server closes the socket |
+
+Example (browser):
+
+```js
+const ws = new WebSocket(
+  `ws://localhost:3000/tasks/${taskId}/ws?apiKey=${encodeURIComponent(apiKey)}`
+);
+ws.onmessage = (evt) => {
+  const { event, data } = JSON.parse(evt.data);
+  // same handlers as SSE: status | output | done
+};
 ```
 
 ## Environment

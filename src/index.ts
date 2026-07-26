@@ -1,5 +1,6 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import { WebSocketServer } from "ws";
 import { loadConfig } from "./config.js";
 import { startScheduler } from "./jobs/scheduler.js";
 import { AGENTS } from "./agents.js";
@@ -76,11 +77,14 @@ app.route("/board", createBoardRoutes(config));
 
 startScheduler(config);
 
+const wss = new WebSocketServer({ noServer: true });
+
 serve(
   {
     fetch: app.fetch,
     port: config.PORT,
     hostname: config.HOST,
+    websocket: { server: wss },
   },
   (info) => {
     console.log(`cursor-server listening on http://${info.address}:${info.port}`);

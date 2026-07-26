@@ -1,3 +1,4 @@
+import { upgradeWebSocket } from "@hono/node-server";
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { z } from "zod";
@@ -8,6 +9,7 @@ import { validateRepoPath } from "../services/repo-validator.js";
 import { taskStore } from "../services/task-store.js";
 import { processTaskInBackground } from "../services/task-worker.js";
 import { resolveMcpForTask, type McpServers } from "../services/mcp-config.js";
+import { attachTaskStream } from "../services/task-stream.js";
 import { checkRepoAccess, canAccessTenantResource, listTenantFilter } from "../services/tenant-context.js";
 
 const mcpServerSchema = z.record(
@@ -128,6 +130,46 @@ export function createTaskRoutes(config: Config) {
       }
     });
   });
+
+  // Stream task status & log output via WebSocket (same events as SSE)
+  tasks.get(
+    "/:id/ws",
+    async (c, next) => {
+      const id = c.req.param("id");
+      const task = taskStore.getTask(id);
+
+      if (!task) {
+        return c.json({ error: "Task not found" }, 404);
+      }
+
+      const requestTenantId = c.get("tenantId") as string;
+      if (!canAccessTenantResource(requestTenantId, task.tenantId)) {
+        return c.json({ error: "Task not found" }, 404);
+      }
+
+      return next();
+    },
+    upgradeWebSocket((c) => {
+      const id = c.req.param("id")!;
+      const task = taskStore.getTask(id)!;
+      let cleanup: (() => void) | undefined;
+
+      return {
+        onOpen(_event, ws) {
+          cleanup = attachTaskStream(id, task, (message) => {
+            ws.send(JSON.stringify(message));
+            if (message.event === "done") {
+              cleanup?.();
+              ws.close();
+            }
+          });
+        },
+        onClose() {
+          cleanup?.();
+        },
+      };
+    }),
+  );
 
   // Get task by ID
   tasks.get("/:id", (c) => {

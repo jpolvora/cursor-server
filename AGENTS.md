@@ -38,7 +38,7 @@ src/
   middleware/auth.ts    # SERVER_API_KEY / TENANTS / X-API-Key gate
   routes/
     health.ts           # GET /health
-    tasks.ts            # POST/GET /tasks; GET /tasks/:id/stream (SSE)
+    tasks.ts            # POST/GET /tasks; GET /tasks/:id/stream (SSE); GET /tasks/:id/ws (WebSocket)
     events.ts           # POST /events — event gateway
     jobs.ts             # GET /jobs — scheduler + review job history
     ui.ts               # GET /ui/spec-editor (public HTML editor)
@@ -77,7 +77,7 @@ src/
 
 List via `GET /agents`.
 
-`GET /tasks/:id/stream` emits SSE `status`, `output`, and `done` events for async tasks. Auth accepts `X-API-Key`, `Authorization: Bearer`, or query `apiKey` / `access_token` (for `EventSource`).
+`GET /tasks/:id/stream` emits SSE `status`, `output`, and `done` events for async tasks. `GET /tasks/:id/ws` provides the same events over WebSocket (JSON frames). Auth accepts `X-API-Key`, `Authorization: Bearer`, or query `apiKey` / `access_token` (query form required for browser `EventSource` / `WebSocket`).
 
 ### Runtime choice
 
@@ -159,7 +159,7 @@ New runners plug in via `runnerRegistry.register()` behind the same spec → sta
 
 Living feature map: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD). Confirm major new items with the owner before expanding scope:
 
-- **WebSocket streaming** — alongside SSE (`37-websocket-streaming`)
+- **WebSocket streaming** — alongside SSE (`37-websocket-streaming`) — **Landed**
 - **Umbrel App Store manifest** — store listing on existing Compose path (`38-umbrel-app-store`)
 
 Inbox (not scheduled): richer MCP diagnostics beyond fix-23 (only if new gaps appear).
