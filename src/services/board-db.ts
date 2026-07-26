@@ -104,6 +104,7 @@ const MIGRATIONS = [
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`,
   `CREATE INDEX IF NOT EXISTS idx_cards_repo_lane ON cards(repo_id, lane)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_cards_repo_title ON cards(repo_id, title)`,
 ];
 
 function rowToRepo(row: Record<string, unknown>): BoardRepo {
@@ -151,6 +152,7 @@ export class BoardDatabase {
     }
 
     this.runMigrations();
+    this.getDb().run("PRAGMA foreign_keys = ON");
     this.persist();
   }
 
@@ -376,10 +378,23 @@ export class BoardDatabase {
   }
 
   upsertCardByTitle(repoId: number, title: string, specMarkdown: string): BoardCard {
-    const existing = this.listCards({ repoId }).find((c) => c.title === title);
-    if (existing) {
-      const updated = this.updateCard(existing.id, { spec_markdown: specMarkdown, title });
-      return updated ?? existing;
+    const db = this.getDb();
+    const stmt = db.prepare("SELECT id FROM cards WHERE repo_id = ? AND title = ? LIMIT 1");
+    stmt.bind([repoId, title]);
+    let existingId: number | null = null;
+    if (stmt.step()) {
+      const row = stmt.getAsObject() as { id?: number };
+      existingId = row.id != null ? Number(row.id) : null;
+    }
+    stmt.free();
+
+    if (existingId) {
+      const updated = this.updateCard(existingId, { spec_markdown: specMarkdown, title });
+      const card = updated ?? this.getCard(existingId);
+      if (!card) {
+        throw new Error(`Card ${existingId} not found after update`);
+      }
+      return card;
     }
     return this.createCard({ repo_id: repoId, title, spec_markdown: specMarkdown });
   }

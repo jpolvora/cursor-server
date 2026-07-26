@@ -297,6 +297,10 @@ export function createBoardRoutes(config: Config) {
       return c.json({ error: "Import failed", ...result }, 422);
     }
 
+    if (result.errors.length > 0) {
+      return c.json({ ...result, partial: true }, 207);
+    }
+
     return c.json(result);
   });
 
