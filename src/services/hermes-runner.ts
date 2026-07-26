@@ -1,4 +1,7 @@
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
+import { access, constants } from "node:fs/promises";
+import path from "node:path";
+import { promisify } from "node:util";
 import {
   DEFAULT_STAGE_TIMEOUT_MS,
   resolveTimeoutMs,
@@ -169,13 +172,51 @@ async function execHermesHttp(
   }
 }
 
-function execHermesCli(request: HermesExecRequest): Promise<HermesExecResult> {
-  const bin = process.env.HERMES_BIN?.trim() || "hermes";
-  const args = ["--cwd", request.repoPath];
+const execFileAsync = promisify(execFile);
+
+export function resolveHermesBin(): string {
+  return process.env.HERMES_BIN?.trim() || "hermes";
+}
+
+export function buildHermesCliArgs(
+  request: Pick<HermesExecRequest, "prompt" | "skills">,
+): string[] {
+  const args = ["chat", "-q", request.prompt];
   if (request.skills.length) {
-    args.push("--skills", request.skills.join(","));
+    args.push("-s", request.skills.join(","));
   }
-  args.push(request.prompt);
+  return args;
+}
+
+export async function isHermesCliResolvable(bin: string): Promise<boolean> {
+  const trimmed = bin.trim();
+  if (!trimmed) return false;
+
+  if (
+    path.isAbsolute(trimmed) ||
+    trimmed.includes(path.sep) ||
+    trimmed.includes("/")
+  ) {
+    try {
+      await access(trimmed, constants.X_OK);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  const whichCmd = process.platform === "win32" ? "where" : "which";
+  try {
+    await execFileAsync(whichCmd, [trimmed]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function execHermesCli(request: HermesExecRequest): Promise<HermesExecResult> {
+  const bin = resolveHermesBin();
+  const args = buildHermesCliArgs(request);
 
   return new Promise((resolve, reject) => {
     const env: NodeJS.ProcessEnv = { ...process.env };
@@ -333,16 +374,26 @@ export class HermesRunner implements HarnessRunner {
   }
 
   async healthCheck(): Promise<{ healthy: boolean; details?: string }> {
-    if (process.env.HERMES_API_URL?.trim()) {
+    const apiUrl = process.env.HERMES_API_URL?.trim();
+    if (apiUrl) {
       return {
         healthy: true,
-        details: `HERMES_API_URL configured (${process.env.HERMES_API_URL.trim()})`,
+        details: `HERMES_API_URL configured (${apiUrl})`,
       };
     }
-    const bin = process.env.HERMES_BIN?.trim() || "hermes";
+
+    const bin = resolveHermesBin();
+    const cliAvailable = await isHermesCliResolvable(bin);
+    if (!cliAvailable) {
+      return {
+        healthy: false,
+        details: `Hermes CLI not found (bin=${bin}); set HERMES_BIN or HERMES_API_URL`,
+      };
+    }
+
     return {
       healthy: true,
-      details: `Hermes CLI adapter ready (bin=${bin}; live binary not required for health)`,
+      details: `Hermes CLI available (bin=${bin})`,
     };
   }
 }
