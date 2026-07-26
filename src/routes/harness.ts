@@ -8,6 +8,7 @@ import { validateRepoPath } from "../services/repo-validator.js";
 import { validateSpecPayload } from "../services/spec-schema.js";
 import { stageOrchestrator } from "../services/stage-orchestrator.js";
 import { stageStore } from "../services/stage-store.js";
+import { canAccessTenantResource, checkRepoAccess, listTenantFilter } from "../services/tenant-context.js";
 
 const TriggerRunSchema = z.object({
   spec: z.union([z.string(), z.record(z.unknown())]),
@@ -53,6 +54,11 @@ export function createHarnessRoutes(config: Config) {
       if (rawRepoPath) {
         repoPath = rawRepoPath;
       } else if (repo) {
+        const accessError = checkRepoAccess(c.get("allowedRepos") as string[] ?? [], repo);
+        if (accessError) {
+          return c.json({ error: accessError }, 403);
+        }
+
         const v = validateRepoPath(config.REPOS_ROOT, repo);
         if (!v.valid || !v.resolvedPath) {
           return c.json({ error: v.error || "Invalid repository" }, v.status === 404 ? 404 : 400);
@@ -107,6 +113,11 @@ export function createHarnessRoutes(config: Config) {
         return c.json({ error: `Pipeline run '${runId}' not found` }, 404);
       }
 
+      const requestTenantId = c.get("tenantId") as string;
+      if (!canAccessTenantResource(requestTenantId, existing.tenantId)) {
+        return c.json({ error: `Pipeline run '${runId}' not found` }, 404);
+      }
+
       let options: { runnerId?: string; agent?: string; model?: string } | undefined;
       const body = await c.req.json().catch(() => null);
       if (body) {
@@ -143,6 +154,11 @@ export function createHarnessRoutes(config: Config) {
       return c.json({ error: `Pipeline run '${runId}' not found` }, 404);
     }
 
+    const requestTenantId = c.get("tenantId") as string;
+    if (!canAccessTenantResource(requestTenantId, run.tenantId)) {
+      return c.json({ error: `Pipeline run '${runId}' not found` }, 404);
+    }
+
     return c.json({ run });
   });
 
@@ -152,7 +168,7 @@ export function createHarnessRoutes(config: Config) {
   harnessRoutes.get("/runs", (c) => {
     const status = c.req.query("status");
     const specId = c.req.query("specId");
-    const tenantId = c.get("tenantId") as string | undefined;
+    const tenantId = listTenantFilter(c.get("tenantId") as string | undefined);
     const runs = stageStore.listRuns({ status, specId, tenantId });
     return c.json({ runs });
   });
