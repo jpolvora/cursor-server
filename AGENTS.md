@@ -163,9 +163,9 @@ New runners plug in via `runnerRegistry.register()` behind the same spec → sta
 
 Living feature map: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD). Confirm major new items with the owner before expanding scope:
 
-Shipped recently (do not re-open as gaps): Board projects management (`39` — dashboard Projects CRUD, soft-block delete), root ops dashboard shell (`40` — `GET /`, `GET`/`PUT /settings`, `app_settings`), Umbrel App Store manifest (`38` — `deploy/umbrel/`, docs/umbrel.md), WebSocket streaming (`37`), spec-editor aspirational UI (`36` — AC builder, dependency graph, stage designer), Kanban board (`32`–`34`), agent prompt widget (`35`), scheduled review jobs (`25` — hygiene scan, `SCHEDULED_REVIEW_JOBS` gate, `Agent.resume`), MCP merge (`23`), multi-tenant ACL (`22`), SSE progress/auth (`24`), Hermes CLI/health (`20`), OpenCode stream/git (`21`), harness default stages (`26`), frontmatter stages (`27`), `spec-to-pr*` agent roles (`05`).
+Shipped recently (do not re-open as gaps): GitHub Pages product website (`41`), Board projects management (`39` — dashboard Projects CRUD, soft-block delete), root ops dashboard shell (`40` — `GET /`, `GET`/`PUT /settings`, `app_settings`), Umbrel App Store manifest (`38` — `deploy/umbrel/`, docs/umbrel.md), WebSocket streaming (`37`), spec-editor aspirational UI (`36` — AC builder, dependency graph, stage designer), Kanban board (`32`–`34`), agent prompt widget (`35`), scheduled review jobs (`25` — hygiene scan, `SCHEDULED_REVIEW_JOBS` gate, `Agent.resume`), MCP merge (`23`), multi-tenant ACL (`22`), SSE progress/auth (`24`), Hermes CLI/health (`20`), OpenCode stream/git (`21`), harness default stages (`26`), frontmatter stages (`27`), `spec-to-pr*` agent roles (`05`).
 
-Next (not done): GitHub Pages product website (`41` — `41-github-pages-product-website.spec.md`). Richer MCP diagnostics remains Inbox-only until a concrete gap appears.
+Next (not done): Richer MCP diagnostics remains Inbox-only until a concrete gap appears.
 
 ## Testing changes
 

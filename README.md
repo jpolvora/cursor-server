@@ -44,7 +44,7 @@ Living detail: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD).
 | **Spec harness** | Qualified spec schema, stage orchestration, spec editor UI, pluggable runners | **MVP landed** |
 | **Runners** | Cursor SDK (default), Hermes (`hermes`), OpenCode (`opencode`) | **Registered** — CLIs must be installed |
 | **Ops UI** | Homelab Kanban board (`32`→`34`); agent prompt widget (`35`); spec-editor aspirational UI (`36`); root dashboard shell (`40` — `GET /`, `/settings`); board projects CRUD (`39`) | **Landed** |
-| **Product website** | GitHub Pages website (`41`) | **Planned** |
+| **Product website** | GitHub Pages website (`41`) | **Landed** |
 
 **Caveats (honest gaps):** Hermes/OpenCode adapters require external CLIs on PATH. Scheduled review jobs are **off by default** — set `SCHEDULED_REVIEW_JOBS=true` to register cron handlers. Inbox (not active): richer MCP diagnostics (only if new gaps). See [AGENTS.md](./AGENTS.md) and [`index.PRD`](./.agents/specs/index.PRD).
 
@@ -285,6 +285,22 @@ ws.onmessage = (evt) => {
 | `npm run build` | Compile TypeScript to `dist/` |
 | `npm start` | Run compiled output |
 | `npm run typecheck` | Type-check without emit |
+| `npm run deploy:pages` | Rebuild static GitHub Pages output in `dist/pages/` |
+| `npm run test:pages` | Rebuild and verify GitHub Pages output |
+
+## Product website
+
+Static website source lives in [`website/`](./website/). Run `npm run deploy:pages` to
+rebuild its deployment output in `dist/pages/`; run `npm run test:pages` to verify that
+output locally.
+
+The [Pages deployment workflow](./.github/workflows/deploy-pages.yml) runs when a GitHub
+Release is published. It checks that the release tag commit is reachable from `main`, runs
+the repository-owned build script, uploads `dist/pages/`, then deploys the artifact with
+GitHub's Pages deployment action. Configure the repository's Pages publishing source as
+**GitHub Actions** before publishing a release. The workflow, not browser-side JavaScript,
+performs the deployment and fails before deployment when tag validation, site build, or
+output verification fails.
 
 ## CI — Agentic Code Review
 

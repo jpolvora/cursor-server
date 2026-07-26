@@ -125,9 +125,9 @@ Status: **done**. Design: `docs/superpowers/specs/2026-07-25-kanban-board-design
 
 ### Phase 5 — Product website
 
-Status: **planned**.
+Status: **landed**.
 
-- [ ] GitHub Pages product website (`spec: 41-github-pages-product-website.spec.md`)
+- [x] GitHub Pages product website (`spec: 41-github-pages-product-website.spec.md`)
 
 ## 8. Next specs
 
@@ -135,9 +135,9 @@ Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 
 | # | Spec | Status | Target Phase | Notes |
 |---|------|--------|--------------|-------|
-| 41 | `41-github-pages-product-website.spec.md` | [ ] todo | Phase 5 | GitHub Pages product website |
+| — | — | — | — | No active Next specs; see Inbox |
 
-**Immediate next:** `41-github-pages-product-website`.
+**Immediate next:** none (Inbox only).
 
 ## 9. Inbox (unscheduled ideas)
 
@@ -182,6 +182,7 @@ Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 | 2026-07-26 | `38-umbrel-app-store` | Umbrel App Store manifest `deploy/umbrel/` | #29 |
 | 2026-07-26 | `39-board-projects-management` | Board projects CRUD (dashboard Projects pane) | #33 |
 | 2026-07-26 | `40-main-page-dashboard` | Root ops dashboard shell `GET /` + `/settings` | #32 |
+| 2026-07-26 | `41-github-pages-product-website` | GitHub Pages product website | #35 |
 
 ## 11. Maintenance checklist
 

@@ -4,7 +4,7 @@ slug: 41-github-pages-product-website
 title: "GitHub Pages product website"
 source: local
 specDate: 2026-07-26
-status: planned
+status: implemented
 version: 0.1.0
 ---
 
@@ -23,4 +23,8 @@ Create a GitHub Pages website that presents cursor-server as a product. A reposi
 
 ## Notes
 
-- Confirm current GitHub Pages deployment requirements and release-event branch validation during planning.
+- Static source lives in `website/`; `npm run deploy:pages` rebuilds generated output in `dist/pages/`.
+- GitHub Actions uploads and deploys that output with GitHub's supported Pages actions. Browser-side JavaScript must not deploy Pages.
+- The workflow must use the `release.published` event and verify the release tag commit is reachable from `main`. `target_commitish` alone is not sufficient when the tag already exists.
+
+### [2026-07-26] Revision: implemented static site, deploy:pages, release.published Pages workflow (Prompt: "/ws-spec-to-pr full auto 41")

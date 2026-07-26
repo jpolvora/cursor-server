@@ -14,6 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test": "npm run build && node --test \"dist/**/*.test.js\"",
     "scan-secrets": "node scripts/scan-secrets.mjs",
+    "deploy:pages": "node scripts/build-pages-site.mjs",
+    "test:pages": "npm run deploy:pages && node scripts/verify-pages-site.mjs",
     "prepare": "husky"
   },
   "dependencies": {
