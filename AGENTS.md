@@ -6,15 +6,15 @@ Guidance for AI agents working in **cursor-server**.
 
 **cursor-server** is an HTTP API that executes agent tasks against **local repository directories** on a home-lab host. Remote IDE clients (home or company laptops on Tailscale) delegate work by sending prompts or specs; this server is where that work actually runs.
 
-Primary use cases (planned / in progress):
+Primary use cases (shipped; see caveats below for rough edges):
 
-1. **Remote task execution** — client sends a prompt + repo identifier; server runs an agent in that repo's working tree.
-2. **Scheduled automation** — cron jobs for recurring agent work (reviews, triage, repo hygiene).
-3. **Continuous review loops** — deliver / deploy / exec review workflows so remote clients stay in sync with repo changes.
-4. **Spec-driven pipeline** — hosted spec editor/environment; fully qualified, detailed specs drive implement → build → test → deploy → review through a specialized harness.
-5. **Pluggable harnesses** — same spec pipeline runnable by Cursor SDK agents, [Hermes Agent](https://github.com/NousResearch/hermes-agent), OpenCode, or future runners.
+1. **Remote task execution** — `POST /tasks` runs local Cursor SDK agents in a named repo (`async` default; sync via `async: false`).
+2. **Scheduled automation** — `node-cron` registers review jobs (`pr-diff-review`, `branch-sync-check`) at startup; inspect via `GET /jobs`.
+3. **Continuous review loops** — scheduled review runner + `POST /events` gateway for Hermes/Umbrel/IDE triggers.
+4. **Spec-driven pipeline** — `GET /ui/spec-editor`, qualified spec schema, stage orchestration, and `POST /harness/runs`.
+5. **Pluggable harnesses** — runner registry with Cursor SDK (`cursor-local`, `cursor-sdk`), [Hermes Agent](https://github.com/NousResearch/hermes-agent) (`hermes`), and OpenCode (`opencode`).
 
-Requirements and endpoint design are not finalized. Prefer small, reviewable increments; confirm major features with the owner before building.
+Prefer small, reviewable increments; confirm major new roadmap items with the owner before building.
 
 ## Deployment context
 
@@ -31,19 +31,33 @@ When adding deployment artifacts, favor Compose over bespoke scripts; keep Umbre
 ```text
 src/
   index.ts              # Hono app entry, routes + scheduler; GET /agents
-  config.ts             # Env validation (zod)
+  config.ts             # Env validation (zod); TENANTS parse
   agents.ts             # Task agent allowlist + resolveAgent (fallback → default)
+  middleware/auth.ts    # SERVER_API_KEY / TENANTS / X-API-Key gate
   routes/
     health.ts           # GET /health
-    tasks.ts            # POST /tasks; GET /tasks/:id/stream (SSE)
+    tasks.ts            # POST/GET /tasks; GET /tasks/:id/stream (SSE)
+    events.ts           # POST /events — event gateway
+    jobs.ts             # GET /jobs — scheduler + review job history
     ui.ts               # GET /ui/spec-editor (public HTML editor)
     specs.ts            # POST /specs/validate; GET/PUT /repos/:repo/specs[/:file]
-    harness.ts          # createHarnessRoutes — stage pipeline runs
+    harness.ts          # POST /harness/runs — stage pipeline runs
   services/
     agent-runner.ts     # @cursor/sdk local Agent.create + send + wait (role prompts)
+    task-store.ts       # Async task persistence + SSE event emitters
+    task-worker.ts      # Background task execution
+    repo-validator.ts   # Exist + git-repo checks before agent start
     spec-schema.ts      # QualifiedSpec parse/validate + safe .agents/specs IO
+    harness-runner.ts   # RunnerRegistry + Cursor SDK adapters
+    hermes-runner.ts    # Hermes CLI harness adapter (id: hermes)
+    opencode-runner.ts  # OpenCode CLI harness adapter (id: opencode)
+    stage-orchestrator.ts / stage-store.ts
+    mcp-config.ts       # Global/repo/task MCP merge resolver
+    tenant-context.ts   # Per-tenant repo allowlist checks
+    scheduled-review-runner.ts
   jobs/
-    scheduler.ts        # node-cron registration (jobs added later)
+    scheduler.ts        # node-cron registration
+    review-jobs.ts      # Default pr-diff-review + branch-sync-check jobs
 ```
 
 ### Task agent roles
@@ -103,50 +117,52 @@ Log `agentId` and `run.id` after `send()` in production paths.
 
 ## Roadmap (design intent)
 
-Documented here so agents understand direction without treating it as shipped code.
+Documented here so agents understand direction. **Shipped** items are summarized above; this section covers remaining gaps and aspirational work.
 
-### Hermes integration
+### Hermes integration (landed with caveats)
 
-Plan to integrate [Hermes Agent](https://github.com/NousResearch/hermes-agent) (Nous Research) as an orchestration layer alongside Cursor SDK runs. Hermes brings scheduled automations, subagent delegation, persistent memory/skills, and bundled skills for coding agents (including OpenCode). It may coordinate multi-step workflows or hand off stage-specific work. Exact boundary (Hermes vs Cursor SDK per pipeline stage) TBD.
+`HermesRunner` (`id: hermes`) is registered in `RunnerRegistry` and selectable via `runnerId` on harness runs. Hermes CLI invocation uses `HERMES_BIN` (default `hermes`). Scheduled review jobs and `POST /events` accept `source: hermes`.
 
-### Spec editor & qualified-spec harness
+**Caveats:** CLI must be installed and on PATH; health-check and CLI edge cases are tracked in fix specs (e.g. `20-fix-hermes-cli-and-health`). Hermes orchestration boundaries vs Cursor SDK per stage are still evolving.
 
-Flagship feature: a **served spec editor/environment** where authors produce **fully qualified, complete specifications** (not vague prompts). A harness executes each spec through fixed stages:
+### Spec editor & qualified-spec harness (MVP landed)
+
+A **served spec editor/environment** where authors produce **fully qualified, complete specifications**. A harness executes each spec through stages:
 
 ```text
-spec (qualified) → implement → build → test → deploy → review
+spec (qualified) → implement → build → test → review
 ```
 
-**MVP landed:** `GET /ui/spec-editor` (Markdown edit / validate / save / Save & Run), QualifiedSpec parse in `spec-schema.ts`, and stage orchestration + Cursor SDK runner. Each stage should remain observable (logs, artifacts, pass/fail), resumable, and tied back to spec sections. Aspirational UI (AC builder, dependency graph, stage designer) and Hermes/OpenCode runners are still open.
+(`deploy` is optional per spec frontmatter; default stage list omits it.)
 
-### Pluggable harness abstraction
+**Landed:** `GET /ui/spec-editor`, QualifiedSpec parse/validate, stage orchestration, resumable runs (`POST /harness/runs`, stage store), and pluggable runners. Each stage is observable (logs, artifacts, pass/fail).
 
-Do not hard-couple pipeline logic to `@cursor/sdk`. Introduce a runner interface when implementing the harness so executors can include:
+**Still open:** Aspirational UI (AC builder, dependency graph, stage designer) beyond MVP Markdown editor.
 
-| Runner | Role (planned) |
-|--------|----------------|
-| **Cursor SDK** | Local agent runs against repo `cwd` (current default) |
-| **Hermes Agent** | Orchestration, scheduling, memory/skills, delegation to coding agents |
-| **OpenCode** | Autonomous coding agent CLI (Hermes can orchestrate via bundled skill) |
+### Pluggable harness abstraction (landed)
 
-New runners plug in behind the same spec → stage → outcome contract.
+Pipeline logic is behind `HarnessRunner` + `RunnerRegistry`; do not hard-couple new stages to `@cursor/sdk` directly.
 
-## Planned areas (not implemented)
+| Runner | `id` | Status |
+|--------|------|--------|
+| **Cursor SDK** | `cursor-local`, `cursor-sdk` | Default; local `cwd` runs |
+| **Hermes Agent** | `hermes` | CLI adapter registered; see caveats above |
+| **OpenCode** | `opencode` | CLI adapter registered; requires `opencode` on PATH / `OPENCODE_BIN` |
 
-Treat these as design placeholders — confirm with the owner before building:
+New runners plug in via `runnerRegistry.register()` behind the same spec → stage → outcome contract.
 
-- Authentication / API keys for clients calling this server
-- Async job queue (fire-and-forget tasks, status polling, webhooks)
-- Run history and persistence
-- Repo registration and validation (ensure path exists, is a git repo)
-- Scheduled review jobs (PR diff review, branch sync checks)
-- MCP server configuration per task or per repo
-- Spec editor aspirational UI (AC builder, dependency graph, stage designer) beyond MVP Markdown editor
-- Hermes and OpenCode harness adapters
+## Planned areas (remaining gaps)
 
-### Multi-tenant isolation (shipped)
+Treat these as design placeholders or partial implementations — confirm with the owner before expanding scope:
 
-When `SERVER_API_KEY` and/or `TENANTS` are configured, requests are scoped by tenant API key. Repo allowlists apply to task/harness create; get-by-id and stream endpoints return **404** for cross-tenant resources (master key sees all). Agent runs set `CURSOR_TENANT_ID`, `CURSOR_TENANT_REPO_PATH`, and optional resource-limit env vars (`CURSOR_TENANT_CPU_LIMIT`, `CURSOR_TENANT_MEMORY_LIMIT_MB`) for the phase duration. Configure defaults via `TENANT_CPU_LIMIT` / `TENANT_MEMORY_LIMIT_MB` or per-tenant fields in `TENANTS` JSON; OS-level enforcement is best-effort (prefer Docker `deploy.resources` for hard caps).
+- **WebSocket streaming** — task output streams via SSE (`GET /tasks/:id/stream`); WebSocket not implemented
+- **MCP wiring polish** — `mcp-config.ts` merges global/repo/task overrides; end-to-end merge into agent runs may have gaps (see `23-fix-mcp-merge-wiring`)
+- **Multi-tenant hardening** — `TENANTS` JSON + per-tenant `allowedRepos` scoping exists; stronger isolation if multiple clients share one host is partial (see `22-fix-multi-tenant-isolation`)
+- **Scheduled review robustness** — default cron jobs register at startup; operational edge cases tracked in `25-fix-scheduled-review-jobs`
+- **Task streaming progress** — SSE status/output events exist; richer progress semantics tracked in `24-fix-task-streaming-progress`
+- **Spec editor aspirational UI** — AC builder, dependency graph, stage designer beyond MVP Markdown editor
+- **Umbrel App Store manifest** — Compose path documented; store listing not built
+- **workflow-skills `spec-to-pr*` exclusive agents** — installed skills present; dedicated server agent profile for driving orchestrators end-to-end is a separate Phase 2 item
 
 ## Testing changes
 
@@ -162,7 +178,7 @@ For task endpoints, a real `CURSOR_API_KEY` and a clone under `repos/` are requi
 
 - Do not switch to cloud runtime without an explicit requirement (this server is local-first / homelab-first).
 - Do not add large frameworks or ORMs for the initial API surface.
-- Do not implement remaining roadmap items (Hermes, OpenCode adapters, Umbrel App Store manifest, aspirational spec-editor UI) without explicit owner go-ahead — but **do** keep README/AGENTS roadmap sections updated when vision changes.
+- Do not expand remaining roadmap gaps (Umbrel App Store manifest, aspirational spec-editor UI, WebSocket streaming, workflow-skills exclusive agents) without explicit owner go-ahead — but **do** keep README/AGENTS roadmap sections updated when shipped code or vision changes.
 
 ---
 

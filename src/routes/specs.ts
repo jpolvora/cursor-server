@@ -40,7 +40,7 @@ export function createSpecRoutes(_config: Config) {
     if (result.valid) {
       return c.json({ valid: true, spec: result.spec }, 200);
     }
-    return c.json({ valid: false, errors: result.errors }, 400);
+    return c.json({ valid: false, errors: result.errors, issues: result.issues }, 400);
   });
 
   return specs;
@@ -117,7 +117,7 @@ export function createRepoSpecRoutes(config: Config) {
     if (requireValid) {
       const validation = validateSpecPayload(content);
       if (!validation.valid) {
-        return c.json({ error: "Spec validation failed", errors: validation.errors }, 400);
+        return c.json({ error: "Spec validation failed", errors: validation.errors, issues: validation.issues }, 400);
       }
     }
 
