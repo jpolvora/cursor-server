@@ -1,4 +1,4 @@
-import { Agent, CursorAgentError, type Run } from "@cursor/sdk";
+import { Agent, CursorAgentError, type Run, type SDKMessage } from "@cursor/sdk";
 import type { AgentId } from "../agents.js";
 import type { Config } from "../config.js";
 import type { McpServers } from "./mcp-config.js";
@@ -13,6 +13,8 @@ export type RunTaskInput = {
   mcpServers?: McpServers;
   /** When aborted (e.g. harness stage timeout), cancels the in-flight run and disposes the agent. */
   signal?: AbortSignal;
+  /** Live chunk callback for streaming task output via SSE. */
+  onOutput?: (chunk: string) => void;
 };
 
 export type RunPhaseResult = {
@@ -162,8 +164,12 @@ async function waitForRunResult(
   }
 
   return new Promise<RunPhaseResult>((resolve, reject) => {
+    let settled = false;
+
     const onAbort = () => {
       void cancelRunBestEffort(run).finally(() => {
+        if (settled) return;
+        settled = true;
         reject(new Error("Task aborted due to timeout"));
       });
     };
@@ -173,10 +179,14 @@ async function waitForRunResult(
     run
       .wait()
       .then((result) => {
+        if (settled) return;
+        settled = true;
         signal.removeEventListener("abort", onAbort);
         resolve(toPhaseResult(result));
       })
       .catch((err: unknown) => {
+        if (settled) return;
+        settled = true;
         signal.removeEventListener("abort", onAbort);
         reject(err);
       });
