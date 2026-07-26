@@ -25,6 +25,7 @@ describe("Board API Routes", () => {
     CURSOR_MODEL: "composer-2",
     SERVER_API_KEY: "fake-board-key",
     TENANTS: [],
+    SCHEDULED_REVIEW_JOBS: false,
   };
 
   const app = new Hono();
@@ -130,6 +131,13 @@ Test spec for board import/export.
     if (result.ok) {
       assert.strictEqual(result.value, "file-token-value");
     }
+  });
+
+  it("rejects path traversal in secret_ref", () => {
+    const traversal = resolveSecretRef("../etc/passwd", secretsDir);
+    assert.strictEqual(traversal.ok, false);
+    const absolute = resolveSecretRef("/etc/passwd", secretsDir);
+    assert.strictEqual(absolute.ok, false);
   });
 
   it("CRUD cards with lane filter and default backlog", async () => {

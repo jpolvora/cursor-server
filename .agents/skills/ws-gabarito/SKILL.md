@@ -1,7 +1,8 @@
 ---
 
+
 name: ws-gabarito
-version: 0.0.90
+version: 0.0.91
 description: >
   Gabarito — operational response guidelines (accountability, anti-sycophancy,
   systematization, clarification, effort scaffolding, self-eval, step-back, chain-of-verification,

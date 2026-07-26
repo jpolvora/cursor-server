@@ -291,11 +291,16 @@ export function createUiRoutes() {
   }
 
   async function api(path, options) {
-    const res = await fetch(path, options);
-    const text = await res.text();
-    let body = null;
-    try { body = text ? JSON.parse(text) : null; } catch { body = { raw: text }; }
-    return { res: res, body: body };
+    try {
+      const res = await fetch(path, options);
+      const text = await res.text();
+      let body = null;
+      try { body = text ? JSON.parse(text) : null; } catch { body = { raw: text }; }
+      return { res: res, body: body };
+    } catch (err) {
+      const message = err && err.message ? err.message : "Network request failed";
+      return { res: { ok: false, status: 0 }, body: { error: message } };
+    }
   }
 
   function repoById(id) {
@@ -833,11 +838,16 @@ export function createUiRoutes() {
   }
 
   async function api(path, options) {
-    const res = await fetch(path, options);
-    const text = await res.text();
-    let body = null;
-    try { body = text ? JSON.parse(text) : null; } catch { body = { raw: text }; }
-    return { res: res, body: body };
+    try {
+      const res = await fetch(path, options);
+      const text = await res.text();
+      let body = null;
+      try { body = text ? JSON.parse(text) : null; } catch { body = { raw: text }; }
+      return { res: res, body: body };
+    } catch (err) {
+      const message = err && err.message ? err.message : "Network request failed";
+      return { res: { ok: false, status: 0 }, body: { error: message } };
+    }
   }
 
   async function listSpecs() {

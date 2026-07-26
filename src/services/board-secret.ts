@@ -27,19 +27,42 @@ export function resolveSecretRef(
 
   const trimmed = secretRef.trim();
 
+  if (
+    trimmed.includes("/") ||
+    trimmed.includes("\\") ||
+    trimmed.includes("..") ||
+    path.isAbsolute(trimmed)
+  ) {
+    return {
+      ok: false,
+      error: "Invalid secret_ref (must be an environment variable name or file basename)",
+    };
+  }
+
   const fromEnv = process.env[trimmed];
   if (fromEnv !== undefined && fromEnv !== "") {
     return { ok: true, value: fromEnv };
   }
 
   const fileCandidates: string[] = [];
-  if (path.isAbsolute(trimmed)) {
-    fileCandidates.push(trimmed);
-  }
   if (secretsDir) {
-    fileCandidates.push(path.join(secretsDir, trimmed));
+    const canonicalSecretsDir = path.resolve(secretsDir);
+    const resolved = path.resolve(canonicalSecretsDir, trimmed);
+    if (
+      resolved.startsWith(canonicalSecretsDir + path.sep) ||
+      resolved === canonicalSecretsDir
+    ) {
+      fileCandidates.push(resolved);
+    }
   }
-  fileCandidates.push(path.join("/run/secrets", trimmed));
+  const runSecretsRoot = path.resolve("/run/secrets");
+  const runSecretPath = path.resolve(runSecretsRoot, trimmed);
+  if (
+    runSecretPath.startsWith(runSecretsRoot + path.sep) ||
+    runSecretPath === runSecretsRoot
+  ) {
+    fileCandidates.push(runSecretPath);
+  }
 
   for (const candidate of fileCandidates) {
     try {
