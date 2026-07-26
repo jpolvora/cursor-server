@@ -53,6 +53,58 @@ This is a test description.
     assert.deepStrictEqual(spec.stages, [...DEFAULT_SPEC_STAGES]);
   });
 
+  it("parses frontmatter stages override", () => {
+    const markdown = `---
+slug: custom-stages
+title: Custom Stages
+stages: [implement, test, review]
+---
+
+# Custom Stages
+
+## Description
+Uses custom stages from frontmatter.
+`;
+
+    const spec = parseSpecMarkdown(markdown);
+    assert.deepStrictEqual(spec.stages, ["implement", "test", "review"]);
+  });
+
+  it("parses frontmatter dependencies", () => {
+    const markdown = `---
+slug: with-deps
+title: With Dependencies
+dependencies:
+  - spec-schema
+  - auth
+---
+
+# With Dependencies
+
+## Description
+Depends on other specs.
+`;
+
+    const spec = parseSpecMarkdown(markdown);
+    assert.deepStrictEqual(spec.dependencies, ["spec-schema", "auth"]);
+  });
+
+  it("falls back to default stages when frontmatter omits stages", () => {
+    const markdown = `---
+slug: no-stages
+title: No Stages
+---
+
+# No Stages
+
+## Description
+No explicit stages.
+`;
+
+    const spec = parseSpecMarkdown(markdown);
+    assert.deepStrictEqual(spec.stages, [...DEFAULT_SPEC_STAGES]);
+  });
+
   it("default stages are supported by the default Cursor runner", () => {
     const runner = new LocalCursorRunner();
     const result = validateSpecPayload({ id: "defaults", title: "Defaults" });
@@ -99,7 +151,7 @@ This is a test description.
     assert.strictEqual(result.spec.id, "json-spec");
   });
 
-  it("returns validation error for invalid objects", () => {
+  it("returns structured validation errors for invalid objects", () => {
     const invalidPayload = {
       title: 123, // title must be string
     };
@@ -107,6 +159,29 @@ This is a test description.
     const result = validateSpecPayload(invalidPayload);
     assert.strictEqual(result.valid, false);
     assert.ok(result.errors && result.errors.length > 0);
+    assert.ok(result.issues && result.issues.length > 0);
+    const titleIssue = result.issues!.find((issue) => issue.field === "title");
+    assert.ok(titleIssue);
+    assert.deepStrictEqual(titleIssue!.path, ["title"]);
+    assert.strictEqual(titleIssue!.code, "invalid_type");
+  });
+
+  it("returns structured validation errors for invalid frontmatter stages", () => {
+    const markdown = `---
+slug: bad-stages
+title: Bad Stages
+stages: [implement, not-a-stage]
+---
+
+# Bad Stages
+`;
+
+    const result = validateSpecPayload(markdown);
+    assert.strictEqual(result.valid, false);
+    assert.ok(result.issues && result.issues.length > 0);
+    const stageIssue = result.issues!.find((issue) => issue.path.includes("stages"));
+    assert.ok(stageIssue);
+    assert.ok(stageIssue!.message.length > 0);
   });
 
   it("scans repository specs directory", () => {

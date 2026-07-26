@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
+import type { HarnessStage } from "./harness-runner.js";
 
 export const AcceptanceCriterionSchema = z.object({
   id: z.string(),
@@ -16,12 +17,16 @@ export type AcceptanceCriterion = z.infer<typeof AcceptanceCriterionSchema>;
 /** Default pipeline stages when a spec does not declare `stages`. Excludes `deploy` (unsupported by default runners). */
 export const DEFAULT_SPEC_STAGES = ["implement", "build", "test", "review"] as const;
 
+const HARNESS_STAGE_IDS = ["spec", "implement", "build", "test", "deploy", "review"] as const satisfies readonly HarnessStage[];
+
+export const HarnessStageSchema = z.enum(HARNESS_STAGE_IDS);
+
 export const QualifiedSpecSchema = z.object({
   id: z.string(),
   title: z.string(),
   version: z.string().default("1.0.0"),
   description: z.string().default(""),
-  stages: z.array(z.string()).default([...DEFAULT_SPEC_STAGES]),
+  stages: z.array(HarnessStageSchema).default([...DEFAULT_SPEC_STAGES]),
   acceptanceCriteria: z.array(AcceptanceCriterionSchema).default([]),
   dependencies: z.array(z.string()).default([]),
   rawContent: z.string().optional(),
@@ -29,10 +34,20 @@ export const QualifiedSpecSchema = z.object({
 
 export type QualifiedSpec = z.infer<typeof QualifiedSpecSchema>;
 
+export interface SpecValidationIssue {
+  path: (string | number)[];
+  field: string;
+  message: string;
+  code: string;
+}
+
 export interface SpecValidationResult {
   valid: boolean;
   spec?: QualifiedSpec;
+  /** Human-readable messages (backward compatible with spec editor). */
   errors?: string[];
+  /** Structured issues with path/field context for field highlighting. */
+  issues?: SpecValidationIssue[];
 }
 
 export interface SpecSummary {
@@ -43,35 +58,116 @@ export interface SpecSummary {
   valid: boolean;
 }
 
+type FrontmatterValue = string | string[];
+
+function unquoteYamlScalar(value: string): string {
+  let val = value.trim();
+  if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+    val = val.slice(1, -1);
+  }
+  return val;
+}
+
+function parseInlineYamlArray(value: string): string[] | null {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) {
+    return null;
+  }
+  const inner = trimmed.slice(1, -1).trim();
+  if (!inner) {
+    return [];
+  }
+  return inner.split(",").map((item) => unquoteYamlScalar(item));
+}
+
 /**
  * Parse YAML frontmatter key-values simply without external dependencies.
  */
-function parseFrontmatter(content: string): { frontmatter: Record<string, string>; body: string } {
+function parseFrontmatter(content: string): { frontmatter: Record<string, FrontmatterValue>; body: string } {
   const frontmatterMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
   if (!frontmatterMatch) {
     return { frontmatter: {}, body: content };
   }
 
   const [, rawFrontmatter, body] = frontmatterMatch;
-  const frontmatter: Record<string, string> = {};
+  const frontmatter: Record<string, FrontmatterValue> = {};
+  let currentArrayKey: string | null = null;
 
   for (const line of rawFrontmatter.split("\n")) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;
-    const colonIdx = trimmed.indexOf(":");
-    if (colonIdx !== -1) {
-      const key = trimmed.slice(0, colonIdx).trim();
-      let val = trimmed.slice(colonIdx + 1).trim();
-      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-        val = val.slice(1, -1);
+
+    const listMatch = trimmed.match(/^-\s+(.+)$/);
+    if (listMatch && currentArrayKey) {
+      const existing = frontmatter[currentArrayKey];
+      const item = unquoteYamlScalar(listMatch[1]);
+      if (Array.isArray(existing)) {
+        existing.push(item);
+      } else {
+        frontmatter[currentArrayKey] = [item];
       }
-      if (val !== "null" && val !== "undefined") {
-        frontmatter[key] = val;
-      }
+      continue;
     }
+
+    currentArrayKey = null;
+    const colonIdx = trimmed.indexOf(":");
+    if (colonIdx === -1) continue;
+
+    const key = trimmed.slice(0, colonIdx).trim();
+    const rawVal = trimmed.slice(colonIdx + 1).trim();
+
+    if (rawVal === "" || rawVal === "null" || rawVal === "undefined") {
+      if (rawVal === "null" || rawVal === "undefined") {
+        continue;
+      }
+      currentArrayKey = key;
+      frontmatter[key] = [];
+      continue;
+    }
+
+    const inlineArray = parseInlineYamlArray(rawVal);
+    if (inlineArray !== null) {
+      frontmatter[key] = inlineArray;
+      continue;
+    }
+
+    frontmatter[key] = unquoteYamlScalar(rawVal);
   }
 
   return { frontmatter, body };
+}
+
+function frontmatterString(frontmatter: Record<string, FrontmatterValue>, key: string): string | undefined {
+  const value = frontmatter[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+function frontmatterStringArray(frontmatter: Record<string, FrontmatterValue>, key: string): string[] | undefined {
+  const value = frontmatter[key];
+  if (Array.isArray(value)) {
+    return value.length > 0 ? value : undefined;
+  }
+  if (typeof value === "string" && value.trim()) {
+    return [value];
+  }
+  return undefined;
+}
+
+export function zodIssuesToSpecValidationIssues(issues: z.ZodIssue[]): SpecValidationIssue[] {
+  return issues.map((issue) => ({
+    path: issue.path,
+    field: issue.path.length > 0 ? String(issue.path[issue.path.length - 1]) : "root",
+    message: issue.message,
+    code: issue.code,
+  }));
+}
+
+function formatValidationFailure(error: z.ZodError): Pick<SpecValidationResult, "errors" | "issues"> {
+  const issues = zodIssuesToSpecValidationIssues(error.issues);
+  return {
+    issues,
+    errors: issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`),
+  };
 }
 
 /**
@@ -82,9 +178,15 @@ export function parseSpecMarkdown(content: string): QualifiedSpec {
 
   // Fallback title from first h1
   const h1Match = body.match(/^#\s+(.+)$/m);
-  const title = frontmatter.title || (h1Match ? h1Match[1].trim() : "Untitled Spec");
-  const id = frontmatter.slug || frontmatter.id || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "spec-unknown";
-  const version = frontmatter.version || "1.0.0";
+  const title = frontmatterString(frontmatter, "title") || (h1Match ? h1Match[1].trim() : "Untitled Spec");
+  const id =
+    frontmatterString(frontmatter, "slug") ||
+    frontmatterString(frontmatter, "id") ||
+    title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") ||
+    "spec-unknown";
+  const version = frontmatterString(frontmatter, "version") || "1.0.0";
+  const stages = frontmatterStringArray(frontmatter, "stages");
+  const dependencies = frontmatterStringArray(frontmatter, "dependencies") ?? [];
 
   // Extract description section
   let description = "";
@@ -136,16 +238,22 @@ export function parseSpecMarkdown(content: string): QualifiedSpec {
     });
   }
 
-  return QualifiedSpecSchema.parse({
+  const parsed = QualifiedSpecSchema.safeParse({
     id,
     title,
     version,
     description,
-    stages: [...DEFAULT_SPEC_STAGES],
+    ...(stages !== undefined ? { stages } : {}),
     acceptanceCriteria,
-    dependencies: [],
+    dependencies,
     rawContent: content,
   });
+
+  if (!parsed.success) {
+    throw parsed.error;
+  }
+
+  return parsed.data;
 }
 
 /**
@@ -169,16 +277,31 @@ export function validateSpecPayload(input: unknown): SpecValidationResult {
       if (parsed.success) {
         return { valid: true, spec: parsed.data };
       }
-      return {
-        valid: false,
-        errors: parsed.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`),
-      };
+      return { valid: false, ...formatValidationFailure(parsed.error) };
     }
 
-    return { valid: false, errors: ["Invalid spec payload format. Must be string or object."] };
+    return {
+      valid: false,
+      errors: ["Invalid spec payload format. Must be string or object."],
+      issues: [
+        {
+          path: [],
+          field: "root",
+          message: "Invalid spec payload format. Must be string or object.",
+          code: "invalid_type",
+        },
+      ],
+    };
   } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      return { valid: false, ...formatValidationFailure(err) };
+    }
     const message = err instanceof Error ? err.message : String(err);
-    return { valid: false, errors: [message] };
+    return {
+      valid: false,
+      errors: [message],
+      issues: [{ path: [], field: "root", message, code: "custom" }],
+    };
   }
 }
 
