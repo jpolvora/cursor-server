@@ -1,4 +1,8 @@
 import { Hono } from "hono";
+import {
+  PROMPT_WIDGET_CLIENT_JS,
+  renderPromptPageHtml,
+} from "./prompt-widget.js";
 
 /**
  * Public UI routes (no auth). Browser calls protected APIs with optional X-API-Key.
@@ -217,7 +221,7 @@ export function createUiRoutes() {
   <header>
     <div>
       <h1>Kanban Board</h1>
-      <div class="sub">cursor-server · global ops · <a href="/ui/spec-editor" style="color:var(--accent)">spec-editor</a></div>
+      <div class="sub">cursor-server · global ops · <a href="/ui/prompt" style="color:var(--accent)">prompt</a> · <a href="/ui/spec-editor" style="color:var(--accent)">spec-editor</a></div>
     </div>
     <div class="toolbar">
       <div>
@@ -743,7 +747,7 @@ export function createUiRoutes() {
   <header>
     <div>
       <h1>Spec Editor</h1>
-      <div class="sub">cursor-server · validate · save · harness run</div>
+      <div class="sub">cursor-server · validate · save · harness run · <a href="/ui/prompt" style="color:var(--accent)">prompt</a> · <a href="/ui/board" style="color:var(--accent)">board</a></div>
     </div>
     <div class="row" style="flex: 1; max-width: 640px; justify-content: flex-end;">
       <div>
@@ -990,6 +994,15 @@ export function createUiRoutes() {
 </body>
 </html>`);
   });
+
+  ui.get("/prompt", (c) => c.html(renderPromptPageHtml()));
+
+  ui.get("/prompt-widget.js", (c) =>
+    c.body(PROMPT_WIDGET_CLIENT_JS, 200, {
+      "Content-Type": "application/javascript; charset=utf-8",
+      "Cache-Control": "public, max-age=300",
+    }),
+  );
 
   return ui;
 }
