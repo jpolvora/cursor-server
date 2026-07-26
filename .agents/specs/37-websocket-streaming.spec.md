@@ -4,7 +4,7 @@ slug: 37-websocket-streaming
 title: "WebSocket task streaming (alongside SSE)"
 source: local
 specDate: 2026-07-26
-status: shipped
+status: completed
 version: 0.1.0
 ---
 

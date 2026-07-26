@@ -16,6 +16,7 @@ Primary use cases (shipped; see caveats below for rough edges):
 6. **Ops Kanban** — SQLite board data plane, `GET /ui/board`, Start/Pause/Finish for `spec-to-pr*`.
 7. **Agent prompt widget** — `GET /ui/prompt` (standalone + embeddable).
 8. **Root ops dashboard** — `GET /` HTML shell (login gate, left nav, config); host prefs via `GET`/`PUT /settings` (`app_settings` in board DB); Projects pane CRUD (create/edit/delete modals over `/board/repos`, soft-block delete when cards remain).
+9. **Product website** — GitHub Pages static site (`website/`, `npm run deploy:pages`); release-triggered deploy from `master` via `.github/workflows/deploy-pages.yml`.
 
 Prefer small, reviewable increments; confirm major new roadmap items with the owner before building.
 
@@ -125,7 +126,7 @@ Log `agentId` and `run.id` after `send()` in production paths.
 
 ## Roadmap (design intent)
 
-Documented here so agents understand direction. **Shipped** items are summarized above; this section covers remaining gaps and aspirational work.
+Documented here so agents understand direction. **Shipped** items are summarized above; this section covers **remaining gaps** and runner operational caveats.
 
 ### Hermes integration (landed with caveats)
 
