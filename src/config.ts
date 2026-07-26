@@ -4,6 +4,10 @@ export interface TenantConfig {
   id: string;
   apiKey: string;
   allowedRepos: string[];
+  /** Optional per-tenant CPU limit (fraction of one core, e.g. 0.5). */
+  cpuLimit?: number;
+  /** Optional per-tenant memory cap in megabytes. */
+  memoryLimitMb?: number;
 }
 
 export function parseTenants(raw: string | undefined): TenantConfig[] {
@@ -23,6 +27,8 @@ export function parseTenants(raw: string | undefined): TenantConfig[] {
       id: String(t.id ?? ""),
       apiKey: String(t.apiKey ?? ""),
       allowedRepos: Array.isArray(t.allowedRepos) ? t.allowedRepos.map(String) : [],
+      cpuLimit: typeof t.cpuLimit === "number" ? t.cpuLimit : undefined,
+      memoryLimitMb: typeof t.memoryLimitMb === "number" ? t.memoryLimitMb : undefined,
     })).filter((t) => t.id && t.apiKey);
     console.info(`Loaded ${tenants.length} tenant(s) from TENANTS env var`);
     return tenants;
@@ -40,6 +46,10 @@ export const envSchema = z.object({
   CURSOR_MODEL: z.string().default("composer-2"),
   SERVER_API_KEY: z.string().optional(),
   MCP_CONFIG_PATH: z.string().optional(),
+  /** Default CPU limit for tenant agent runs (fraction of one core). Overridable per tenant in TENANTS JSON. */
+  TENANT_CPU_LIMIT: z.coerce.number().positive().optional(),
+  /** Default memory limit for tenant agent runs (MB). Overridable per tenant in TENANTS JSON. */
+  TENANT_MEMORY_LIMIT_MB: z.coerce.number().positive().optional(),
 });
 
 export type Config = z.infer<typeof envSchema> & { TENANTS: TenantConfig[] };

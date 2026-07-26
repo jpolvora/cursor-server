@@ -2,7 +2,8 @@ import { Agent, CursorAgentError } from "@cursor/sdk";
 import type { AgentId } from "../agents.js";
 import type { Config } from "../config.js";
 import type { McpServers } from "./mcp-config.js";
-
+import { applyTenantEnv } from "./tenant-context.js";
+import { applyTenantResourceLimits, resolveTenantResourceLimits } from "./tenant-resource-limits.js";
 export type RunTaskInput = {
   prompt: string;
   repoPath: string;
@@ -103,37 +104,15 @@ function promptForAgent(agent: AgentId, userPrompt: string, planText?: string): 
   }
 }
 
-function applyTenantEnv(input: { tenantId?: string; repoPath: string }): () => void {
-  if (!input.tenantId) return () => {};
-
-  const prevTenantId = process.env.CURSOR_TENANT_ID;
-  const prevRepoPath = process.env.CURSOR_TENANT_REPO_PATH;
-
-  process.env.CURSOR_TENANT_ID = input.tenantId;
-  process.env.CURSOR_TENANT_REPO_PATH = input.repoPath;
-
-  return () => {
-    if (prevTenantId !== undefined) {
-      process.env.CURSOR_TENANT_ID = prevTenantId;
-    } else {
-      delete process.env.CURSOR_TENANT_ID;
-    }
-    if (prevRepoPath !== undefined) {
-      process.env.CURSOR_TENANT_REPO_PATH = prevRepoPath;
-    } else {
-      delete process.env.CURSOR_TENANT_REPO_PATH;
-    }
-  };
-}
-
 async function runAgentPhase(
-  _config: Config,
+  config: Config,
   input: { prompt: string; repoPath: string; model: string; tenantId?: string; allowedRepos?: string[]; mcpServers?: McpServers },
 ): Promise<RunPhaseResult> {
   const cleanupEnv = applyTenantEnv(input);
+  const cleanupLimits = applyTenantResourceLimits(resolveTenantResourceLimits(config, input.tenantId));
 
   const agentOptions: Parameters<typeof Agent.create>[0] = {
-    apiKey: _config.CURSOR_API_KEY,
+    apiKey: config.CURSOR_API_KEY,
     model: { id: input.model },
     local: {
       cwd: input.repoPath,
@@ -165,6 +144,7 @@ async function runAgentPhase(
     }
     throw err;
   } finally {
+    cleanupLimits();
     cleanupEnv();
     await agent[Symbol.asyncDispose]();
   }
@@ -183,6 +163,7 @@ export async function runTask(
       prompt: promptForAgent("planner", input.prompt),
       repoPath: input.repoPath,
       model,
+      tenantId: input.tenantId,
       mcpServers: input.mcpServers,
     });
 
@@ -206,6 +187,7 @@ export async function runTask(
       prompt: promptForAgent("plan+implementer", input.prompt, plan.result),
       repoPath: input.repoPath,
       model,
+      tenantId: input.tenantId,
       mcpServers: input.mcpServers,
     });
 
@@ -223,6 +205,7 @@ export async function runTask(
     prompt: promptForAgent(agent, input.prompt),
     repoPath: input.repoPath,
     model,
+    tenantId: input.tenantId,
     mcpServers: input.mcpServers,
   });
 
