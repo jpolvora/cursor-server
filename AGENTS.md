@@ -159,13 +159,12 @@ New runners plug in via `runnerRegistry.register()` behind the same spec → sta
 
 Living feature map: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD). Confirm major new items with the owner before expanding scope:
 
-- **Spec editor aspirational UI** — AC builder, dependency graph, stage designer (`36-spec-editor-aspirational-ui`)
 - **WebSocket streaming** — alongside SSE (`37-websocket-streaming`)
 - **Umbrel App Store manifest** — store listing on existing Compose path (`38-umbrel-app-store`)
 
 Inbox (not scheduled): richer MCP diagnostics beyond fix-23 (only if new gaps appear).
 
-Shipped recently (do not re-open as gaps): Kanban board (`32`–`34`), agent prompt widget (`35`), scheduled review jobs (`25` — hygiene scan, `SCHEDULED_REVIEW_JOBS` gate, `Agent.resume`), MCP merge (`23`), multi-tenant ACL (`22`), SSE progress/auth (`24`), Hermes CLI/health (`20`), OpenCode stream/git (`21`), harness default stages (`26`), frontmatter stages (`27`), `spec-to-pr*` agent roles (`05`).
+Shipped recently (do not re-open as gaps): spec-editor aspirational UI (`36` — AC builder, dependency graph, stage designer), Kanban board (`32`–`34`), agent prompt widget (`35`), scheduled review jobs (`25` — hygiene scan, `SCHEDULED_REVIEW_JOBS` gate, `Agent.resume`), MCP merge (`23`), multi-tenant ACL (`22`), SSE progress/auth (`24`), Hermes CLI/health (`20`), OpenCode stream/git (`21`), harness default stages (`26`), frontmatter stages (`27`), `spec-to-pr*` agent roles (`05`).
 
 ## Testing changes
 

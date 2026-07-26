@@ -43,8 +43,8 @@ Living detail: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD).
 | **API depth** | Async tasks (`202` + poll), run history, SSE streaming, event gateway, MCP merge, `spec-to-pr*` agent roles, scheduled review jobs (opt-in) | **Landed** |
 | **Spec harness** | Qualified spec schema, stage orchestration, spec editor UI, pluggable runners | **MVP landed** |
 | **Runners** | Cursor SDK (default), Hermes (`hermes`), OpenCode (`opencode`) | **Registered** — CLIs must be installed |
-| **Ops UI** | Homelab Kanban board (`32`→`34`); agent prompt widget (`35`) | **Landed** |
-| **Next** | Spec-editor aspirational UI (`36`); WebSocket streaming (`37`); Umbrel App Store (`38`) | Open |
+| **Ops UI** | Homelab Kanban board (`32`→`34`); agent prompt widget (`35`); spec-editor aspirational UI (`36`) | **Landed** |
+| **Next** | WebSocket streaming (`37`); Umbrel App Store (`38`) | Open |
 
 **Caveats (honest gaps):** Hermes/OpenCode adapters require external CLIs on PATH. Scheduled review jobs are **off by default** — set `SCHEDULED_REVIEW_JOBS=true` to register cron handlers. Inbox (not active): richer MCP diagnostics (only if new gaps). See [AGENTS.md](./AGENTS.md) and [`index.PRD`](./.agents/specs/index.PRD).
 
@@ -56,7 +56,7 @@ Homelab-ready API with spec harness MVP. Implemented today:
 
 - `GET /health` — liveness
 - `GET /agents` — task role allowlist (`default`, `planner`, `implementer`, `plan+implementer`, `spec-to-pr`, `spec-to-pr-lite`)
-- `GET /ui/spec-editor` — hosted Markdown spec editor (validate / save / Save & Run)
+- `GET /ui/spec-editor` — hosted Markdown spec editor (AC builder, stage designer, dependency graph; validate / save / Save & Run)
 - `GET /ui/board` — Kanban ops UI (cards, lanes, Start/Pause/Finish)
 - `GET /ui/prompt` — agent prompt widget (submit / stream / query tasks)
 - `POST /tasks` — async task execution (default `async: true` → `202` + `taskId`; `async: false` for sync wait)
@@ -119,7 +119,7 @@ npm run dev
 
 ### `GET /ui/spec-editor`
 
-Interactive Markdown spec editor (no auth on the page). Lists/opens specs under a repo, live-validates via `POST /specs/validate`, saves to `{repo}/.agents/specs/`, and **Save & Run** dispatches `POST /harness/runs`. When `SERVER_API_KEY` is set, enter it in the page so API calls send `X-API-Key`.
+Interactive Markdown spec editor (no auth on the page). Lists/opens specs under a repo, live-validates via `POST /specs/validate`, saves to `{repo}/.agents/specs/`, and **Save & Run** dispatches `POST /harness/runs`. Structured panels (AC builder, stage designer, dependency graph) sync bidirectionally with the Markdown source. When `SERVER_API_KEY` is set, enter it in the page so API calls send `X-API-Key`.
 
 ### `POST /tasks`
 

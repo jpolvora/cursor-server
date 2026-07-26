@@ -4,7 +4,7 @@ slug: 36-spec-editor-aspirational-ui
 title: "Spec-editor aspirational UI (AC builder, dependency graph, stage designer)"
 source: local
 specDate: 2026-07-26
-status: draft
+status: completed
 version: 0.1.0
 ---
 
