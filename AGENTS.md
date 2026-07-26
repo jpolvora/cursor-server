@@ -159,6 +159,7 @@ Living feature map: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD). Conf
 
 - **Scheduled review robustness** — cron jobs register at startup; hygiene + enable gate + `Agent.resume` tracked in `25-fix-scheduled-review-jobs` (re-land; PR #14 closed)
 - **Homelab Kanban board** — SQLite data plane, `/ui/board`, Start/Pause/Finish (`32` → `33` → `34`); design under `docs/superpowers/specs/`
+- **Agent prompt / TUI widget** — OpenCode-inspired, simpler prompt surface for submit/stream/query tasks; standalone + embeddable (`35-agent-prompt-widget`)
 - **WebSocket streaming** — SSE exists (`GET /tasks/:id/stream`); WebSocket not implemented (inbox)
 - **Spec editor aspirational UI** — AC builder, dependency graph, stage designer beyond MVP Markdown editor (inbox)
 - **Umbrel App Store manifest** — Compose path documented; store listing not built (inbox)

@@ -43,9 +43,9 @@ Living detail: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD).
 | **API depth** | Async tasks (`202` + poll), run history, SSE streaming, event gateway, MCP merge, `spec-to-pr*` agent roles | **Landed** (scheduled-review enable-gate still open: `25`) |
 | **Spec harness** | Qualified spec schema, stage orchestration, spec editor UI, pluggable runners | **MVP landed** |
 | **Runners** | Cursor SDK (default), Hermes (`hermes`), OpenCode (`opencode`) | **Registered** — CLIs must be installed |
-| **Next** | Re-land `25-fix-scheduled-review-jobs`; Homelab Kanban board (`32`→`34`) | Open |
+| **Next** | Re-land `25-fix-scheduled-review-jobs`; Homelab Kanban board (`32`→`34`); agent prompt widget (`35`) | Open |
 
-**Caveats (honest gaps):** Hermes/OpenCode adapters require external CLIs on PATH. Scheduled review jobs still need real hygiene + enable gate (`25-fix-scheduled-review-jobs`; PR #14 closed, not on develop). Inbox (not active): WebSocket streaming, aspirational spec-editor UI, Umbrel App Store manifest. See [AGENTS.md](./AGENTS.md) and [`index.PRD`](./.agents/specs/index.PRD).
+**Caveats (honest gaps):** Hermes/OpenCode adapters require external CLIs on PATH. Scheduled review jobs still need real hygiene + enable gate (`25-fix-scheduled-review-jobs`; PR #14 closed, not on develop). Planned after board: OpenCode-inspired agent prompt widget (`35-agent-prompt-widget`). Inbox (not active): WebSocket streaming, aspirational spec-editor UI, Umbrel App Store manifest. See [AGENTS.md](./AGENTS.md) and [`index.PRD`](./.agents/specs/index.PRD).
 
 The spec harness is the flagship long-term feature: authors write complete, machine-actionable specs in a served environment; the server executes them through specialized stage agents (`implement → build → test → review`; `deploy` optional) with full traceability from spec item to review outcome.
 
