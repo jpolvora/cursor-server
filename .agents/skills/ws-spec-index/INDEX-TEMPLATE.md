@@ -68,6 +68,6 @@ Key problem statements addressed by this project.
 
 ## 12. Related docs
 
-- [`README.md`](../README.md)
-- [`AGENTS.md`](../AGENTS.md)
+- [`README.md`](../../../README.md)
+- [`AGENTS.md`](../../../AGENTS.md)
 ```

@@ -1,13 +1,16 @@
 ---
 
 
+
+
+
 name: ws-spec-format
 description: >-
   Creates, reviews, or formats *.spec.md artifacts (local US/feature specification). Project-agnostic.
   Load when the user invokes /ws-spec-format, @ws-spec-format, "create spec", "review spec",
   "format spec" or requests validation of local specification format.
 disable-model-invocation: true
-version: 0.0.91
+version: 0.0.96
 ---
 
 # ws-spec-format

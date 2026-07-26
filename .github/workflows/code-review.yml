@@ -53,7 +53,7 @@ jobs:
         env:
           AGENTIC_CODE_REVIEWERS_GITHUB_TOKEN: ${{ secrets.AGENTIC_CODE_REVIEWERS_GITHUB_TOKEN || github.token }}
         run: |
-          ACTIVE=$(node .agents/skills/github-provider/scripts/fetch_threads.cjs ${{ github.event.pull_request.number }} --json 2>/dev/null | jq '.activeThreads | length')
+          ACTIVE=$(node .agents/skills/ws-github-provider/scripts/fetch_threads.cjs ${{ github.event.pull_request.number }} --json 2>/dev/null | jq '.activeThreads | length')
           ACTIVE=${ACTIVE:-0}
           echo "Active threads: $ACTIVE"
           [ "$ACTIVE" -eq 0 ] || exit 1

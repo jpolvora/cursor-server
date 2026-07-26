@@ -14,7 +14,7 @@ status: completed
 ## Objectives
 1. Add `spec-to-pr` and `spec-to-pr-lite` to the allowed task agent roles in `src/agents.ts`.
 2. Support role resolution and aliases (e.g. `spec_to_pr`, `spec-to-pr-lite`, `spec_to_pr_lite`).
-3. Formulate system/user prompt guidance in `src/services/agent-runner.ts` that instructs the local Cursor SDK agent to read and follow `.agents/skills/spec-to-pr/SKILL.md` or `.agents/skills/spec-to-pr-lite/SKILL.md` in the target repository working tree.
+3. Formulate system/user prompt guidance in `src/services/agent-runner.ts` that instructs the local Cursor SDK agent to read and follow `.agents/skills/ws-spec-to-pr/SKILL.md` or `.agents/skills/ws-spec-to-pr-lite/SKILL.md` in the target repository working tree.
 4. Keep full backward compatibility with `default`, `planner`, `implementer`, and `plan+implementer`.
 
 ## Acceptance Criteria

@@ -1,4 +1,13 @@
-```markdown
+---
+name: cursor-server
+description: >
+  Local cursor-server coding conventions and workflows (camelCase files, relative
+  imports, named exports, conventional commits, feature+tests, config/docs sync).
+  Use when implementing or refactoring in this TypeScript Hono codebase, or when
+  asked for project patterns / /implement-feature-with-tests / /update-config-docs.
+disable-model-invocation: true
+---
+
 # cursor-server Development Patterns
 
 > Auto-generated skill from repository analysis
@@ -110,4 +119,3 @@ This skill teaches the core development patterns and workflows used in the `curs
 |------------------------------|----------------------------------------------------------------|
 | /implement-feature-with-tests | Implement new/updated logic with corresponding unit tests       |
 | /update-config-docs          | Update config/env logic and synchronize documentation/examples  |
-```

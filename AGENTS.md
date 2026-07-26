@@ -76,8 +76,8 @@ src/
 | `planner` | Plan-only prompt (no implement) |
 | `implementer` | Implement-focused single run |
 | `plan+implementer` | Plan phase, then implement with that plan |
-| `spec-to-pr` | Drive installed `ws-spec-to-pr` / `spec-to-pr` skill in the target repo |
-| `spec-to-pr-lite` | Drive installed lite orchestrator in the target repo |
+| `spec-to-pr` | Drive installed `ws-spec-to-pr` skill in the target repo |
+| `spec-to-pr-lite` | Drive installed `ws-spec-to-pr-lite` skill in the target repo |
 
 List via `GET /agents`.
 
@@ -197,7 +197,7 @@ This repo consumes the **full** package. Skills live under `.agents/skills/`. Do
 | [`.agents/skills/shared/installed-skills.json`](.agents/skills/shared/installed-skills.json) | Managed skill list for `update` / `uninstall` |
 | Upstream [README](https://github.com/jpolvora/workflow-skills#install-update-and-uninstall) | Human install narrative + catalog |
 
-**Primary delivery:** `spec-to-pr` (thorough) or `spec-to-pr-lite` (fast). Optional: `fable-method`. After install/update: run `check-harness`; optionally `configure-project`.
+**Primary delivery:** `ws-spec-to-pr` (thorough) or `ws-spec-to-pr-lite` (fast). Optional: `ws-fable-method`. After install/update: run `ws-check-harness`; optionally `ws-configure-project`.
 
 **Project docs:** [`README.md`](README.md) · [`.agents/skills/shared/MEMORY.md`](.agents/skills/shared/MEMORY.md) · [`.agents/skills/shared/CHANGELOG.md`](.agents/skills/shared/CHANGELOG.md) (`rules.changelogFile`).
 
@@ -206,13 +206,14 @@ This repo consumes the **full** package. Skills live under `.agents/skills/`. Do
 **Portable contract:** this root `AGENTS.md` is the single source of truth for skill autoload and completion gates. It applies to any agent host that reads project instructions (Cursor, OpenCode, Antigravity, VS Code Copilot, Claude Code, Codex, etc.). Do **not** rely on IDE-vendor rule folders (e.g. `.cursor/rules`) for these gates.
 
 1. Load the shared hub first for routing: [`.agents/skills/shared/AGENTS.md`](.agents/skills/shared/AGENTS.md).
-2. **Autoload every prompt (Layer 0):** `caveman`, `gabarito`, `karpathy-guidelines` from the hub (paths under `.agents/skills/`).
+2. **Autoload every prompt (Layer 0):** `ws-caveman`, `ws-gabarito`, `ws-karpathy-guidelines` from the hub (paths under `.agents/skills/`).
 3. **Autoload after implementation / vibe-coding turns:** [`ws-sync-spec`](.agents/skills/ws-sync-spec/SKILL.md) — keep matching `.agents/specs/*.spec.md` aligned with code; propose updates and **wait for approval** before writing. If no matching spec, report and continue.
-4. Invoke orchestrators by intent: `/spec-to-pr`, `/spec-to-pr-lite`, `/fable-method`, `/configure-project`, `/check-harness`, `/ship-pr`, `/fix-pr`, etc.
-5. Expand path tokens (`{skillsRoot}`, `{sharedDir}`, `{plansDir}`) from `config.json` per `shared/tools.md` before file ops.
-6. Never invent alternate pipeline folder ids; dispatch steps via the orchestrator (`00`–`09`, `goal-fix-pr`, `update-plan-implementation`).
-7. **Mandatory completion gate (every task ready):** `ws-sync-spec` → `self-learning` → `changelog`.
-8. **On-demand only (not every vibe turn):** [`ws-spec-index`](.agents/skills/ws-spec-index/SKILL.md) for ship/delivery (`sync`), Inbox → planned (`promote`), or index bootstrap (`init`). Use when editing `index.PRD` / README Roadmap / AGENTS Planned areas — not for AC content drift (that is `ws-sync-spec`).
+4. **On demand (this repo):** [`cursor-server`](.agents/skills/cursor-server/SKILL.md) — local coding conventions and feature/config workflows when implementing in this codebase.
+5. Invoke orchestrators by intent: `/ws-spec-to-pr`, `/ws-spec-to-pr-lite`, `/ws-fable-method`, `/ws-configure-project`, `/ws-check-harness`, `/ws-ship-pr`, `/ws-fix-pr`, etc.
+6. Expand path tokens (`{skillsRoot}`, `{sharedDir}`, `{plansDir}`) from `config.json` per `shared/tools.md` before file ops.
+7. Never invent alternate pipeline folder ids; dispatch steps via the orchestrator (`00`–`09`, `goal-fix-pr`, `update-plan-implementation`).
+8. **Mandatory completion gate (every task ready):** `ws-sync-spec` → `self-learning` → `changelog`.
+9. **On-demand only (not every vibe turn):** [`ws-spec-index`](.agents/skills/ws-spec-index/SKILL.md) for ship/delivery (`sync`), Inbox → planned (`promote`), or index bootstrap (`init`). Use when editing `index.PRD` / README Roadmap / AGENTS Planned areas — not for AC content drift (that is `ws-sync-spec`).
 
 ### Install / update / uninstall
 
@@ -225,7 +226,7 @@ npx --yes github:jpolvora/workflow-skills
 # Non-interactive (exactly one mode)
 npx --yes github:jpolvora/workflow-skills install --full --yes
 npx --yes github:jpolvora/workflow-skills install --package workflows --yes
-npx --yes github:jpolvora/workflow-skills install --skills spec-to-pr,goal-fix-pr --yes
+npx --yes github:jpolvora/workflow-skills install --skills ws-spec-to-pr,ws-goal-fix-pr --yes
 
 # Update tracked skills (preserves shared/ consumer data)
 npx --yes github:jpolvora/workflow-skills update
