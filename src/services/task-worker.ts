@@ -48,6 +48,7 @@ export function processTaskInBackground(config: Config, taskId: string): void {
         repoPath: task.repoPath,
         model: task.model,
         agent: task.agent,
+        tenantId: task.tenantId,
       });
 
       const endTime = Date.now();

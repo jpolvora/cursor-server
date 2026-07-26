@@ -73,7 +73,8 @@ export function createHarnessRoutes(config: Config) {
         );
       }
 
-      const runRecord = stageOrchestrator.runAsync(specValidation.spec, repoPath, {
+      const tenantId = c.get("tenantId") as string;
+      const runRecord = stageOrchestrator.runAsync(specValidation.spec, repoPath, { tenantId,
         runnerId,
         agent,
         model,
@@ -151,7 +152,8 @@ export function createHarnessRoutes(config: Config) {
   harnessRoutes.get("/runs", (c) => {
     const status = c.req.query("status");
     const specId = c.req.query("specId");
-    const runs = stageStore.listRuns({ status, specId });
+    const tenantId = c.get("tenantId") as string | undefined;
+    const runs = stageStore.listRuns({ status, specId, tenantId });
     return c.json({ runs });
   });
 

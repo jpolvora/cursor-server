@@ -17,13 +17,14 @@ describe("Harness API Routes", () => {
   fs.mkdirSync(namedRepo, { recursive: true });
   fs.mkdirSync(path.join(namedRepo, ".git"));
 
-  const config = {
+  const config: Config = {
     CURSOR_API_KEY: "test-key",
     PORT: 3000,
     HOST: "0.0.0.0",
     REPOS_ROOT: reposRoot,
     CURSOR_MODEL: "composer-2",
-  } satisfies Config;
+    TENANTS: [],
+  };
 
   const app = new Hono();
   app.route("/harness", createHarnessRoutes(config));
@@ -109,6 +110,7 @@ Spec for route tests.
   it("POST /harness/runs/:runId/resume returns 202 Accepted for existing run (AC4)", async () => {
     // Create initial run record manually in store
     const initialRun = stageStore.createRun({
+      tenantId: "master",
       spec: {
         id: "resume-route-spec",
         title: "Resume Route Spec",

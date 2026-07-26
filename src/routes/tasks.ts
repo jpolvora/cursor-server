@@ -27,8 +27,9 @@ export function createTaskRoutes(config: Config) {
     const status = c.req.query("status");
     const repo = c.req.query("repo");
     const source = c.req.query("source");
+    const tenantId = c.get("tenantId") as string | undefined;
 
-    const list = taskStore.listTasks({ status, repo, source });
+    const list = taskStore.listTasks({ status, repo, source, tenantId });
     return c.json({ tasks: list });
   });
 
@@ -135,10 +136,17 @@ export function createTaskRoutes(config: Config) {
       );
     }
 
+    const allowedRepos = c.get("allowedRepos") as string[] | undefined;
+    if (allowedRepos && allowedRepos.length > 0 && !allowedRepos.includes(parsed.data.repo)) {
+      return c.json({ error: `Tenant does not have access to repository '${parsed.data.repo}'` }, 403);
+    }
+
     const agent = resolveAgent(parsed.data.agent);
     const model = parsed.data.model ?? config.CURSOR_MODEL;
+    const tenantId = c.get("tenantId") as string;
 
     const task = taskStore.createTask({
+      tenantId,
       prompt: parsed.data.prompt,
       repo: parsed.data.repo,
       repoPath: validation.resolvedPath,
@@ -158,11 +166,14 @@ export function createTaskRoutes(config: Config) {
       taskStore.emitOutput(task.id, `[${new Date().toISOString()}] Sync task started: role=${task.agent}, model=${task.model}\n`);
 
       try {
+        const allowedRepos = c.get("allowedRepos") as string[] | undefined;
         const result = await runTask(config, {
           prompt: parsed.data.prompt,
           repoPath: validation.resolvedPath,
           model,
           agent,
+          tenantId,
+          allowedRepos,
         });
 
         const endTime = Date.now();

@@ -35,10 +35,17 @@ export function createEventRoutes(config: Config) {
       );
     }
 
+    const allowedRepos = c.get("allowedRepos") as string[] | undefined;
+    if (allowedRepos && allowedRepos.length > 0 && !allowedRepos.includes(parsed.data.repo)) {
+      return c.json({ error: `Tenant does not have access to repository '${parsed.data.repo}'` }, 403);
+    }
+
     const agent = resolveAgent(parsed.data.agent);
     const model = parsed.data.model ?? config.CURSOR_MODEL;
+    const tenantId = c.get("tenantId") as string;
 
     const task = taskStore.createTask({
+      tenantId,
       prompt: parsed.data.prompt,
       repo: parsed.data.repo,
       repoPath: validation.resolvedPath,

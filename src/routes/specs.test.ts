@@ -14,13 +14,14 @@ describe("Spec API Routes", () => {
   fs.mkdirSync(repoPath, { recursive: true });
   fs.mkdirSync(path.join(repoPath, ".git"));
 
-  const config = {
+  const config: Config = {
     CURSOR_API_KEY: "test-key",
     PORT: 3000,
     HOST: "0.0.0.0",
     REPOS_ROOT: reposRoot,
     CURSOR_MODEL: "composer-2",
-  } satisfies Config;
+    TENANTS: [],
+  };
 
   const app = new Hono();
   app.route("/specs", createSpecRoutes(config));

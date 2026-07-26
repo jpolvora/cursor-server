@@ -7,6 +7,8 @@ export type RunTaskInput = {
   repoPath: string;
   model?: string;
   agent: AgentId;
+  tenantId?: string;
+  allowedRepos?: string[];
 };
 
 export type RunPhaseResult = {
@@ -99,12 +101,32 @@ function promptForAgent(agent: AgentId, userPrompt: string, planText?: string): 
   }
 }
 
+export interface ResourceLimits {
+  cpuQuota?: number;
+  memoryLimitMb?: number;
+}
+
+export function parseResourceLimits(_config: Config): ResourceLimits {
+  const cpuQuota = process.env.TENANT_CPU_QUOTA ? Number(process.env.TENANT_CPU_QUOTA) : undefined;
+  const memoryLimitMb = process.env.TENANT_MEMORY_LIMIT_MB ? Number(process.env.TENANT_MEMORY_LIMIT_MB) : undefined;
+  return { cpuQuota, memoryLimitMb };
+}
+
+function applyTenantEnv(input: { tenantId?: string; repoPath: string }) {
+  if (input.tenantId) {
+    process.env.CURSOR_TENANT_ID = input.tenantId;
+    process.env.CURSOR_TENANT_REPO_PATH = input.repoPath;
+  }
+}
+
 async function runAgentPhase(
-  config: Config,
-  input: { prompt: string; repoPath: string; model: string },
+  _config: Config,
+  input: { prompt: string; repoPath: string; model: string; tenantId?: string; allowedRepos?: string[] },
 ): Promise<RunPhaseResult> {
+  applyTenantEnv(input);
+
   const agent = await Agent.create({
-    apiKey: config.CURSOR_API_KEY,
+    apiKey: _config.CURSOR_API_KEY,
     model: { id: input.model },
     local: {
       cwd: input.repoPath,

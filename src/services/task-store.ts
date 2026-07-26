@@ -9,6 +9,7 @@ export type TaskStatus = "queued" | "running" | "completed" | "failed" | "cancel
 
 export interface TaskRecord {
   id: string;
+  tenantId: string;
   prompt: string;
   repo: string;
   repoPath: string;
@@ -26,6 +27,7 @@ export interface TaskRecord {
 }
 
 export interface CreateTaskOptions {
+  tenantId: string;
   prompt: string;
   repo: string;
   repoPath: string;
@@ -80,6 +82,7 @@ class TaskStore {
     const id = `task_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
     const record: TaskRecord = {
       id,
+      tenantId: options.tenantId,
       prompt: options.prompt,
       repo: options.repo,
       repoPath: options.repoPath,
@@ -122,9 +125,12 @@ class TaskStore {
     this.events.emit("task:output", { id, chunk });
   }
 
-  public listTasks(filter?: { status?: string; repo?: string; source?: string }): TaskRecord[] {
+  public listTasks(filter?: { status?: string; repo?: string; source?: string; tenantId?: string }): TaskRecord[] {
     let records = Array.from(this.tasks.values());
 
+    if (filter?.tenantId) {
+      records = records.filter((r) => r.tenantId === filter.tenantId);
+    }
     if (filter?.status) {
       records = records.filter((r) => r.status === filter.status);
     }

@@ -11,6 +11,7 @@ const mockConfig: Config = {
   REPOS_ROOT: "./repos",
   CURSOR_MODEL: "test-model",
   SERVER_API_KEY: undefined,
+  TENANTS: [],
 };
 
 describe("scheduler", () => {
