@@ -129,12 +129,19 @@ export function processTaskInBackground(config: Config, taskId: string): void {
     } catch (err) {
       const endTime = Date.now();
       const errorMessage = err instanceof Error ? err.message : "Task execution failed";
-      const wasCancelled =
-        abortController.signal.aborted ||
-        errorMessage.includes("aborted") ||
-        errorMessage.includes("cancelled");
+      const wasCancelled = abortController.signal.aborted;
 
-      if (!wasCancelled) {
+      if (wasCancelled) {
+        const current = taskStore.getTask(taskId);
+        if (current && (current.status === "queued" || current.status === "running")) {
+          taskStore.updateTask(taskId, {
+            status: "cancelled",
+            completedAt: new Date().toISOString(),
+            error: "Task cancelled",
+          });
+        }
+        taskStore.emitOutput(taskId, `[${new Date().toISOString()}] Task cancelled\n`);
+      } else {
         const updatedTask = taskStore.updateTask(taskId, {
           status: "failed",
           completedAt: new Date().toISOString(),

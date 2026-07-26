@@ -253,7 +253,18 @@ export function pauseCard(
     return { ok: false, error: "Card is already paused", status: 409 };
   }
 
-  cancelTask(card.active_run_id, "Paused from board");
+  const cancelled = cancelTask(card.active_run_id, "Paused from board");
+  if (!cancelled) {
+    const task = taskStore.getTask(card.active_run_id);
+    if (task && (task.status === "completed" || task.status === "failed")) {
+      return {
+        ok: false,
+        error: `Run already ${task.status}; cannot pause`,
+        status: 409,
+      };
+    }
+    return { ok: false, error: "Unable to pause active run", status: 409 };
+  }
 
   const updated = boardDb.updateCard(cardId, {
     lane: "paused",

@@ -33,6 +33,7 @@ describe("Board execution control", () => {
     CURSOR_MODEL: "composer-2",
     SERVER_API_KEY: "fake-exec-key",
     TENANTS: [],
+    SCHEDULED_REVIEW_JOBS: false,
   };
 
   const app = new Hono();
