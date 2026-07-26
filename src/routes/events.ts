@@ -5,6 +5,7 @@ import type { Config } from "../config.js";
 import { validateRepoPath } from "../services/repo-validator.js";
 import { taskStore } from "../services/task-store.js";
 import { processTaskInBackground } from "../services/task-worker.js";
+import { checkRepoAccess } from "../services/tenant-context.js";
 
 const createEventSchema = z.object({
   event: z.string().min(1),
@@ -35,9 +36,9 @@ export function createEventRoutes(config: Config) {
       );
     }
 
-    const allowedRepos = c.get("allowedRepos") as string[] | undefined;
-    if (allowedRepos && allowedRepos.length > 0 && !allowedRepos.includes(parsed.data.repo)) {
-      return c.json({ error: `Tenant does not have access to repository '${parsed.data.repo}'` }, 403);
+    const accessError = checkRepoAccess(c.get("allowedRepos") as string[] ?? [], parsed.data.repo);
+    if (accessError) {
+      return c.json({ error: accessError }, 403);
     }
 
     const agent = resolveAgent(parsed.data.agent);

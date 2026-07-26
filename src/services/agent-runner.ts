@@ -103,29 +103,34 @@ function promptForAgent(agent: AgentId, userPrompt: string, planText?: string): 
   }
 }
 
-export interface ResourceLimits {
-  cpuQuota?: number;
-  memoryLimitMb?: number;
-}
+function applyTenantEnv(input: { tenantId?: string; repoPath: string }): () => void {
+  if (!input.tenantId) return () => {};
 
-export function parseResourceLimits(_config: Config): ResourceLimits {
-  const cpuQuota = process.env.TENANT_CPU_QUOTA ? Number(process.env.TENANT_CPU_QUOTA) : undefined;
-  const memoryLimitMb = process.env.TENANT_MEMORY_LIMIT_MB ? Number(process.env.TENANT_MEMORY_LIMIT_MB) : undefined;
-  return { cpuQuota, memoryLimitMb };
-}
+  const prevTenantId = process.env.CURSOR_TENANT_ID;
+  const prevRepoPath = process.env.CURSOR_TENANT_REPO_PATH;
 
-function applyTenantEnv(input: { tenantId?: string; repoPath: string }) {
-  if (input.tenantId) {
-    process.env.CURSOR_TENANT_ID = input.tenantId;
-    process.env.CURSOR_TENANT_REPO_PATH = input.repoPath;
-  }
+  process.env.CURSOR_TENANT_ID = input.tenantId;
+  process.env.CURSOR_TENANT_REPO_PATH = input.repoPath;
+
+  return () => {
+    if (prevTenantId !== undefined) {
+      process.env.CURSOR_TENANT_ID = prevTenantId;
+    } else {
+      delete process.env.CURSOR_TENANT_ID;
+    }
+    if (prevRepoPath !== undefined) {
+      process.env.CURSOR_TENANT_REPO_PATH = prevRepoPath;
+    } else {
+      delete process.env.CURSOR_TENANT_REPO_PATH;
+    }
+  };
 }
 
 async function runAgentPhase(
   _config: Config,
   input: { prompt: string; repoPath: string; model: string; tenantId?: string; allowedRepos?: string[]; mcpServers?: McpServers },
 ): Promise<RunPhaseResult> {
-  applyTenantEnv(input);
+  const cleanupEnv = applyTenantEnv(input);
 
   const agentOptions: Parameters<typeof Agent.create>[0] = {
     apiKey: _config.CURSOR_API_KEY,
@@ -160,6 +165,7 @@ async function runAgentPhase(
     }
     throw err;
   } finally {
+    cleanupEnv();
     await agent[Symbol.asyncDispose]();
   }
 }

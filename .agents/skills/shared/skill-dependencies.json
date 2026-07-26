@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "packageVersion": "0.0.84",
+  "packageVersion": "0.0.85",
   "upstream": {
     "repo": "jpolvora/workflow-skills",
     "url": "https://github.com/jpolvora/workflow-skills",
@@ -25,7 +25,6 @@
       "skills": [
         "spec-to-pr",
         "spec-to-pr-lite",
-        "ws-multi-spec",
         "ws-write-spec",
         "ws-write-plan",
         "ws-interview",
@@ -54,7 +53,8 @@
         "configure-project",
         "fable-method",
         "fable-judge",
-        "fable-domain"
+        "fable-domain",
+        "ws-multi-spec"
       ],
       "ensureHub": true,
       "shortcut": "w",
@@ -117,10 +117,6 @@
       "changelog",
       "configure-project"
     ],
-    "ws-multi-spec": [
-      "spec-to-pr",
-      "spec-to-pr-lite"
-    ],
     "ws-write-spec": [
       "spec-format"
     ],
@@ -163,6 +159,13 @@
       "self-learning"
     ],
     "fable-judge": [
+      "caveman",
+      "gabarito",
+      "karpathy-guidelines"
+    ],
+    "ws-multi-spec": [
+      "spec-to-pr",
+      "spec-to-pr-lite",
       "caveman",
       "gabarito",
       "karpathy-guidelines"

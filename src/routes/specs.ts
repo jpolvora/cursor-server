@@ -13,6 +13,7 @@ import {
   maskSensitiveEnv,
   validateMcpServers,
 } from "../services/mcp-config.js";
+import { checkRepoAccess } from "../services/tenant-context.js";
 
 const WriteSpecBodySchema = z.object({
   content: z.string(),
@@ -131,6 +132,10 @@ export function createRepoSpecRoutes(config: Config) {
 
   repoSpecs.get("/:repo/mcp", (c) => {
     const repo = c.req.param("repo");
+    const accessError = checkRepoAccess(c.get("allowedRepos") as string[] ?? [], repo);
+    if (accessError) {
+      return c.json({ error: accessError }, 403);
+    }
     const repoResult = validateRepoPath(config.REPOS_ROOT, repo);
     if (!repoResult.valid || !repoResult.resolvedPath) {
       return c.json({ error: repoResult.error }, repoResult.status === 404 ? 404 : 400);
@@ -151,6 +156,10 @@ export function createRepoSpecRoutes(config: Config) {
 
   repoSpecs.post("/:repo/mcp/validate", async (c) => {
     const repo = c.req.param("repo");
+    const accessError = checkRepoAccess(c.get("allowedRepos") as string[] ?? [], repo);
+    if (accessError) {
+      return c.json({ error: accessError }, 403);
+    }
     const repoResult = validateRepoPath(config.REPOS_ROOT, repo);
     if (!repoResult.valid || !repoResult.resolvedPath) {
       return c.json({ error: repoResult.error }, repoResult.status === 404 ? 404 : 400);

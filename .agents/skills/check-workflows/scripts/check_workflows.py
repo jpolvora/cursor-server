@@ -140,6 +140,34 @@ class WorkflowChecker:
                     )
                 )
 
+        if SHARED_DEPS_PATH.exists() and BIN_DEPS_PATH.exists():
+            try:
+                shared_data = json.loads(SHARED_DEPS_PATH.read_text(encoding="utf-8", errors="replace"))
+                bin_data = json.loads(BIN_DEPS_PATH.read_text(encoding="utf-8", errors="replace"))
+
+                shared_wf_skills = set(shared_data.get("packages", {}).get("workflows", {}).get("skills", []))
+                bin_wf_skills = set(bin_data.get("packages", {}).get("workflows", {}).get("skills", []))
+
+                if shared_wf_skills != bin_wf_skills:
+                    diff_missing = bin_wf_skills - shared_wf_skills
+                    diff_extra = shared_wf_skills - bin_wf_skills
+                    msg = "Package skills mismatch between bin/skill-dependencies.json and shared/skill-dependencies.json."
+                    if diff_missing:
+                        msg += f" Missing in shared: {sorted(diff_missing)}."
+                    if diff_extra:
+                        msg += f" Extra in shared: {sorted(diff_extra)}."
+                    self.issues.append(
+                        Issue(
+                            "CRITICAL",
+                            "Dependency Graph Sync",
+                            "shared/skill-dependencies.json",
+                            msg,
+                            "Sync .agents/skills/shared/skill-dependencies.json with bin/skill-dependencies.json.",
+                        )
+                    )
+            except Exception:
+                pass
+
     def add_issue(self, severity: str, category: str, location: str, message: str, fix_suggestion: str) -> None:
         self.issues.append(Issue(severity, category, location, message, fix_suggestion))
 

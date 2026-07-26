@@ -7,16 +7,27 @@ export interface TenantConfig {
 }
 
 export function parseTenants(raw: string | undefined): TenantConfig[] {
-  if (!raw || !raw.trim()) return [];
+  if (!raw || !raw.trim()) {
+    if (raw !== undefined) {
+      console.warn("TENANTS env var is set but appears empty after trim");
+    }
+    return [];
+  }
   try {
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.map((t: Record<string, unknown>) => ({
+    if (!Array.isArray(parsed)) {
+      console.error(`TENANTS env var must be a JSON array, got ${typeof parsed}`);
+      return [];
+    }
+    const tenants = parsed.map((t: Record<string, unknown>) => ({
       id: String(t.id ?? ""),
       apiKey: String(t.apiKey ?? ""),
       allowedRepos: Array.isArray(t.allowedRepos) ? t.allowedRepos.map(String) : [],
     })).filter((t) => t.id && t.apiKey);
-  } catch {
+    console.info(`Loaded ${tenants.length} tenant(s) from TENANTS env var`);
+    return tenants;
+  } catch (err) {
+    console.error("Failed to parse TENANTS env var:", err);
     return [];
   }
 }
@@ -50,7 +61,3 @@ export function resolveConfig(overrides?: unknown): Config {
   return merged as Config;
 }
 
-export function configFromEnv(env: Record<string, string | undefined>): Config {
-  const parsed = envSchema.parse(env);
-  return { ...parsed, TENANTS: parseTenants(env.TENANTS) };
-}

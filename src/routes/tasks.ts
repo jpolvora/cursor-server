@@ -8,6 +8,7 @@ import { validateRepoPath } from "../services/repo-validator.js";
 import { taskStore } from "../services/task-store.js";
 import { processTaskInBackground } from "../services/task-worker.js";
 import type { McpServers } from "../services/mcp-config.js";
+import { checkRepoAccess } from "../services/tenant-context.js";
 
 const mcpServerSchema = z.record(
   z.string(),
@@ -152,9 +153,9 @@ export function createTaskRoutes(config: Config) {
       );
     }
 
-    const allowedRepos = c.get("allowedRepos") as string[] | undefined;
-    if (allowedRepos && allowedRepos.length > 0 && !allowedRepos.includes(parsed.data.repo)) {
-      return c.json({ error: `Tenant does not have access to repository '${parsed.data.repo}'` }, 403);
+    const accessError = checkRepoAccess(c.get("allowedRepos") as string[] ?? [], parsed.data.repo);
+    if (accessError) {
+      return c.json({ error: accessError }, 403);
     }
 
     const agent = resolveAgent(parsed.data.agent);

@@ -8,8 +8,6 @@ declare module "hono" {
   }
 }
 
-export const TENANT_HEADER = "X-Tenant-Id";
-
 export function resolveTenant(config: Config, authHeader?: string, customHeader?: string): { tenant: { tenantId: string; allowedRepos: string[] } | null; error?: string } {
   const masterKey = config.SERVER_API_KEY;
   const tenants = config.TENANTS;
@@ -41,6 +39,12 @@ export function resolveTenant(config: Config, authHeader?: string, customHeader?
 
 export function authMiddleware(config: Config): MiddlewareHandler {
   return async (c, next) => {
+    if (!config.SERVER_API_KEY && config.TENANTS.length === 0) {
+      c.set("tenantId", "anonymous");
+      c.set("allowedRepos", []);
+      return next();
+    }
+
     const { tenant, error } = resolveTenant(
       config,
       c.req.header("Authorization"),
