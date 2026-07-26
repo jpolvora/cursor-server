@@ -14,7 +14,7 @@ export function cancelTask(taskId: string, reason = "Task cancelled"): boolean {
 
   const controller = activeControllers.get(taskId);
   if (controller) {
-    controller.abort();
+    controller.abort(reason);
     activeControllers.delete(taskId);
   }
 
@@ -132,15 +132,24 @@ export function processTaskInBackground(config: Config, taskId: string): void {
       const wasCancelled = abortController.signal.aborted;
 
       if (wasCancelled) {
+        const cancelReason =
+          (typeof abortController.signal.reason === "string"
+            ? abortController.signal.reason
+            : undefined) ??
+          taskStore.getTask(taskId)?.error ??
+          "Task cancelled";
         const current = taskStore.getTask(taskId);
         if (current && (current.status === "queued" || current.status === "running")) {
           taskStore.updateTask(taskId, {
             status: "cancelled",
             completedAt: new Date().toISOString(),
-            error: "Task cancelled",
+            error: cancelReason,
           });
         }
-        taskStore.emitOutput(taskId, `[${new Date().toISOString()}] Task cancelled\n`);
+        taskStore.emitOutput(
+          taskId,
+          `[${new Date().toISOString()}] Task cancelled: ${cancelReason}\n`,
+        );
       } else {
         const updatedTask = taskStore.updateTask(taskId, {
           status: "failed",
