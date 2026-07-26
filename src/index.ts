@@ -14,6 +14,8 @@ import { taskStore } from "./services/task-store.js";
 
 import { createHarnessRoutes } from "./routes/harness.js";
 import { createUiRoutes } from "./routes/ui.js";
+import { createSettingsRoutes } from "./routes/settings.js";
+import { renderDashboardPageHtml } from "./routes/dashboard-page.js";
 import { stageStore } from "./services/stage-store.js";
 import { boardDb } from "./services/board-db.js";
 import { createBoardRoutes } from "./routes/board.js";
@@ -35,6 +37,7 @@ if (!config.SERVER_API_KEY) {
 }
 
 app.route("/", healthRoutes);
+app.get("/", (c) => c.html(renderDashboardPageHtml()));
 app.get("/agents", (c) =>
   c.json({
     agents: [...AGENTS],
@@ -74,6 +77,10 @@ app.route("/harness", createHarnessRoutes(config));
 app.use("/board", authMiddleware(config));
 app.use("/board/*", authMiddleware(config));
 app.route("/board", createBoardRoutes(config));
+
+app.use("/settings", authMiddleware(config));
+app.use("/settings/*", authMiddleware(config));
+app.route("/settings", createSettingsRoutes(config));
 
 startScheduler(config);
 
