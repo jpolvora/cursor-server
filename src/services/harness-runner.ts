@@ -4,10 +4,14 @@ import { runTask, type RunTaskInput, type RunTaskResult } from "./agent-runner.j
 
 export type HarnessStage = 'spec' | 'implement' | 'build' | 'test' | 'deploy' | 'review';
 
+/** Optional sink for live stdout/stderr chunks during stage execution (e.g. task SSE stream). */
+export type StageLogSink = (chunk: string) => void;
+
 export interface StageInput {
   stage: HarnessStage;
   repoPath: string;
   prompt: string;
+  /** Runner options; may include `onLog?: StageLogSink` for near real-time log forwarding. */
   options?: Record<string, unknown>;
 }
 
@@ -78,6 +82,13 @@ export function resolveTimeoutMs(options?: Record<string, unknown>): number {
     return raw;
   }
   return DEFAULT_STAGE_TIMEOUT_MS;
+}
+
+export function resolveStageLogSink(
+  options?: Record<string, unknown>,
+): StageLogSink | undefined {
+  const raw = options?.onLog;
+  return typeof raw === "function" ? (raw as StageLogSink) : undefined;
 }
 
 export function resolveStageAgent(
