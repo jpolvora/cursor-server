@@ -426,7 +426,11 @@ export function readRepoSpecFile(repoPath: string, file: string): { content: str
     if (!resolved.startsWith(repoRoot + path.sep) && resolved !== repoRoot) {
       continue;
     }
-    if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) {
+    if (!fs.existsSync(resolved)) {
+      continue;
+    }
+    const stat = fs.lstatSync(resolved);
+    if (stat.isSymbolicLink() || !stat.isFile()) {
       continue;
     }
     return {
@@ -448,7 +452,13 @@ export function writeRepoSpecFile(
 ): { path: string; absolutePath: string } {
   const target = resolveAgentsSpecPath(repoPath, file);
   fs.mkdirSync(path.dirname(target), { recursive: true });
-  fs.writeFileSync(target, content, "utf-8");
+  if (fs.existsSync(target)) {
+    const existing = fs.lstatSync(target);
+    if (existing.isSymbolicLink()) {
+      throw new Error("Symlinks are not allowed for spec files");
+    }
+  }
+  fs.writeFileSync(target, content, { encoding: "utf-8", flag: "w" });
   return {
     absolutePath: target,
     path: path.relative(repoPath, target).replace(/\\/g, "/"),

@@ -14,6 +14,8 @@ import { taskStore } from "./services/task-store.js";
 import { createHarnessRoutes } from "./routes/harness.js";
 import { createUiRoutes } from "./routes/ui.js";
 import { stageStore } from "./services/stage-store.js";
+import { boardDb } from "./services/board-db.js";
+import { createBoardRoutes } from "./routes/board.js";
 
 const config = loadConfig();
 const app = new Hono();
@@ -21,6 +23,7 @@ const app = new Hono();
 // Initialize Stores persistence
 taskStore.init(config.REPOS_ROOT);
 stageStore.init(config.REPOS_ROOT);
+await boardDb.init(config.BOARD_DB_PATH);
 
 if (!config.SERVER_API_KEY) {
   if (config.TENANTS.length > 0) {
@@ -66,6 +69,10 @@ app.route("/repos", createRepoSpecRoutes(config));
 app.use("/harness", authMiddleware(config));
 app.use("/harness/*", authMiddleware(config));
 app.route("/harness", createHarnessRoutes(config));
+
+app.use("/board", authMiddleware(config));
+app.use("/board/*", authMiddleware(config));
+app.route("/board", createBoardRoutes(config));
 
 startScheduler(config);
 

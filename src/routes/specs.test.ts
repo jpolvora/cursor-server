@@ -19,6 +19,7 @@ describe("Spec API Routes", () => {
     PORT: 3000,
     HOST: "0.0.0.0",
     REPOS_ROOT: reposRoot,
+    BOARD_DB_PATH: "./data/test-board.db",
     CURSOR_MODEL: "composer-2",
     SCHEDULED_REVIEW_JOBS: false,
     TENANTS: [],

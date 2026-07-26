@@ -12,6 +12,7 @@ const mockConfig: Config = {
   PORT: 3000,
   HOST: "0.0.0.0",
   REPOS_ROOT: "./repos",
+  BOARD_DB_PATH: "./data/test-board.db",
   CURSOR_MODEL: "composer-2",
   SERVER_API_KEY: undefined,
   TENANTS: [],

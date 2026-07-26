@@ -43,6 +43,10 @@ export const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   HOST: z.string().default("0.0.0.0"),
   REPOS_ROOT: z.string().default("./repos"),
+  /** SQLite database path for the Kanban board data plane. */
+  BOARD_DB_PATH: z.string().default("./data/board.db"),
+  /** Optional directory for secret_ref file lookups (env vars checked first). */
+  SECRETS_DIR: z.string().optional(),
   CURSOR_MODEL: z.string().default("composer-2"),
   SERVER_API_KEY: z.string().optional(),
   MCP_CONFIG_PATH: z.string().optional(),

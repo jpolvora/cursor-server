@@ -33,6 +33,17 @@
         "Skips shipped and skipped rows",
         "Offers Resume / Skip / Abort when status is failed"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "/ws-multi-spec with specs requiring PR thread convergence — verify queue does not advance while PR is open or activeThreads > 0.",
+      "expected_output": "Worker creates PR; master enforces Phase 4b convergence (runs ws-goal-fix-pr, waits for activeThreads == 0, merges PR) before dispatching next spec.",
+      "assertions": [
+        "Blocks next spec dispatch while prior spec PR is open or unmerged",
+        "Dispatches ws-goal-fix-pr thread resolution loop until activeThreads == 0",
+        "Merges PR via SCM provider (ws-ship-pr merge step) before recording terminal shipped status",
+        "Re-enters convergence gate on resume if state row contains an unmerged PR"
+      ]
     }
   ]
 }
