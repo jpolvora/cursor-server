@@ -69,5 +69,11 @@ describe("UI routes", () => {
     assert.ok(body.includes("dragstart") || body.includes("draggable"));
     assert.ok(body.includes("/ui/spec-editor"));
     assert.ok(body.includes("Open in spec-editor"));
+    assert.ok(body.includes("/board/cards/") && body.includes("/start"));
+    assert.ok(body.includes("/pause") && body.includes("/resume") && body.includes("/finish"));
+    assert.ok(body.includes("start-modal"));
+    assert.ok(body.includes("Start card"));
+    assert.ok(body.includes("badge failed"));
+    assert.ok(body.includes("Resume"));
   });
 });
