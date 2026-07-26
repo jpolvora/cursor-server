@@ -4,7 +4,7 @@ Living progressive-disclosure index. Status and short scope live here; acceptanc
 
 | Field | Value |
 |-------|-------|
-| Updated | 2026-07-26 (`39` board projects management shipped) |
+| Updated | 2026-07-26 (`41` GitHub Pages product website shipped; PR #36 master-branch fix) |
 | Priority order | — |
 | Spec folder | `.agents/specs/` |
 
@@ -37,7 +37,7 @@ Living progressive-disclosure index. Status and short scope live here; acceptanc
 
 **cursor-server** is the local-first execution layer for remote IDE clients: an HTTP API on a home-lab host that runs agent tasks against git checkouts under `REPOS_ROOT`. Clients on Tailscale send prompts or qualified specs; this host is where the work runs.
 
-Flagship direction: machine-actionable specs + pluggable harness (`implement → build → test → review`; `deploy` optional per frontmatter) with Cursor SDK, Hermes, OpenCode, and future runners behind one contract. Homelab Kanban board (specs 32–34), agent prompt widget (spec 35), aspirational spec-editor UI (spec 36), WebSocket streaming (`37`), Umbrel App Store manifest (`38`), board projects management (`39`), and root ops dashboard (`40`) are landed.
+Flagship direction: machine-actionable specs + pluggable harness (`implement → build → test → review`; `deploy` optional per frontmatter) with Cursor SDK, Hermes, OpenCode, and future runners behind one contract. Homelab Kanban board (specs 32–34), agent prompt widget (spec 35), aspirational spec-editor UI (spec 36), WebSocket streaming (`37`), Umbrel App Store manifest (`38`), board projects management (`39`), root ops dashboard (`40`), and GitHub Pages product website (`41`) are landed.
 
 ## 4. Problems
 
@@ -182,16 +182,16 @@ Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 | 2026-07-26 | `38-umbrel-app-store` | Umbrel App Store manifest `deploy/umbrel/` | #29 |
 | 2026-07-26 | `39-board-projects-management` | Board projects CRUD (dashboard Projects pane) | #33 |
 | 2026-07-26 | `40-main-page-dashboard` | Root ops dashboard shell `GET /` + `/settings` | #32 |
-| 2026-07-26 | `41-github-pages-product-website` | GitHub Pages product website | #35 |
+| 2026-07-26 | `41-github-pages-product-website` | GitHub Pages product website | #35, #36 (master-branch deploy fix) |
 
 ## 11. Maintenance checklist
 
-- [ ] Completed features marked `[x]` and logged in Done log
-- [ ] Active Next-specs rows have on-disk `*.spec.md`
+- [x] Completed features marked `[x]` and logged in Done log
+- [x] Active Next-specs rows have on-disk `*.spec.md`
 - [ ] `Verified:` only after host smoke
-- [ ] README / AGENTS roadmap updated when vision or shipped status changes
-- [ ] New ideas → Inbox; use `/ws-spec-index promote` to schedule
-- [ ] After delivery: `/ws-spec-index sync` with E1 evidence
+- [x] README / AGENTS roadmap updated when vision or shipped status changes
+- [x] New ideas → Inbox; use `/ws-spec-index promote` to schedule
+- [x] After delivery: `/ws-spec-index sync` with E1 evidence
 
 ## 12. Related docs
 
