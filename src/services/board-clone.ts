@@ -36,18 +36,15 @@ export function isCloneMissingOrEmpty(localPath: string): boolean {
   }
 }
 
-function buildAuthenticatedUrl(remoteUrl: string, token: string): string {
-  try {
-    const url = new URL(remoteUrl);
-    if (url.protocol === "http:" || url.protocol === "https:") {
-      url.username = "x-access-token";
-      url.password = token;
-      return url.toString();
-    }
-  } catch {
-    // fall through
-  }
-  return remoteUrl;
+function buildCloneEnv(token: string): NodeJS.ProcessEnv {
+  const authHeader = `Authorization: Basic ${Buffer.from(`x-access-token:${token}`).toString("base64")}`;
+  return {
+    ...process.env,
+    GIT_TERMINAL_PROMPT: "0",
+    GIT_CONFIG_COUNT: "1",
+    GIT_CONFIG_KEY_0: "http.extraHeader",
+    GIT_CONFIG_VALUE_0: authHeader,
+  };
 }
 
 export async function ensureClone(
@@ -62,20 +59,43 @@ export async function ensureClone(
     return { ok: true };
   }
 
-  if (fs.existsSync(localPath)) {
-    fs.rmSync(localPath, { recursive: true, force: true });
+  const lockPath = `${localPath}.clone.lock`;
+  let lockFd: number | undefined;
+  try {
+    lockFd = fs.openSync(lockPath, "wx");
+  } catch {
+    return { ok: false, error: "Clone already in progress for this repository" };
   }
 
-  const cloneUrl = buildAuthenticatedUrl(remoteUrl, token);
-
   try {
-    await execFileAsync("git", ["clone", "--depth", "1", cloneUrl, localPath], {
-      env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
-    });
-    return { ok: true };
-  } catch (err: unknown) {
-    const raw = err instanceof Error ? err.message : String(err);
-    return { ok: false, error: sanitizeCloneError(raw) };
+    if (!isCloneMissingOrEmpty(localPath)) {
+      return { ok: true };
+    }
+
+    if (fs.existsSync(localPath)) {
+      fs.rmSync(localPath, { recursive: true, force: true });
+    }
+
+    try {
+      await execFileAsync(
+        "git",
+        ["clone", "--depth", "1", remoteUrl, localPath],
+        { env: buildCloneEnv(token) },
+      );
+      return { ok: true };
+    } catch (err: unknown) {
+      const raw = err instanceof Error ? err.message : String(err);
+      return { ok: false, error: sanitizeCloneError(raw) };
+    }
+  } finally {
+    if (lockFd !== undefined) {
+      fs.closeSync(lockFd);
+    }
+    try {
+      fs.unlinkSync(lockPath);
+    } catch {
+      // ignore stale lock cleanup errors
+    }
   }
 }
 

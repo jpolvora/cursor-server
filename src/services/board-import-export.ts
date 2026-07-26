@@ -14,6 +14,16 @@ export interface ImportResult {
   errors: Array<{ filename: string; errors: string[] }>;
 }
 
+function assertRegularFile(filePath: string): void {
+  const stat = fs.lstatSync(filePath);
+  if (stat.isSymbolicLink()) {
+    throw new Error("Symlinks are not allowed for spec files");
+  }
+  if (!stat.isFile()) {
+    throw new Error("Spec path must be a regular file");
+  }
+}
+
 export function importSpecsFromClone(clonePath: string, repoId: number, upsert: (repoId: number, title: string, specMarkdown: string) => BoardCard): ImportResult {
   const specsDir = agentsSpecsDir(clonePath);
   const result: ImportResult = { imported: [], errors: [] };
@@ -35,6 +45,7 @@ export function importSpecsFromClone(clonePath: string, repoId: number, upsert: 
     const fullPath = path.join(specsDir, filename);
     let content: string;
     try {
+      assertRegularFile(fullPath);
       content = fs.readFileSync(fullPath, "utf-8");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

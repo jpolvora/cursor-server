@@ -17,16 +17,28 @@ import {
 } from "../services/board-clone.js";
 import { exportCardSpec, importSpecsFromClone } from "../services/board-import-export.js";
 
+const remoteUrlSchema = z
+  .string()
+  .url()
+  .refine((value) => {
+    try {
+      const parsed = new URL(value);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }, "remote_url must use http or https");
+
 const CreateRepoSchema = z.object({
   name: z.string().min(1).max(128),
-  remote_url: z.string().url(),
+  remote_url: remoteUrlSchema,
   secret_ref: z.string().min(1),
   local_path: z.string().optional().nullable(),
 });
 
 const UpdateRepoSchema = z.object({
   name: z.string().min(1).max(128).optional(),
-  remote_url: z.string().url().optional(),
+  remote_url: remoteUrlSchema.optional(),
   secret_ref: z.string().min(1).optional(),
   local_path: z.string().optional().nullable(),
 });
@@ -184,8 +196,9 @@ export function createBoardRoutes(config: Config) {
     }
 
     if (parsed.data.local_path !== undefined) {
+      let resolvedPath: string;
       try {
-        resolveRepoLocalPath(
+        resolvedPath = resolveRepoLocalPath(
           config.REPOS_ROOT,
           parsed.data.name ?? existing.name,
           parsed.data.local_path,
@@ -193,6 +206,7 @@ export function createBoardRoutes(config: Config) {
       } catch {
         return c.json({ error: "Invalid repository path (must stay under REPOS_ROOT)" }, 400);
       }
+      parsed.data.local_path = resolvedPath;
     }
 
     const repo = boardDb.updateRepo(id, parsed.data);
