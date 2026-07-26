@@ -248,6 +248,14 @@ export function createBoardRoutes(config: Config) {
     const accessError = checkRepoTenantAccess(c, existing.name);
     if (accessError) return c.json({ error: accessError }, 403);
 
+    const n = boardDb.countCardsByRepo(id);
+    if (n > 0) {
+      return c.json(
+        { error: `Cannot delete repository: ${n} card(s) still reference it` },
+        409,
+      );
+    }
+
     try {
       const localPath = resolveRepoLocalPath(config.REPOS_ROOT, existing.name, existing.local_path);
       cleanupClone(localPath);

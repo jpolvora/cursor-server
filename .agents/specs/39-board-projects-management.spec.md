@@ -4,7 +4,7 @@ slug: 39-board-projects-management
 title: "Kanban board projects management (CRUD, config, modals, list)"
 source: local
 specDate: 2026-07-26
-status: draft
+status: shipped
 version: 0.1.0
 ---
 

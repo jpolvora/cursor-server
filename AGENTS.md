@@ -15,7 +15,7 @@ Primary use cases (shipped; see caveats below for rough edges):
 5. **Pluggable harnesses** — runner registry with Cursor SDK (`cursor-local`, `cursor-sdk`), [Hermes Agent](https://github.com/NousResearch/hermes-agent) (`hermes`), and OpenCode (`opencode`).
 6. **Ops Kanban** — SQLite board data plane, `GET /ui/board`, Start/Pause/Finish for `spec-to-pr*`.
 7. **Agent prompt widget** — `GET /ui/prompt` (standalone + embeddable).
-8. **Root ops dashboard** — `GET /` HTML shell (login gate, left nav, config); host prefs via `GET`/`PUT /settings` (`app_settings` in board DB). Projects pane is read-only stub until `39`.
+8. **Root ops dashboard** — `GET /` HTML shell (login gate, left nav, config); host prefs via `GET`/`PUT /settings` (`app_settings` in board DB); Projects pane CRUD (create/edit/delete modals over `/board/repos`, soft-block delete when cards remain).
 
 Prefer small, reviewable increments; confirm major new roadmap items with the owner before building.
 
@@ -163,9 +163,9 @@ New runners plug in via `runnerRegistry.register()` behind the same spec → sta
 
 Living feature map: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD). Confirm major new items with the owner before expanding scope:
 
-Shipped recently (do not re-open as gaps): Root ops dashboard shell (`40` — `GET /`, `GET`/`PUT /settings`, `app_settings`; Projects CRUD still `39`), Umbrel App Store manifest (`38` — `deploy/umbrel/`, docs/umbrel.md), WebSocket streaming (`37`), spec-editor aspirational UI (`36` — AC builder, dependency graph, stage designer), Kanban board (`32`–`34`), agent prompt widget (`35`), scheduled review jobs (`25` — hygiene scan, `SCHEDULED_REVIEW_JOBS` gate, `Agent.resume`), MCP merge (`23`), multi-tenant ACL (`22`), SSE progress/auth (`24`), Hermes CLI/health (`20`), OpenCode stream/git (`21`), harness default stages (`26`), frontmatter stages (`27`), `spec-to-pr*` agent roles (`05`).
+Shipped recently (do not re-open as gaps): Board projects management (`39` — dashboard Projects CRUD, soft-block delete), root ops dashboard shell (`40` — `GET /`, `GET`/`PUT /settings`, `app_settings`), Umbrel App Store manifest (`38` — `deploy/umbrel/`, docs/umbrel.md), WebSocket streaming (`37`), spec-editor aspirational UI (`36` — AC builder, dependency graph, stage designer), Kanban board (`32`–`34`), agent prompt widget (`35`), scheduled review jobs (`25` — hygiene scan, `SCHEDULED_REVIEW_JOBS` gate, `Agent.resume`), MCP merge (`23`), multi-tenant ACL (`22`), SSE progress/auth (`24`), Hermes CLI/health (`20`), OpenCode stream/git (`21`), harness default stages (`26`), frontmatter stages (`27`), `spec-to-pr*` agent roles (`05`).
 
-Next (not done): board projects management (`39`).
+Next (not done): none active — promote from Inbox in [`index.PRD`](./.agents/specs/index.PRD) before expanding scope.
 
 ## Testing changes
 

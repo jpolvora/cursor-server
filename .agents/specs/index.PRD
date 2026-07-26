@@ -4,7 +4,7 @@ Living progressive-disclosure index. Status and short scope live here; acceptanc
 
 | Field | Value |
 |-------|-------|
-| Updated | 2026-07-26 (`38` Umbrel manifest shipped) |
+| Updated | 2026-07-26 (`39` board projects management shipped) |
 | Priority order | — |
 | Spec folder | `.agents/specs/` |
 
@@ -37,7 +37,7 @@ Living progressive-disclosure index. Status and short scope live here; acceptanc
 
 **cursor-server** is the local-first execution layer for remote IDE clients: an HTTP API on a home-lab host that runs agent tasks against git checkouts under `REPOS_ROOT`. Clients on Tailscale send prompts or qualified specs; this host is where the work runs.
 
-Flagship direction: machine-actionable specs + pluggable harness (`implement → build → test → review`; `deploy` optional per frontmatter) with Cursor SDK, Hermes, OpenCode, and future runners behind one contract. Homelab Kanban board (specs 32–34), agent prompt widget (spec 35), aspirational spec-editor UI (spec 36), WebSocket streaming (`37`), and Umbrel App Store manifest (`38`) are landed.
+Flagship direction: machine-actionable specs + pluggable harness (`implement → build → test → review`; `deploy` optional per frontmatter) with Cursor SDK, Hermes, OpenCode, and future runners behind one contract. Homelab Kanban board (specs 32–34), agent prompt widget (spec 35), aspirational spec-editor UI (spec 36), WebSocket streaming (`37`), Umbrel App Store manifest (`38`), board projects management (`39`), and root ops dashboard (`40`) are landed.
 
 ## 4. Problems
 
@@ -120,6 +120,8 @@ Status: **done**. Design: `docs/superpowers/specs/2026-07-25-kanban-board-design
 - [x] Board UI (`spec: 33-board-ui.spec.md`)
 - [x] Board execution control (`spec: 34-board-execution-control.spec.md`)
 - [x] Agent prompt / TUI widget — OpenCode-like, simpler; submit prompts, stream/query tasks; standalone + embeddable (`spec: 35-agent-prompt-widget.spec.md`)
+- [x] Board projects management — dashboard Projects CRUD + soft-block delete (`spec: 39-board-projects-management.spec.md`)
+- [x] Root ops dashboard shell — `GET /` + `/settings` (`spec: 40-main-page-dashboard.spec.md`)
 
 ## 8. Next specs
 
@@ -127,9 +129,9 @@ Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 
 | # | Spec | Status | Target Phase | Notes |
 |---|------|--------|--------------|-------|
-| 39 | `39-board-projects-management` | planned | Ops UI | Projects CRUD (dashboard Projects pane still stub until this lands) |
+| — | — | — | — | No active Next specs; promote from Inbox when ready. |
 
-**Immediate next:** `39` for Projects CRUD on the root dashboard Projects pane.
+**Immediate next:** none — Inbox only until a new spec is promoted.
 
 ## 9. Inbox (unscheduled ideas)
 
@@ -172,6 +174,7 @@ Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 | 2026-07-26 | `36-spec-editor-aspirational-ui` | AC builder, dependency graph, stage designer | #27 |
 | 2026-07-26 | `37-websocket-streaming` | WebSocket task streaming alongside SSE | develop |
 | 2026-07-26 | `38-umbrel-app-store` | Umbrel App Store manifest `deploy/umbrel/` | TBD |
+| 2026-07-26 | `39-board-projects-management` | Board projects CRUD (dashboard Projects pane) | develop |
 | 2026-07-26 | `40-main-page-dashboard` | Root ops dashboard shell `GET /` + `/settings` | #32 |
 
 ## 11. Maintenance checklist
