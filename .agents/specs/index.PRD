@@ -127,10 +127,9 @@ Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 
 | # | Spec | Status | Target Phase | Notes |
 |---|------|--------|--------------|-------|
-| 40 | `40-main-page-dashboard` | in progress | Ops UI | Root `GET /` shell + `/settings` implemented; ship sync pending |
-| 39 | `39-board-projects-management` | planned | Ops UI | Projects CRUD (dashboard Projects pane still stub) |
+| 39 | `39-board-projects-management` | planned | Ops UI | Projects CRUD (dashboard Projects pane still stub until this lands) |
 
-**Immediate next:** Finish/ship `40`, then `39` for Projects CRUD.
+**Immediate next:** `39` for Projects CRUD on the root dashboard Projects pane.
 
 ## 9. Inbox (unscheduled ideas)
 
@@ -173,6 +172,7 @@ Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 | 2026-07-26 | `36-spec-editor-aspirational-ui` | AC builder, dependency graph, stage designer | #27 |
 | 2026-07-26 | `37-websocket-streaming` | WebSocket task streaming alongside SSE | develop |
 | 2026-07-26 | `38-umbrel-app-store` | Umbrel App Store manifest `deploy/umbrel/` | TBD |
+| 2026-07-26 | `40-main-page-dashboard` | Root ops dashboard shell `GET /` + `/settings` | #32 |
 
 ## 11. Maintenance checklist
 

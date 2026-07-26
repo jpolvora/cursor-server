@@ -4,7 +4,7 @@ slug: 40-main-page-dashboard
 title: "Main page dashboard shell (root UI, login, left menu, SaaS layout)"
 source: local
 specDate: 2026-07-26
-status: draft
+status: completed
 version: 0.1.0
 ---
 
