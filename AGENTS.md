@@ -202,12 +202,16 @@ This repo consumes the **full** package. Skills live under `.agents/skills/`. Do
 
 ### How to use
 
+**Portable contract:** this root `AGENTS.md` is the single source of truth for skill autoload and completion gates. It applies to any agent host that reads project instructions (Cursor, OpenCode, Antigravity, VS Code Copilot, Claude Code, Codex, etc.). Do **not** rely on IDE-vendor rule folders (e.g. `.cursor/rules`) for these gates.
+
 1. Load the shared hub first for routing: [`.agents/skills/shared/AGENTS.md`](.agents/skills/shared/AGENTS.md).
-2. Autoload Layer 0 from the hub (`caveman`, `gabarito`, `karpathy-guidelines`) **and** always load [`ws-spec-index`](.agents/skills/ws-spec-index/SKILL.md) for feature-map / roadmap / `*.spec.md` work (also enforced by `.cursor/rules/ws-spec-index.mdc`).
-3. Invoke orchestrators by intent: `/spec-to-pr`, `/spec-to-pr-lite`, `/fable-method`, `/configure-project`, `/check-harness`, `/ship-pr`, `/fix-pr`, etc.
-4. Expand path tokens (`{skillsRoot}`, `{sharedDir}`, `{plansDir}`) from `config.json` per `shared/tools.md` before file ops.
-5. Never invent alternate pipeline folder ids; dispatch steps via the orchestrator (`00`–`09`, `goal-fix-pr`, `update-plan-implementation`).
-6. **After every task is ready (mandatory completion gate):** run [`ws-sync-spec`](.agents/skills/ws-sync-spec/SKILL.md), then `self-learning`, then `changelog`. Spec drift sync proposes updates and waits for approval before writing; if no matching `*.spec.md`, report and continue. On ship/delivery, also run `/ws-spec-index sync`.
+2. **Autoload every prompt (Layer 0):** `caveman`, `gabarito`, `karpathy-guidelines` from the hub (paths under `.agents/skills/`).
+3. **Autoload after implementation / vibe-coding turns:** [`ws-sync-spec`](.agents/skills/ws-sync-spec/SKILL.md) — keep matching `.agents/specs/*.spec.md` aligned with code; propose updates and **wait for approval** before writing. If no matching spec, report and continue.
+4. Invoke orchestrators by intent: `/spec-to-pr`, `/spec-to-pr-lite`, `/fable-method`, `/configure-project`, `/check-harness`, `/ship-pr`, `/fix-pr`, etc.
+5. Expand path tokens (`{skillsRoot}`, `{sharedDir}`, `{plansDir}`) from `config.json` per `shared/tools.md` before file ops.
+6. Never invent alternate pipeline folder ids; dispatch steps via the orchestrator (`00`–`09`, `goal-fix-pr`, `update-plan-implementation`).
+7. **Mandatory completion gate (every task ready):** `ws-sync-spec` → `self-learning` → `changelog`.
+8. **On-demand only (not every vibe turn):** [`ws-spec-index`](.agents/skills/ws-spec-index/SKILL.md) for ship/delivery (`sync`), Inbox → planned (`promote`), or index bootstrap (`init`). Use when editing `index.PRD` / README Roadmap / AGENTS Planned areas — not for AC content drift (that is `ws-sync-spec`).
 
 ### Install / update / uninstall
 
@@ -275,8 +279,8 @@ Task endpoint smoke requires `CURSOR_API_KEY` and a clone under `repos/`. For **
 
 ## Precedence
 
-1. User explicit instructions (this file, direct requests)
-2. [Shared hub](.agents/skills/shared/AGENTS.md) + invoked skills
+1. User explicit instructions (this root `AGENTS.md`, direct requests) — portable across agent hosts; do not require IDE-specific rule files
+2. [Shared hub](.agents/skills/shared/AGENTS.md) + invoked skills under `.agents/skills/`
 3. Default agent behavior
 
 Karpathy wins on diff size; project architecture / `senior-developer` (when configured) wins on structure.
