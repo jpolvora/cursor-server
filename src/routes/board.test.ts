@@ -301,4 +301,97 @@ Test spec for board import/export.
     });
     assert.strictEqual(importRes.status, 422);
   });
+
+  it("soft-blocks DELETE when cards still reference the repo", async () => {
+    const createRepoRes = await app.request("/board/repos", {
+      method: "POST",
+      headers: authHeaders,
+      body: JSON.stringify({
+        name: "delete-lock-repo",
+        remote_url: "https://github.com/example/delete-lock.git",
+        secret_ref: "BOARD_TEST_TOKEN",
+      }),
+    });
+    assert.strictEqual(createRepoRes.status, 201);
+    const { repo } = (await createRepoRes.json()) as { repo: { id: number; name: string } };
+
+    const createCardRes = await app.request("/board/cards", {
+      method: "POST",
+      headers: authHeaders,
+      body: JSON.stringify({
+        repo_id: repo.id,
+        title: "Lock Card",
+        spec_markdown: sampleSpec,
+      }),
+    });
+    assert.strictEqual(createCardRes.status, 201);
+    const { card } = (await createCardRes.json()) as { card: { id: number } };
+
+    const deleteRes = await app.request(`/board/repos/${repo.id}`, {
+      method: "DELETE",
+      headers: authHeaders,
+    });
+    assert.strictEqual(deleteRes.status, 409);
+    const body = (await deleteRes.json()) as { error: string };
+    assert.strictEqual(body.error, "Cannot delete repository: 1 card(s) still reference it");
+
+    const listRes = await app.request("/board/repos", { headers: authHeaders });
+    const list = (await listRes.json()) as { repos: Array<{ id: number }> };
+    assert.ok(list.repos.some((r) => r.id === repo.id));
+
+    const cardsRes = await app.request(`/board/cards?repoId=${repo.id}`, {
+      headers: authHeaders,
+    });
+    const cards = (await cardsRes.json()) as { cards: Array<{ id: number }> };
+    assert.ok(cards.cards.some((c) => c.id === card.id));
+  });
+
+  it("allows DELETE after referencing cards are removed", async () => {
+    const createRepoRes = await app.request("/board/repos", {
+      method: "POST",
+      headers: authHeaders,
+      body: JSON.stringify({
+        name: "delete-ok-repo",
+        remote_url: "https://github.com/example/delete-ok.git",
+        secret_ref: "BOARD_TEST_TOKEN",
+      }),
+    });
+    assert.strictEqual(createRepoRes.status, 201);
+    const { repo } = (await createRepoRes.json()) as { repo: { id: number } };
+
+    const createCardRes = await app.request("/board/cards", {
+      method: "POST",
+      headers: authHeaders,
+      body: JSON.stringify({
+        repo_id: repo.id,
+        title: "Temporary Card",
+        spec_markdown: sampleSpec,
+      }),
+    });
+    assert.strictEqual(createCardRes.status, 201);
+    const { card } = (await createCardRes.json()) as { card: { id: number } };
+
+    const blockedRes = await app.request(`/board/repos/${repo.id}`, {
+      method: "DELETE",
+      headers: authHeaders,
+    });
+    assert.strictEqual(blockedRes.status, 409);
+
+    const deleteCardRes = await app.request(`/board/cards/${card.id}`, {
+      method: "DELETE",
+      headers: authHeaders,
+    });
+    assert.strictEqual(deleteCardRes.status, 200);
+
+    const deleteRepoRes = await app.request(`/board/repos/${repo.id}`, {
+      method: "DELETE",
+      headers: authHeaders,
+    });
+    assert.strictEqual(deleteRepoRes.status, 200);
+    const body = (await deleteRepoRes.json()) as { ok: boolean };
+    assert.strictEqual(body.ok, true);
+
+    const getRes = await app.request(`/board/repos/${repo.id}`, { headers: authHeaders });
+    assert.strictEqual(getRes.status, 404);
+  });
 });

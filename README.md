@@ -43,8 +43,7 @@ Living detail: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD).
 | **API depth** | Async tasks (`202` + poll), run history, SSE + WebSocket streaming, event gateway, MCP merge, `spec-to-pr*` agent roles, scheduled review jobs (opt-in) | **Landed** |
 | **Spec harness** | Qualified spec schema, stage orchestration, spec editor UI, pluggable runners | **MVP landed** |
 | **Runners** | Cursor SDK (default), Hermes (`hermes`), OpenCode (`opencode`) | **Registered** — CLIs must be installed |
-| **Ops UI** | Homelab Kanban board (`32`→`34`); agent prompt widget (`35`); spec-editor aspirational UI (`36`); root dashboard shell (`40` — `GET /`, `/settings`) | **Landed** (Projects CRUD = `39`, next) |
-| **Next** | Board projects management (`39`) | Planned |
+| **Ops UI** | Homelab Kanban board (`32`→`34`); agent prompt widget (`35`); spec-editor aspirational UI (`36`); root dashboard shell (`40` — `GET /`, `/settings`); board projects CRUD (`39`) | **Landed** |
 
 **Caveats (honest gaps):** Hermes/OpenCode adapters require external CLIs on PATH. Scheduled review jobs are **off by default** — set `SCHEDULED_REVIEW_JOBS=true` to register cron handlers. Inbox (not active): richer MCP diagnostics (only if new gaps). See [AGENTS.md](./AGENTS.md) and [`index.PRD`](./.agents/specs/index.PRD).
 
@@ -54,7 +53,7 @@ The spec harness is the flagship long-term feature: authors write complete, mach
 
 Homelab-ready API with spec harness MVP. Implemented today:
 
-- `GET /` — ops dashboard shell (login gate, left nav, config; Projects stub until `39`)
+- `GET /` — ops dashboard shell (login gate, left nav, config; Projects pane CRUD via `/board/repos`)
 - `GET /health` — liveness
 - `GET /agents` — task role allowlist (`default`, `planner`, `implementer`, `plan+implementer`, `spec-to-pr`, `spec-to-pr-lite`)
 - `GET`/`PUT /settings` — host-level preference store (API key auth; SQLite `app_settings`)

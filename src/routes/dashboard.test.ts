@@ -73,7 +73,13 @@ describe("Dashboard root UI", () => {
     assert.ok(body.includes("/ui/board"));
     assert.ok(body.includes("#login-error") || body.includes('id="login-error"'));
     assert.ok(body.includes("btn-logout") || body.includes("Log out"));
-    assert.ok(body.includes("39-board-projects-management"));
+    assert.ok(body.includes('id="btn-project-new"') || body.includes("btn-project-new"));
+    assert.ok(body.includes('id="project-modal"') || body.includes("project-modal"));
+    assert.ok(
+      body.includes('id="project-delete-modal"') || body.includes("project-delete-modal"),
+    );
+    assert.ok(!body.includes("39-board-projects-management"));
+    assert.ok(!body.includes("lands-in-39"));
     assert.ok(body.includes("--accent"));
     assert.ok(body.includes("#3d8bfd"));
     assert.ok(!body.toLowerCase().includes("purple-gradient"));

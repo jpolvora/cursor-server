@@ -171,6 +171,12 @@ export function renderDashboardPageHtml(): string {
     #cfg-status { font-size: 0.8rem; color: var(--muted); font-family: var(--mono); }
     #cfg-status.ok { color: var(--ok); }
     #cfg-status.bad { color: var(--bad); }
+    .projects-toolbar {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin: 0.85rem 0 0.35rem;
+    }
     #projects-list {
       list-style: none;
       padding: 0;
@@ -183,16 +189,56 @@ export function renderDashboardPageHtml(): string {
       padding: 0.55rem 0.75rem;
       border-bottom: 1px solid var(--border);
       font-size: 0.9rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
     }
     #projects-list li:last-child { border-bottom: none; }
-    #projects-list .remote { display: block; color: var(--muted); font-size: 0.75rem; margin-top: 0.15rem; }
-    .placeholder-note {
-      margin-top: 1rem;
-      padding: 0.75rem 0.85rem;
-      border: 1px dashed var(--border);
-      border-radius: 6px;
-      color: var(--muted);
+    #projects-list li.muted { display: block; color: var(--muted); }
+    #projects-list .row-main { flex: 1; min-width: 0; }
+    #projects-list .remote { display: block; color: var(--muted); font-size: 0.75rem; margin-top: 0.15rem; word-break: break-all; }
+    #projects-list .row-actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
+    #projects-list .row-actions button {
+      font-size: 0.8rem;
+      padding: 0.3rem 0.5rem;
+      font-weight: 550;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 20, 25, 0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+    .modal.hidden { display: none; }
+    .modal-panel {
+      width: min(420px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.1rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    .modal-panel h2 { margin: 0; font-size: 1.05rem; font-weight: 650; }
+    .modal-panel .sub { margin: 0; color: var(--muted); font-size: 0.85rem; }
+    .modal-panel .cfg-row { display: flex; flex-direction: column; gap: 0.25rem; }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+    .modal-error {
+      color: var(--bad);
       font-size: 0.85rem;
+      min-height: 1.2em;
+      margin: 0;
     }
     @media (max-width: 720px) {
       #shell { grid-template-columns: 1fr; }
@@ -250,12 +296,11 @@ export function renderDashboardPageHtml(): string {
 
       <section class="pane" id="pane-projects" data-pane="projects">
         <h2>Projects</h2>
-        <p class="muted">Read-only list of board repositories.</p>
-        <ul id="projects-list"></ul>
-        <div class="placeholder-note">
-          Full create / edit / delete lands in 39-board-projects-management.
-          <br /><a href="/ui/board">Open Kanban board</a>
+        <p class="muted">Create, edit, and delete board projects used by the Kanban board.</p>
+        <div class="projects-toolbar">
+          <button type="button" id="btn-project-new">New project</button>
         </div>
+        <ul id="projects-list"></ul>
       </section>
 
       <section class="pane" id="pane-config" data-pane="config">
@@ -319,6 +364,41 @@ export function renderDashboardPageHtml(): string {
     </main>
   </div>
 
+  <div id="project-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="project-modal-title">
+    <div class="modal-panel">
+      <h2 id="project-modal-title">New project</h2>
+      <div class="cfg-row">
+        <label for="project-name">name</label>
+        <input id="project-name" type="text" autocomplete="off" maxlength="128" />
+      </div>
+      <div class="cfg-row">
+        <label for="project-remote-url">remote_url</label>
+        <input id="project-remote-url" type="text" autocomplete="off" placeholder="https://… or git@…" />
+      </div>
+      <div class="cfg-row">
+        <label for="project-secret-ref">secret_ref</label>
+        <input id="project-secret-ref" type="text" autocomplete="off" placeholder="Env var name for clone credential" />
+      </div>
+      <p id="project-modal-error" class="modal-error" role="alert"></p>
+      <div class="modal-actions">
+        <button type="button" class="secondary" id="btn-project-cancel">Cancel</button>
+        <button type="button" id="btn-project-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="project-delete-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="project-delete-title">
+    <div class="modal-panel">
+      <h2 id="project-delete-title">Delete project</h2>
+      <p id="project-delete-message" class="sub">Delete this project? This cannot be undone.</p>
+      <p id="project-delete-error" class="modal-error" role="alert"></p>
+      <div class="modal-actions">
+        <button type="button" class="secondary" id="btn-project-delete-cancel">Cancel</button>
+        <button type="button" id="btn-project-delete-confirm">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <script>
 (function () {
   const KEY_STORAGE = "cursor-server-api-key";
@@ -333,7 +413,25 @@ export function renderDashboardPageHtml(): string {
     cfgForm: document.getElementById("cfg-form"),
     cfgStatus: document.getElementById("cfg-status"),
     projectsList: document.getElementById("projects-list"),
+    btnProjectNew: document.getElementById("btn-project-new"),
+    projectModal: document.getElementById("project-modal"),
+    projectModalTitle: document.getElementById("project-modal-title"),
+    projectName: document.getElementById("project-name"),
+    projectRemoteUrl: document.getElementById("project-remote-url"),
+    projectSecretRef: document.getElementById("project-secret-ref"),
+    projectModalError: document.getElementById("project-modal-error"),
+    btnProjectCancel: document.getElementById("btn-project-cancel"),
+    btnProjectSave: document.getElementById("btn-project-save"),
+    projectDeleteModal: document.getElementById("project-delete-modal"),
+    projectDeleteMessage: document.getElementById("project-delete-message"),
+    projectDeleteError: document.getElementById("project-delete-error"),
+    btnProjectDeleteCancel: document.getElementById("btn-project-delete-cancel"),
+    btnProjectDeleteConfirm: document.getElementById("btn-project-delete-confirm"),
   };
+
+  let projectsById = {};
+  let editProjectId = null;
+  let deleteProjectId = null;
 
   function authHeaders(key) {
     const k = key != null ? key : (sessionStorage.getItem(KEY_STORAGE) || "");
@@ -481,6 +579,8 @@ export function renderDashboardPageHtml(): string {
       }
       const body = await res.json();
       const repos = body.repos || [];
+      projectsById = {};
+      repos.forEach(function (r) { projectsById[r.id] = r; });
       if (!repos.length) {
         el.projectsList.innerHTML = "<li class=\\"muted\\">No projects yet.</li>";
         return;
@@ -489,7 +589,15 @@ export function renderDashboardPageHtml(): string {
         const remote = r.remote_url
           ? "<span class=\\"remote\\">" + escapeHtml(r.remote_url) + "</span>"
           : "";
-        return "<li>" + escapeHtml(r.name) + remote + "</li>";
+        return (
+          "<li data-id=\\"" + r.id + "\\">" +
+            "<div class=\\"row-main\\">" + escapeHtml(r.name) + remote + "</div>" +
+            "<div class=\\"row-actions\\">" +
+              "<button type=\\"button\\" class=\\"secondary btn-project-edit\\" data-id=\\"" + r.id + "\\">Edit</button>" +
+              "<button type=\\"button\\" class=\\"secondary btn-project-delete\\" data-id=\\"" + r.id + "\\">Delete</button>" +
+            "</div>" +
+          "</li>"
+        );
       }).join("");
     } catch (_) {
       el.projectsList.innerHTML = "<li class=\\"muted\\">Unable to load projects.</li>";
@@ -504,6 +612,118 @@ export function renderDashboardPageHtml(): string {
       .replace(/"/g, "&quot;");
   }
 
+  function resetProjectForm() {
+    el.projectName.value = "";
+    el.projectRemoteUrl.value = "";
+    el.projectSecretRef.value = "";
+    el.projectModalError.textContent = "";
+    editProjectId = null;
+  }
+
+  function openProjectModal(mode, repo) {
+    el.projectModalError.textContent = "";
+    if (mode === "edit" && repo) {
+      editProjectId = repo.id;
+      el.projectModalTitle.textContent = "Edit project";
+      el.projectName.value = repo.name || "";
+      el.projectRemoteUrl.value = repo.remote_url || "";
+      el.projectSecretRef.value = repo.secret_ref || "";
+    } else {
+      editProjectId = null;
+      el.projectModalTitle.textContent = "New project";
+      el.projectName.value = "";
+      el.projectRemoteUrl.value = "";
+      el.projectSecretRef.value = "";
+    }
+    el.projectModal.classList.remove("hidden");
+    el.projectName.focus();
+  }
+
+  function closeProjectModal() {
+    el.projectModal.classList.add("hidden");
+    resetProjectForm();
+  }
+
+  function openDeleteModal(repo) {
+    deleteProjectId = repo.id;
+    el.projectDeleteError.textContent = "";
+    el.projectDeleteMessage.textContent =
+      "Delete project \\"" + (repo.name || "") + "\\"? This cannot be undone.";
+    el.projectDeleteModal.classList.remove("hidden");
+  }
+
+  function closeDeleteModal() {
+    el.projectDeleteModal.classList.add("hidden");
+    el.projectDeleteError.textContent = "";
+    deleteProjectId = null;
+  }
+
+  async function saveProject() {
+    const name = el.projectName.value.trim();
+    const remote_url = el.projectRemoteUrl.value.trim();
+    const secret_ref = el.projectSecretRef.value.trim();
+    el.projectModalError.textContent = "";
+    if (!name || !remote_url || !secret_ref) {
+      el.projectModalError.textContent = "name, remote_url, and secret_ref are required";
+      return;
+    }
+    const payload = { name: name, remote_url: remote_url, secret_ref: secret_ref };
+    el.btnProjectSave.disabled = true;
+    try {
+      const isEdit = editProjectId != null;
+      const res = await fetch(
+        isEdit ? "/board/repos/" + editProjectId : "/board/repos",
+        {
+          method: isEdit ? "PUT" : "POST",
+          headers: authHeaders(),
+          body: JSON.stringify(payload),
+        }
+      );
+      const body = await res.json().catch(function () { return {}; });
+      if (res.status === 400 || res.status === 409) {
+        el.projectModalError.textContent = body.error || "Request failed";
+        return;
+      }
+      if (!(res.status === 200 || res.status === 201)) {
+        el.projectModalError.textContent = body.error || ("Save failed (" + res.status + ")");
+        return;
+      }
+      closeProjectModal();
+      await loadProjects();
+    } catch (_) {
+      el.projectModalError.textContent = "Save failed";
+    } finally {
+      el.btnProjectSave.disabled = false;
+    }
+  }
+
+  async function confirmDeleteProject() {
+    if (deleteProjectId == null) return;
+    el.projectDeleteError.textContent = "";
+    el.btnProjectDeleteConfirm.disabled = true;
+    try {
+      const res = await fetch("/board/repos/" + deleteProjectId, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      const body = await res.json().catch(function () { return {}; });
+      if (res.status === 400 || res.status === 409) {
+        el.projectDeleteError.textContent = body.error || "Delete failed";
+        return;
+      }
+      if (res.status !== 200) {
+        el.projectDeleteError.textContent = body.error || ("Delete failed (" + res.status + ")");
+        return;
+      }
+      closeDeleteModal();
+      await loadProjects();
+    } catch (_) {
+      el.projectDeleteError.textContent = "Delete failed";
+    } finally {
+      el.btnProjectDeleteConfirm.disabled = false;
+    }
+  }
+
   el.btnLogin.addEventListener("click", onLogin);
   el.loginKey.addEventListener("keydown", function (e) {
     if (e.key === "Enter") onLogin();
@@ -512,6 +732,29 @@ export function renderDashboardPageHtml(): string {
   el.btnNavToggle.addEventListener("click", function () {
     const open = el.sideNav.classList.toggle("open");
     el.btnNavToggle.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+
+  el.btnProjectNew.addEventListener("click", function () {
+    openProjectModal("create");
+  });
+  el.btnProjectCancel.addEventListener("click", closeProjectModal);
+  el.btnProjectSave.addEventListener("click", saveProject);
+  el.btnProjectDeleteCancel.addEventListener("click", closeDeleteModal);
+  el.btnProjectDeleteConfirm.addEventListener("click", confirmDeleteProject);
+
+  el.projectsList.addEventListener("click", function (e) {
+    const btn = e.target.closest("button[data-id]");
+    if (!btn) return;
+    const id = Number(btn.getAttribute("data-id"));
+    const repo = projectsById[id];
+    if (!repo) return;
+    if (btn.classList.contains("btn-project-edit")) {
+      openProjectModal("edit", repo);
+      return;
+    }
+    if (btn.classList.contains("btn-project-delete")) {
+      openDeleteModal(repo);
+    }
   });
 
   document.querySelectorAll(".nav-item").forEach(function (btn) {

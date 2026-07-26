@@ -269,7 +269,7 @@ export function createUiRoutes() {
   <header>
     <div>
       <h1>Kanban Board</h1>
-      <div class="sub">cursor-server · global ops · <a href="/ui/prompt" style="color:var(--accent)">prompt</a> · <a href="/ui/spec-editor" style="color:var(--accent)">spec-editor</a></div>
+      <div class="sub">cursor-server · global ops · <a href="/ui/prompt" style="color:var(--accent)">prompt</a> · <a href="/ui/spec-editor" style="color:var(--accent)">spec-editor</a> · <a href="/#projects" style="color:var(--accent)">projects</a></div>
     </div>
     <div class="toolbar">
       <div>

@@ -338,6 +338,19 @@ export class BoardDatabase {
     return changes > 0;
   }
 
+  countCardsByRepo(repoId: number): number {
+    const db = this.getDb();
+    const stmt = db.prepare("SELECT COUNT(*) AS count FROM cards WHERE repo_id = ?");
+    stmt.bind([repoId]);
+    if (!stmt.step()) {
+      stmt.free();
+      return 0;
+    }
+    const row = stmt.getAsObject() as Record<string, unknown>;
+    stmt.free();
+    return Number(row.count) || 0;
+  }
+
   listCards(filters?: { repoId?: number; lane?: BoardLane }): BoardCard[] {
     const db = this.getDb();
     let sql = "SELECT * FROM cards WHERE 1=1";
