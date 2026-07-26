@@ -22,7 +22,7 @@ Designed for a **home lab** host — not cloud-first. Typical targets:
 | Target | Notes |
 |--------|--------|
 | **Docker / Docker Compose** | Primary packaging path; see [docs/docker.md](./docs/docker.md) for build/up, env, and `repos` volume |
-| **Umbrel** | Install as a custom app or Compose stack on an Umbrel home server (standard Compose; see docs) |
+| **Umbrel** | Root Compose stack or App Store manifest — [docs/umbrel.md](./docs/umbrel.md) · [docs/docker.md](./docs/docker.md) |
 | **Bare metal / VM** | `npm run dev` or `npm start` on any Linux box with Node 20+ |
 
 **Network access** via [Tailscale](https://tailscale.com): recommend `HOST=0.0.0.0` (bare-metal and Compose) so the published port is reachable on all interfaces. From a laptop on the same tailnet, call:
@@ -39,12 +39,12 @@ Living detail: [`.agents/specs/index.PRD`](./.agents/specs/index.PRD).
 
 | Phase | Focus | Status |
 |-------|--------|--------|
-| **Homelab-ready** | Docker Compose, Tailscale docs, client auth (`SERVER_API_KEY` / `TENANTS`), repo validation | **Landed** |
+| **Homelab-ready** | Docker Compose, Umbrel manifest, Tailscale docs, client auth (`SERVER_API_KEY` / `TENANTS`), repo validation | **Landed** |
 | **API depth** | Async tasks (`202` + poll), run history, SSE + WebSocket streaming, event gateway, MCP merge, `spec-to-pr*` agent roles, scheduled review jobs (opt-in) | **Landed** |
 | **Spec harness** | Qualified spec schema, stage orchestration, spec editor UI, pluggable runners | **MVP landed** |
 | **Runners** | Cursor SDK (default), Hermes (`hermes`), OpenCode (`opencode`) | **Registered** — CLIs must be installed |
 | **Ops UI** | Homelab Kanban board (`32`→`34`); agent prompt widget (`35`); spec-editor aspirational UI (`36`) | **Landed** |
-| **Next** | Umbrel App Store (`38`) | Open |
+| **Next** | — | — |
 
 **Caveats (honest gaps):** Hermes/OpenCode adapters require external CLIs on PATH. Scheduled review jobs are **off by default** — set `SCHEDULED_REVIEW_JOBS=true` to register cron handlers. Inbox (not active): richer MCP diagnostics (only if new gaps). See [AGENTS.md](./AGENTS.md) and [`index.PRD`](./.agents/specs/index.PRD).
 
@@ -69,7 +69,7 @@ Homelab-ready API with spec harness MVP. Implemented today:
 - `POST /harness/runs` — stage pipeline (implement → build → test → review); runners: `cursor-local`, `cursor-sdk`, `hermes`, `opencode`
 - Client auth — `SERVER_API_KEY` and/or `TENANTS` JSON; `X-API-Key` or `Authorization: Bearer` (disabled when neither is set)
 - Repo validation — exist + git working tree checks before agent start
-- Docker Compose packaging + Tailscale bind/client access docs
+- Docker Compose packaging + Umbrel App Store manifest (`deploy/umbrel/`) + Tailscale bind/client access docs
 - Scheduled review jobs — `pr-diff-review` and `repo-hygiene-check` when `SCHEDULED_REVIEW_JOBS=true` (default off)
 
 ## Prerequisites

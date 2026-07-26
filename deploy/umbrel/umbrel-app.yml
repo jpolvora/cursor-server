@@ -1,0 +1,44 @@
+manifestVersion: 1
+id: cursor-server
+category: developer
+name: cursor-server
+version: "0.1.0"
+tagline: Run Cursor SDK agents against local git repos from your Umbrel
+description: >-
+  cursor-server is a local-first HTTP API that executes Cursor agent tasks against
+  git clones on your home-lab host. Remote IDE clients on Tailscale send prompts
+  or qualified specs; this app runs the work on Umbrel with persistent repo and
+  board data volumes.
+
+
+  **Setup:** After install, open the app settings and set `CURSOR_API_KEY` (required).
+  Optional: `SERVER_API_KEY` / `TENANTS` for client auth, `CURSOR_MODEL`, and
+  `SCHEDULED_REVIEW_JOBS=true` for cron review jobs. Secrets stay in Umbrel env —
+  never baked into the image.
+
+
+  **Data:** Repo clones persist under `${APP_DATA_DIR}/repos`; Kanban SQLite under
+  `${APP_DATA_DIR}/board.db`. Reach the API on your tailnet at
+  `http://<umbrel-host>:3000/health`.
+
+
+  Packaging reuses the same Docker Compose stack as bare-metal and standard Compose
+  (`docker-compose.yml` at the repo root). This folder is the Umbrel App Store source
+  layout for community sideload or future `getumbrel/umbrel-apps` submission (v1 does
+  not publish to the official store on your behalf).
+releaseNotes: "Initial Umbrel App Store manifest and Compose overlay."
+developer: jpolvora
+website: https://github.com/jpolvora/cursor-server
+repo: https://github.com/jpolvora/cursor-server
+support: https://github.com/jpolvora/cursor-server/issues
+submission: ""
+port: 3000
+dependencies: []
+path: ""
+gallery: []
+defaultUsername: ""
+defaultPassword: ""
+submitter: jpolvora
+backupIgnore:
+  - repos/*
+implements: []

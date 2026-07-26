@@ -4,8 +4,8 @@ Living progressive-disclosure index. Status and short scope live here; acceptanc
 
 | Field | Value |
 |-------|-------|
-| Updated | 2026-07-26 (`ws-spec-index` promote: `36`–`38`) |
-| Priority order | WebSocket `37` → Umbrel App Store `38` |
+| Updated | 2026-07-26 (`38` Umbrel manifest shipped) |
+| Priority order | — |
 | Spec folder | `.agents/specs/` |
 
 ---
@@ -37,7 +37,7 @@ Living progressive-disclosure index. Status and short scope live here; acceptanc
 
 **cursor-server** is the local-first execution layer for remote IDE clients: an HTTP API on a home-lab host that runs agent tasks against git checkouts under `REPOS_ROOT`. Clients on Tailscale send prompts or qualified specs; this host is where the work runs.
 
-Flagship direction: machine-actionable specs + pluggable harness (`implement → build → test → review`; `deploy` optional per frontmatter) with Cursor SDK, Hermes, OpenCode, and future runners behind one contract. Homelab Kanban board (specs 32–34), agent prompt widget (spec 35), and aspirational spec-editor UI (spec 36) are landed. Next scheduled: WebSocket streaming (`37`), Umbrel App Store manifest (`38`).
+Flagship direction: machine-actionable specs + pluggable harness (`implement → build → test → review`; `deploy` optional per frontmatter) with Cursor SDK, Hermes, OpenCode, and future runners behind one contract. Homelab Kanban board (specs 32–34), agent prompt widget (spec 35), aspirational spec-editor UI (spec 36), WebSocket streaming (`37`), and Umbrel App Store manifest (`38`) are landed.
 
 ## 4. Problems
 
@@ -77,23 +77,23 @@ Status: **done**. Sync HTTP + local SDK + scheduler hook.
 
 ### Phase 1 — Homelab-ready
 
-Status: **partial** (Compose landed; Umbrel store listing open).
+Status: **done**.
 
 - [x] Docker Compose packaging (`spec: 01-docker-compose.spec.md`)
 - [x] Tailscale bind / client access docs (`spec: 02-tailscale-homelab-docs.spec.md`)
 - [x] Client authentication (`spec: 03-client-auth.spec.md`)
 - [x] Repo validation (`spec: 04-repo-validation.spec.md`)
-- [ ] Umbrel App Store manifest (`spec: 38-umbrel-app-store.spec.md`)
+- [x] Umbrel App Store manifest (`spec: 38-umbrel-app-store.spec.md`)
 
 ### Phase 2 — API depth and operations
 
-Status: **partial** (SSE landed; WebSocket open).
+Status: **done**.
 
 - [x] Workflow-skills `spec-to-pr` / `spec-to-pr-lite` agent roles (`spec: 05-workflow-skills-spec-to-pr.spec.md`)
 - [x] Async task queue (`spec: 06-async-task-queue.spec.md`)
 - [x] Run history + stale running reconciliation (`spec: 07-run-history.spec.md`, fix `29`)
 - [x] SSE task streaming + EventSource auth (`spec: 08-task-streaming.spec.md`, fix `24`)
-- [ ] WebSocket task streaming (`spec: 37-websocket-streaming.spec.md`)
+- [x] WebSocket task streaming (`spec: 37-websocket-streaming.spec.md`)
 - [x] Scheduled review jobs — hygiene + `SCHEDULED_REVIEW_JOBS` gate + `Agent.resume` (`spec: 09-scheduled-review-jobs.spec.md`, fix `25`)
 - [x] Event gateway (`spec: 19-event-gateway.spec.md`, fix `31`)
 - [x] MCP config merge into tasks (`spec: 18-mcp-config.spec.md`, fix `23`)
@@ -127,10 +127,9 @@ Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 
 | # | Spec | Status | Target Phase | Notes |
 |---|------|--------|--------------|-------|
-| 1 | `37-websocket-streaming` | `[ ]` todo | Phase 2 | Alongside SSE; do not replace EventSource |
-| 2 | `38-umbrel-app-store` | `[ ]` todo | Phase 1 | Store manifest on existing Compose path |
+| — | — | — | — | No scheduled next specs |
 
-**Immediate next:** deliver `37-websocket-streaming` (then `38`) via `/ws-multi-spec` or `/ws-spec-to-pr`.
+**Immediate next:** Inbox only — promote via `/ws-spec-index promote` when ready.
 
 ## 9. Inbox (unscheduled ideas)
 
@@ -170,6 +169,9 @@ Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 | 2026-07-26 | `33-board-ui` | Kanban UI `/ui/board` | #24 |
 | 2026-07-26 | `34-board-execution-control` | Start/Pause/Resume/Finish | #25 |
 | 2026-07-26 | `35-agent-prompt-widget` | Agent prompt widget `/ui/prompt` | #26 |
+| 2026-07-26 | `36-spec-editor-aspirational-ui` | AC builder, dependency graph, stage designer | #27 |
+| 2026-07-26 | `37-websocket-streaming` | WebSocket task streaming alongside SSE | develop |
+| 2026-07-26 | `38-umbrel-app-store` | Umbrel App Store manifest `deploy/umbrel/` | TBD |
 
 ## 11. Maintenance checklist
 

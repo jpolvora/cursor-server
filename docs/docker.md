@@ -57,9 +57,17 @@ volumes:
 
 Create `./repos` on the host first. Keep `REPOS_ROOT=/data/repos` in Compose environment.
 
-## Umbrel / custom Compose notes
+## Umbrel
 
-- Use **standard Compose** (`docker-compose.yml`); no Umbrel App Store manifest in this slice.
+Two install paths — pick one:
+
+| Path | When |
+|------|------|
+| **Standard Compose** (this file) | Custom Compose stack on Umbrel; same `docker-compose.yml` as any Docker host |
+| **App Store manifest** | Umbrel UI install via community store — see [umbrel.md](./umbrel.md) (`deploy/umbrel/`) |
+
+Both reuse the root `Dockerfile` and env contract. Secrets (`CURSOR_API_KEY`, etc.) stay in host `.env` or Umbrel app settings — never in the image.
+
 - Prefer clear env vars (host `.env` or Umbrel env UI) and a **persistent volume** for `/data/repos`.
 - Publish port `3000` (or map host `PORT`) only on the LAN/tailnet interface you intend; do not assume public internet exposure.
 
