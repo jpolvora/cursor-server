@@ -15,7 +15,7 @@ Primary use cases (shipped; see caveats below for rough edges):
 5. **Pluggable harnesses** — runner registry with Cursor SDK (`cursor-local`, `cursor-sdk`), [Hermes Agent](https://github.com/NousResearch/hermes-agent) (`hermes`), and OpenCode (`opencode`).
 6. **Ops Kanban** — SQLite board data plane, `GET /ui/board`, Start/Pause/Finish for `spec-to-pr*`.
 7. **Agent prompt widget** — `GET /ui/prompt` (standalone + embeddable).
-8. **Root ops dashboard** — `GET /` HTML shell (login gate, left nav, config); host prefs via `GET`/`PUT /settings` (`app_settings` in board DB); Projects pane CRUD (create/edit/delete modals over `/board/repos`, soft-block delete when cards remain).
+8. **Unified ops console** — one shared shell (left menu, compact top bar, single main container) renders every view by route: `GET /` dashboard, `/ui/board`, `/ui/prompt`, `/ui/spec-editor`, `/ui/projects`, `/ui/config`. Login gate collects the API key once; host prefs via `GET`/`PUT /settings` (`app_settings` in board DB); Projects CRUD over `/board/repos` with soft-block delete when cards remain.
 
 Prefer small, reviewable increments; confirm major new roadmap items with the owner before building.
 
@@ -39,12 +39,16 @@ src/
   middleware/auth.ts    # SERVER_API_KEY / TENANTS / X-API-Key gate
   routes/
     health.ts           # GET /health
-    dashboard-page.ts   # GET / HTML shell (login gate, left nav, panes)
+    shell.ts            # Shared app shell: design tokens (/ui/app.css), shell script (/ui/app.js), nav, renderShellPage
+    dashboard-page.ts   # GET / dashboard view
+    projects-page.ts    # GET /ui/projects — board repo CRUD view
+    config-page.ts      # GET /ui/config — host preference view
+    board-page.ts       # GET /ui/board — Kanban view + /ui/board-client.js
     settings.ts         # GET/PUT /settings — host preference store (API key auth)
     tasks.ts            # POST/GET /tasks; GET /tasks/:id/stream (SSE); GET /tasks/:id/ws (WebSocket)
     events.ts           # POST /events — event gateway
     jobs.ts             # GET /jobs — scheduler + review job history
-    ui.ts               # GET /ui/spec-editor, /ui/board, /ui/prompt (public HTML)
+    ui.ts               # /ui route table: view pages + app.css/app.js/*-client.js assets (public HTML)
     specs.ts            # POST /specs/validate; GET/PUT /repos/:repo/specs[/:file]
     harness.ts          # POST /harness/runs — stage pipeline runs
   services/
@@ -112,6 +116,15 @@ Default `REPOS_ROOT` is `./repos`. Do not hardcode absolute paths in routes.
 - **Zod** for request and env validation.
 - Match existing style: minimal scope, no over-abstraction, no comments unless logic is non-obvious.
 - Do not commit secrets (`.env`, API keys).
+
+### Operator UI
+
+New operator screens go through `renderShellPage()` in `src/routes/shell.ts` — never a standalone `<html>` page with its own palette.
+
+- Design tokens live once in `APP_CSS` (`GET /ui/app.css`). Views ship only view-scoped CSS, and every selector must be nested under a view class so it cannot reach shell chrome.
+- Add the route to `NAV_ITEMS` so the left menu and active state stay in sync; the shell marks `aria-current="page"` from `viewId`.
+- Client scripts are served from their own `/ui/*-client.js` route and get the API key from `window.cursorServerAuth` (`key`, `headers`, `jsonHeaders`, `ready`). Do not add a per-page API key input — the shell login gate owns it. The embeddable prompt widget is the one exception, since it also runs outside the shell.
+- Keep it compact and restrained: ~13px base type, hairline borders, no gradients, no glow shadows, no emoji chrome.
 
 ## SDK patterns to follow
 

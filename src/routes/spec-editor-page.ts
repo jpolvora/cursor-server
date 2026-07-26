@@ -1,199 +1,171 @@
-/** Spec editor page — MVP Markdown + aspirational AC builder, stage designer, dependency graph. */
+/** Spec editor view — Markdown source plus AC builder, stage designer, dependency graph. */
 
+import { renderShellPage } from "./shell.js";
+
+/** View-scoped styles. Every selector stays under .se-view so shell chrome is untouched. */
 export const SPEC_EDITOR_STYLES = `
-:root {
-  --se-bg: #0f1419;
-  --se-panel: #1a2332;
-  --se-border: #2d3a4d;
-  --se-text: #e7ecf3;
-  --se-muted: #8b9bb4;
-  --se-accent: #3d8bfd;
-  --se-ok: #3dd68c;
-  --se-bad: #f07178;
-  --se-warn: #ffcc66;
-  --se-mono: "Cascadia Code", "Fira Code", ui-monospace, monospace;
-  --se-sans: "Segoe UI", system-ui, sans-serif;
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  font-family: var(--se-sans);
-  background: linear-gradient(160deg, #0f1419 0%, #15202b 55%, #0f1419 100%);
-  color: var(--se-text);
-  min-height: 100vh;
-}
-header {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--se-border);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
-  justify-content: space-between;
-}
-header h1 { margin: 0; font-size: 1.15rem; font-weight: 600; letter-spacing: 0.02em; }
-header .sub { color: var(--se-muted); font-size: 0.85rem; }
-main {
+.se-view {
+  flex: 1;
+  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(220px, 280px) 1fr;
-  gap: 0;
-  min-height: calc(100vh - 64px);
+  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
 }
-@media (max-width: 800px) { main { grid-template-columns: 1fr; } }
-aside, section {
-  padding: 1rem;
-  border-right: 1px solid var(--se-border);
+@media (max-width: 800px) {
+  .se-view { grid-template-columns: minmax(0, 1fr); }
 }
-section { border-right: none; display: flex; flex-direction: column; gap: 0.75rem; }
-label { display: block; font-size: 0.75rem; color: var(--se-muted); margin-bottom: 0.25rem; }
-input, textarea, button, select {
-  font: inherit;
-  color: var(--se-text);
-  background: var(--se-panel);
-  border: 1px solid var(--se-border);
-  border-radius: 6px;
-  padding: 0.45rem 0.6rem;
+.se-view > aside {
+  padding: var(--sp-4);
+  overflow: auto;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
 }
-input, textarea { width: 100%; }
-textarea#editor {
-  font-family: var(--se-mono);
-  font-size: 0.85rem;
-  line-height: 1.45;
-  min-height: 280px;
-  resize: vertical;
-  flex: 0 0 auto;
-}
-.row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: end; }
-.row > div { flex: 1; min-width: 120px; }
-button {
-  cursor: pointer;
-  background: var(--se-accent);
-  border-color: transparent;
-  font-weight: 600;
-  white-space: nowrap;
-}
-button.secondary { background: var(--se-panel); border-color: var(--se-border); }
-button.danger { background: #5c2b2f; border-color: var(--se-bad); }
-button:disabled { opacity: 0.5; cursor: not-allowed; }
-#spec-list {
-  list-style: none;
-  margin: 0.5rem 0 0;
-  padding: 0;
-  max-height: 50vh;
+.se-view > section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
   overflow: auto;
 }
-#spec-list li {
-  padding: 0.4rem 0.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
+.se-view input, .se-view textarea { width: 100%; }
+.se-view textarea#editor {
+  flex: 0 0 auto;
+  min-height: 260px;
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+.se-view .row { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: end; }
+.se-view .row > div { flex: 1; min-width: 120px; }
+.se-view .hint { color: var(--muted); font-size: var(--fs-sm); margin: 0; }
+
+.se-view #spec-list {
+  list-style: none;
+  margin: var(--sp-2) 0 0;
+  padding: 0;
+  overflow: auto;
+}
+.se-view #spec-list li {
+  padding: var(--sp-1) var(--sp-2);
   border: 1px solid transparent;
+  border-radius: var(--r);
+  font-size: var(--fs-sm);
+  cursor: pointer;
 }
-#spec-list li:hover { background: var(--se-panel); }
-#spec-list li.active { border-color: var(--se-accent); background: var(--se-panel); }
-#spec-list .invalid { color: var(--se-bad); }
-#status {
-  font-family: var(--se-mono);
-  font-size: 0.8rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 6px;
-  background: var(--se-panel);
-  border: 1px solid var(--se-border);
+.se-view #spec-list li:hover { background: var(--panel-hover); }
+.se-view #spec-list li.active { border-color: var(--accent); background: var(--accent-soft); }
+.se-view #spec-list .invalid { color: var(--bad); }
+
+.se-view #status {
+  min-height: 2.2rem;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
   white-space: pre-wrap;
-  min-height: 2.5rem;
 }
-#status.ok { border-color: var(--se-ok); color: var(--se-ok); }
-#status.bad { border-color: var(--se-bad); color: var(--se-bad); }
-#run-id { color: var(--se-accent); font-family: var(--se-mono); font-size: 0.85rem; }
-.se-tabs {
+.se-view #status.ok { border-color: var(--ok); color: var(--ok); }
+.se-view #status.bad { border-color: var(--bad); color: var(--bad); }
+.se-view #run-id { font-family: var(--mono); font-size: var(--fs-sm); color: var(--accent); }
+
+.se-view .se-tabs {
   display: flex;
-  gap: 0.25rem;
   flex-wrap: wrap;
-  border-bottom: 1px solid var(--se-border);
-  padding-bottom: 0.35rem;
+  gap: var(--sp-1);
+  border-bottom: 1px solid var(--border);
 }
-.se-tab {
+.se-view .se-tab {
+  height: var(--row-h);
+  padding: 0 var(--sp-3);
   background: transparent;
   border: 1px solid transparent;
-  color: var(--se-muted);
-  font-weight: 500;
-  font-size: 0.8rem;
-  padding: 0.35rem 0.65rem;
+  border-bottom: none;
+  border-radius: var(--r) var(--r) 0 0;
+  color: var(--muted);
+  font-weight: 400;
+  font-size: var(--fs-sm);
 }
-.se-tab.active {
-  color: var(--se-text);
-  border-color: var(--se-border);
-  background: var(--se-panel);
+.se-view .se-tab:hover:not(.active) { background: var(--panel-hover); filter: none; }
+.se-view .se-tab.active {
+  color: var(--text);
+  background: var(--panel);
+  border-color: var(--border);
+  filter: none;
 }
-.se-panel { display: none; }
-.se-panel.active { display: block; }
-.se-tool-panel {
-  background: rgba(26, 35, 50, 0.45);
-  border: 1px solid var(--se-border);
-  border-radius: 8px;
-  padding: 0.75rem;
-  min-height: 180px;
-  max-height: 360px;
+.se-view .se-panel { display: none; }
+.se-view .se-panel.active { display: block; }
+.se-view .se-tool-panel {
+  min-height: 160px;
+  max-height: 340px;
   overflow: auto;
+  padding: var(--sp-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
 }
-.ac-card {
-  border: 1px solid var(--se-border);
-  border-radius: 6px;
-  padding: 0.6rem;
-  margin-bottom: 0.5rem;
-  background: var(--se-panel);
+
+.se-view .ac-card {
+  margin-bottom: var(--sp-3);
+  padding: var(--sp-3);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
 }
-.ac-card header {
+.se-view .ac-card header {
   display: flex;
-  gap: 0.35rem;
   align-items: center;
+  gap: var(--sp-2);
+  height: auto;
   padding: 0;
+  margin-bottom: var(--sp-2);
+  background: none;
   border: none;
-  margin-bottom: 0.4rem;
 }
-.ac-card header input { flex: 1; font-weight: 600; }
-.ac-card .ac-field { margin-bottom: 0.35rem; }
-.ac-card .ac-field input { font-size: 0.85rem; }
-.stage-grid {
+.se-view .ac-card header input { flex: 1; font-weight: 500; }
+.se-view .ac-card .ac-field { margin-bottom: var(--sp-2); }
+
+.se-view .stage-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.4rem;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: var(--sp-2);
 }
-.stage-chip {
+.se-view .stage-chip {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.5rem;
-  border: 1px solid var(--se-border);
-  border-radius: 6px;
-  font-size: 0.85rem;
+  gap: var(--sp-2);
+  height: var(--row-h);
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  font-size: var(--fs-sm);
   cursor: pointer;
 }
-.stage-chip.on { border-color: var(--se-accent); background: rgba(61, 139, 253, 0.12); }
-.stage-chip input { width: auto; margin: 0; }
-#dep-graph {
+.se-view .stage-chip.on { border-color: var(--accent); background: var(--accent-soft); }
+.se-view .stage-chip input { width: auto; height: auto; margin: 0; }
+
+.se-view #dep-graph {
   width: 100%;
   min-height: 200px;
-  background: rgba(15, 20, 25, 0.5);
-  border-radius: 6px;
-  border: 1px solid var(--se-border);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
 }
-.dep-legend { font-size: 0.75rem; color: var(--se-muted); margin-top: 0.5rem; }
-.dep-issues { margin-top: 0.5rem; font-size: 0.8rem; }
-.dep-issues .warn { color: var(--se-warn); }
-.dep-issues .bad { color: var(--se-bad); }
+.se-view .dep-legend { margin-top: var(--sp-2); color: var(--muted); font-size: var(--fs-xs); }
+.se-view .dep-issues { margin-top: var(--sp-2); font-size: var(--fs-sm); }
+.se-view .dep-issues .warn { color: var(--warn); }
+.se-view .dep-issues .bad { color: var(--bad); }
 `;
 
 export const SPEC_EDITOR_CLIENT_JS = `
 (function () {
-  const KEY_STORAGE = "cursor-server-api-key";
+  const auth = window.cursorServerAuth;
   const REPO_STORAGE = "cursor-server-repo";
   const DEFAULT_STAGES = ["implement", "build", "test", "review"];
   const ALL_STAGES = ["spec", "implement", "build", "test", "deploy", "review"];
 
   const el = {
     repo: document.getElementById("repo"),
-    apiKey: document.getElementById("api-key"),
     list: document.getElementById("spec-list"),
     filename: document.getElementById("filename"),
     editor: document.getElementById("editor"),
@@ -217,24 +189,14 @@ export const SPEC_EDITOR_CLIENT_JS = `
   let knownSpecIdsPopulated = false;
   let debounceTimer = null;
 
-  el.apiKey.value = sessionStorage.getItem(KEY_STORAGE) || "";
   el.repo.value = sessionStorage.getItem(REPO_STORAGE) || "";
 
-  el.apiKey.addEventListener("change", function () {
-    sessionStorage.setItem(KEY_STORAGE, el.apiKey.value.trim());
-  });
   el.repo.addEventListener("change", function () {
     sessionStorage.setItem(REPO_STORAGE, el.repo.value.trim());
   });
 
   function authHeaders() {
-    const headers = { "Content-Type": "application/json", Accept: "application/json" };
-    const key = el.apiKey.value.trim();
-    if (key) {
-      headers["X-API-Key"] = key;
-      headers["Authorization"] = "Bearer " + key;
-    }
-    return headers;
+    return auth.jsonHeaders();
   }
 
   function setStatus(text, kind) {
@@ -748,89 +710,73 @@ export const SPEC_EDITOR_CLIENT_JS = `
     sessionStorage.setItem(REPO_STORAGE, el.repo.value.trim());
   }
   if (params.get("file")) el.filename.value = params.get("file");
-  if (repoName()) {
-    if (params.get("file")) openSpec(params.get("file"));
-    else listSpecs();
-  } else {
-    refreshPanels();
-  }
+
+  auth.ready(function () {
+    if (repoName()) {
+      if (params.get("file")) openSpec(params.get("file"));
+      else listSpecs();
+    } else {
+      refreshPanels();
+    }
+  });
 })();
 `;
 
+const SPEC_EDITOR_ACTIONS = `<input id="repo" class="topbar-input" placeholder="repo-name under REPOS_ROOT" aria-label="Repository" autocomplete="off" />
+        <button type="button" class="secondary" id="btn-list">List specs</button>`;
+
+const SPEC_EDITOR_BODY = `        <div class="se-view">
+          <aside>
+            <label>Specs in repo</label>
+            <ul id="spec-list"></ul>
+            <div class="field" style="margin-top: var(--sp-5)">
+              <label for="filename">Filename (.spec.md)</label>
+              <input id="filename" placeholder="my-feature.spec.md" />
+            </div>
+          </aside>
+          <section>
+            <label for="editor">Markdown spec (source of truth)</label>
+            <textarea id="editor" spellcheck="false" placeholder="---&#10;slug: my-feature&#10;title: My Feature&#10;---&#10;&#10;# My Feature&#10;&#10;## Description&#10;...&#10;&#10;## Acceptance Criteria&#10;&#10;### AC1: ...&#10;- **Given** ...&#10;- **When** ...&#10;- **Then** ..."></textarea>
+            <div class="se-tabs" role="tablist">
+              <button type="button" class="se-tab active" data-tab="markdown" role="tab">Markdown</button>
+              <button type="button" class="se-tab" data-tab="ac-builder" role="tab">AC Builder</button>
+              <button type="button" class="se-tab" data-tab="stages" role="tab">Stage Designer</button>
+              <button type="button" class="se-tab" data-tab="deps" role="tab">Dependencies</button>
+            </div>
+            <div class="se-panel active" data-panel="markdown">
+              <p class="hint">Edit raw Markdown above. Structured panels sync bidirectionally.</p>
+            </div>
+            <div class="se-panel se-tool-panel" data-panel="ac-builder">
+              <div id="ac-list"></div>
+              <button type="button" class="secondary" id="btn-add-ac">Add acceptance criterion</button>
+            </div>
+            <div class="se-panel se-tool-panel" data-panel="stages">
+              <p class="hint" style="margin-bottom: var(--sp-3)">Toggle harness stages (default omits deploy).</p>
+              <div id="stage-grid" class="stage-grid"></div>
+            </div>
+            <div class="se-panel se-tool-panel" data-panel="deps">
+              <svg id="dep-graph" role="img" aria-label="Dependency graph"></svg>
+              <div id="dep-issues" class="dep-issues"></div>
+              <p class="dep-legend">Declare <code>dependencies:</code> in frontmatter. Gray = not yet validated; red = missing spec in repo.</p>
+            </div>
+            <div id="status" role="status">Idle — edit to validate</div>
+            <div class="row">
+              <button type="button" class="secondary" id="btn-validate">Validate</button>
+              <button type="button" class="secondary" id="btn-save">Save</button>
+              <button type="button" id="btn-save-run">Save &amp; Run</button>
+            </div>
+            <div id="run-id"></div>
+          </section>
+        </div>`;
+
 export function renderSpecEditorPageHtml(): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Spec Editor — cursor-server</title>
-  <style>${SPEC_EDITOR_STYLES}</style>
-</head>
-<body>
-  <header>
-    <div>
-      <h1>Spec Editor</h1>
-      <div class="sub">cursor-server · validate · save · harness run ·
-        <a href="/ui/prompt" style="color:var(--se-accent)">prompt</a> ·
-        <a href="/ui/board" style="color:var(--se-accent)">board</a>
-      </div>
-    </div>
-    <div class="row" style="flex: 1; max-width: 640px; justify-content: flex-end;">
-      <div>
-        <label for="repo">Repository</label>
-        <input id="repo" placeholder="repo-name under REPOS_ROOT" autocomplete="off" />
-      </div>
-      <div>
-        <label for="api-key">API key (optional)</label>
-        <input id="api-key" type="password" placeholder="SERVER_API_KEY" autocomplete="off" />
-      </div>
-      <button type="button" class="secondary" id="btn-list">List specs</button>
-    </div>
-  </header>
-  <main>
-    <aside>
-      <label>Specs in repo</label>
-      <ul id="spec-list"></ul>
-      <div style="margin-top: 1rem;">
-        <label for="filename">Filename (.spec.md)</label>
-        <input id="filename" placeholder="my-feature.spec.md" />
-      </div>
-    </aside>
-    <section>
-      <label for="editor">Markdown spec (source of truth)</label>
-      <textarea id="editor" spellcheck="false" placeholder="---&#10;slug: my-feature&#10;title: My Feature&#10;---&#10;&#10;# My Feature&#10;&#10;## Description&#10;...&#10;&#10;## Acceptance Criteria&#10;&#10;### AC1: ...&#10;- **Given** ...&#10;- **When** ...&#10;- **Then** ..."></textarea>
-      <div class="se-tabs" role="tablist">
-        <button type="button" class="se-tab active" data-tab="markdown" role="tab">Markdown</button>
-        <button type="button" class="se-tab" data-tab="ac-builder" role="tab">AC Builder</button>
-        <button type="button" class="se-tab" data-tab="stages" role="tab">Stage Designer</button>
-        <button type="button" class="se-tab" data-tab="deps" role="tab">Dependencies</button>
-      </div>
-      <div class="se-panel active" data-panel="markdown">
-        <p style="font-size:0.8rem;color:var(--se-muted);margin:0.25rem 0 0">Edit raw Markdown above. Structured panels sync bidirectionally.</p>
-      </div>
-      <div class="se-panel se-tool-panel" data-panel="ac-builder">
-        <div id="ac-list"></div>
-        <button type="button" class="secondary" id="btn-add-ac">+ Add acceptance criterion</button>
-      </div>
-      <div class="se-panel se-tool-panel" data-panel="stages">
-        <p style="font-size:0.8rem;color:var(--se-muted);margin:0 0 0.5rem">Toggle harness stages (default omits deploy).</p>
-        <div id="stage-grid" class="stage-grid"></div>
-      </div>
-      <div class="se-panel se-tool-panel" data-panel="deps">
-        <svg id="dep-graph" role="img" aria-label="Dependency graph"></svg>
-        <div id="dep-issues" class="dep-issues"></div>
-        <p class="dep-legend">Declare <code>dependencies:</code> in frontmatter. Gray = not yet validated; red = missing spec in repo.</p>
-      </div>
-      <div id="status" role="status">Idle — edit to validate</div>
-      <div class="row">
-        <button type="button" class="secondary" id="btn-validate">Validate</button>
-        <button type="button" class="secondary" id="btn-save">Save</button>
-        <button type="button" id="btn-save-run">Save &amp; Run</button>
-      </div>
-      <div id="run-id"></div>
-    </section>
-  </main>
-  <script src="/ui/spec-editor-client.js"></script>
-</body>
-</html>`;
+  return renderShellPage({
+    viewId: "specs",
+    title: "Spec Editor",
+    actions: SPEC_EDITOR_ACTIONS,
+    styles: SPEC_EDITOR_STYLES,
+    body: SPEC_EDITOR_BODY,
+    scripts: ["/ui/spec-editor-client.js"],
+    fill: true,
+  });
 }

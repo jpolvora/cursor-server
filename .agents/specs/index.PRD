@@ -4,7 +4,7 @@ Living progressive-disclosure index. Status and short scope live here; acceptanc
 
 | Field | Value |
 |-------|-------|
-| Updated | 2026-07-26 (`39` board projects management shipped) |
+| Updated | 2026-07-26 (`42` UI shell revamp planned) |
 | Priority order | — |
 | Spec folder | `.agents/specs/` |
 
@@ -129,15 +129,21 @@ Status: **landed**.
 
 - [x] GitHub Pages product website (`spec: 41-github-pages-product-website.spec.md`)
 
+### Phase 6 — Operator console (UI consolidation)
+
+Status: **in progress**. Unify the four disconnected UI surfaces into one compact SaaS shell.
+
+- [ ] UI revamp — shared app shell, design tokens, route-rendered views (`spec: 42-ui-shell-revamp.spec.md`)
+
 ## 8. Next specs
 
 Ordered active work only. Shipped specs stay in the [Done log](#10-done-log).
 
 | # | Spec | Status | Target Phase | Notes |
 |---|------|--------|--------------|-------|
-| — | — | — | — | No active Next specs; see Inbox |
+| 42 | `42-ui-shell-revamp.spec.md` | planned | Phase 6 | Left menu + main container renders every view by route (board, prompt, spec editor, projects, config); shared tokens; Cursor-IDE density |
 
-**Immediate next:** none (Inbox only).
+**Immediate next:** `42-ui-shell-revamp`.
 
 ## 9. Inbox (unscheduled ideas)
 
