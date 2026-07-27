@@ -3,22 +3,23 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "/ws-caveman explain why JWT refresh fails intermittently",
-      "expected_output": "Terse technical answer; articles and filler dropped.",
+      "prompt": "Use @ws-caveman for a typical caveman task in this project.",
+      "expected_output": "Agent loads ws-caveman and follows its skill contract.",
       "assertions": [
-        "Response is compressed vs normal prose",
-        "Technical terms and code remain exact",
-        "Still answers the question accurately"
+        "Agent loads ws-caveman before acting",
+        "Follows skill steps and Done when criteria",
+        "Uses path tokens from tools.md instead of hardcoded consumer paths",
+        "Output is en-us and harness-neutral"
       ]
     },
     {
       "id": 2,
-      "prompt": "stop ws-caveman — give full sentences for onboarding doc",
-      "expected_output": "Normal mode; ws-caveman opt-out honored.",
+      "prompt": "/caveman — edge case: missing or incomplete config.json",
+      "expected_output": "Agent stops or bootstraps via configure-project/setup, not silent guessing.",
       "assertions": [
-        "Uses full sentences after stop ws-caveman",
-        "Does not continue ultra-compressed style",
-        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+        "Recognizes ws-caveman trigger from slash or @ invocation",
+        "References shared/config.json or configure-project when config missing",
+        "Does not invent project-specific metadata"
       ]
     }
   ]

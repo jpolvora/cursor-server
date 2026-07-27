@@ -3,22 +3,23 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Loop until ws-check-harness reports zero critical findings.",
-      "expected_output": "Generic convergence loop with exit condition and iteration cap.",
+      "prompt": "Use @ws-goal-loop for a typical goal-loop task in this project.",
+      "expected_output": "Agent loads ws-goal-loop and follows its skill contract.",
       "assertions": [
-        "Agent loads ws-goal-loop",
-        "Defines measurable done condition",
-        "Does not infinite-loop without reporting progress"
+        "Agent loads ws-goal-loop before acting",
+        "Follows skill steps and Done when criteria",
+        "Uses path tokens from tools.md instead of hardcoded consumer paths",
+        "Output is en-us and harness-neutral"
       ]
     },
     {
       "id": 2,
-      "prompt": "goal loop with max 2 iterations on flaky test",
-      "expected_output": "Respects iteration cap; reports last state when not converged.",
+      "prompt": "/goal-loop — edge case: missing or incomplete config.json",
+      "expected_output": "Agent stops or bootstraps via configure-project/setup, not silent guessing.",
       "assertions": [
-        "Honors max iteration bound when specified",
-        "Documents exit reason when goal not met",
-        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+        "Recognizes ws-goal-loop trigger from slash or @ invocation",
+        "References shared/config.json or configure-project when config missing",
+        "Does not invent project-specific metadata"
       ]
     }
   ]

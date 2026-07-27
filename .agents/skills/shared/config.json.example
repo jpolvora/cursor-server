@@ -139,7 +139,7 @@
   },
 
   "rules": {
-    "_comment": "Guardrails paths. Resolve per shared/AGENTS.md External dependencies (first match). seniorDeveloper = Code review proof checklist source; karpathyGuidelines = surgical-change skill; stackFile = stack companion; changelogFile = append-only history (default under shared/); other keys optional consumer rule paths — leave empty when unused.",
+    "_comment": "Guardrails paths. Resolve per shared/AGENTS.md External dependencies (first match). seniorDeveloper = optional Code review proof checklist source; leave empty unless opting in to .agents/skills/ws-senior-developer/SKILL.md or another configured guardrail; karpathyGuidelines = surgical-change skill; stackFile = stack companion; changelogFile = append-only history (default under shared/); other keys optional consumer rule paths — leave empty when unused.",
     "harness": ".agents/skills/shared/AGENTS.md",
     "seniorDeveloper": "",
     "karpathyGuidelines": ".agents/skills/ws-karpathy-guidelines/SKILL.md",

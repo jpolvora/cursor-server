@@ -4,8 +4,9 @@
 
 
 
+
 name: ws-spec-to-pr
-version: 0.0.96
+version: 0.0.97
 description: >-
   Spec-to-PR delivery orchestrator FSM (F0–F6, steps 0–9). Agent contract only — not human docs.
   Invoke: /ws-spec-to-pr | @[ws-spec-to-pr]. Entry: GitHub issue | Azure DevOps work item | *.spec.md | feature description.

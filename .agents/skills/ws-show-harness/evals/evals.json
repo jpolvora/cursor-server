@@ -3,22 +3,23 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "/ws-show-harness — what skills are active this session?",
-      "expected_output": "Snapshot of loaded skills, rules, and harness paths.",
+      "prompt": "Use @ws-show-harness for a typical show-harness task in this project.",
+      "expected_output": "Agent loads ws-show-harness and follows its skill contract.",
       "assertions": [
-        "Agent loads ws-show-harness",
-        "Lists discoverable skills under {skillsRoot}",
-        "Does not invent skills not on disk"
+        "Agent loads ws-show-harness before acting",
+        "Follows skill steps and Done when criteria",
+        "Uses path tokens from tools.md instead of hardcoded consumer paths",
+        "Output is en-us and harness-neutral"
       ]
     },
     {
       "id": 2,
-      "prompt": "show harness after partial install (only ws-spec-to-pr)",
-      "expected_output": "Reports missing deps and install guidance, not a false full snapshot.",
+      "prompt": "/show-harness — edge case: missing or incomplete config.json",
+      "expected_output": "Agent stops or bootstraps via configure-project/setup, not silent guessing.",
       "assertions": [
-        "Distinguishes installed vs missing pipeline skills",
-        "References shared hub or installed-skills.json when present",
-        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+        "Recognizes ws-show-harness trigger from slash or @ invocation",
+        "References shared/config.json or configure-project when config missing",
+        "Does not invent project-specific metadata"
       ]
     }
   ]

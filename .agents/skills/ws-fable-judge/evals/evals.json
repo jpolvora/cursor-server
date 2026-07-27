@@ -3,22 +3,23 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Adversarial audit: verify oauth-login PR claims vs diff.",
-      "expected_output": "VERIFIED / VERIFIED WITH CAVEATS / REFUTED verdict with evidence.",
+      "prompt": "Use @ws-fable-judge for a typical fable-judge task in this project.",
+      "expected_output": "Agent loads ws-fable-judge and follows its skill contract.",
       "assertions": [
-        "Agent loads ws-fable-judge",
-        "Diff-grounded verification, not trust of claims",
-        "Detects weakened checks or false completion"
+        "Agent loads ws-fable-judge before acting",
+        "Follows skill steps and Done when criteria",
+        "Uses path tokens from tools.md instead of hardcoded consumer paths",
+        "Output is en-us and harness-neutral"
       ]
     },
     {
       "id": 2,
-      "prompt": "judge says tests pass but I see no test output",
-      "expected_output": "REFUTED or caveats when evidence missing.",
+      "prompt": "/fable-judge — edge case: missing or incomplete config.json",
+      "expected_output": "Agent stops or bootstraps via configure-project/setup, not silent guessing.",
       "assertions": [
-        "Requires observable evidence for pass claims",
-        "Does not rubber-stamp completion",
-        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+        "Recognizes ws-fable-judge trigger from slash or @ invocation",
+        "References shared/config.json or configure-project when config missing",
+        "Does not invent project-specific metadata"
       ]
     }
   ]

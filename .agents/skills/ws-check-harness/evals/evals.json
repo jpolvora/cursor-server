@@ -3,22 +3,23 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "/ws-check-harness on this repo after skill edits.",
-      "expected_output": "Phases 0–5c audit report; critical findings listed with paths.",
+      "prompt": "Use @ws-check-harness for a typical check-harness task in this project.",
+      "expected_output": "Agent loads ws-check-harness and follows its skill contract.",
       "assertions": [
-        "Agent loads ws-check-harness SKILL.md and PHASES.md for methodology",
-        "Checks routing, links, portability, en-us",
-        "Does not claim zero critical without running phases"
+        "Agent loads ws-check-harness before acting",
+        "Follows skill steps and Done when criteria",
+        "Uses path tokens from tools.md instead of hardcoded consumer paths",
+        "Output is en-us and harness-neutral"
       ]
     },
     {
       "id": 2,
-      "prompt": "ws-check-harness dry-run only",
-      "expected_output": "Report without Phase 7 auto-fixes unless approved.",
+      "prompt": "/check-harness — edge case: missing or incomplete config.json",
+      "expected_output": "Agent stops or bootstraps via configure-project/setup, not silent guessing.",
       "assertions": [
-        "Respects --dry-run report-only mode when requested",
-        "Cites verified paths in findings",
-        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+        "Recognizes ws-check-harness trigger from slash or @ invocation",
+        "References shared/config.json or configure-project when config missing",
+        "Does not invent project-specific metadata"
       ]
     }
   ]

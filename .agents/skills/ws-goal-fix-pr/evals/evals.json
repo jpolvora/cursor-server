@@ -7,7 +7,7 @@
       "expected_output": "Convergence loop via ws-goal-fix-pr until thread count is zero or blocked.",
       "assertions": [
         "Agent loads ws-goal-fix-pr or goal-fix-pr",
-        "Uses ws-goal-loop convergence pattern",
+        "Uses goal-loop convergence pattern",
         "Reports remaining thread count each iteration"
       ]
     },

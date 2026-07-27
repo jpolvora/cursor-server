@@ -219,7 +219,7 @@ This repo consumes the **full** package. Skills live under `.agents/skills/`. Do
 
 1. Load the shared hub first for routing: [`.agents/skills/shared/AGENTS.md`](.agents/skills/shared/AGENTS.md).
 2. **Autoload every prompt (Layer 0):** `ws-caveman`, `ws-gabarito`, `ws-karpathy-guidelines` from the hub (paths under `.agents/skills/`).
-3. **Plan-first gate (default):** When a free-text task involves several files or multiple modifications, pause before coding. Confirm a short plan with the user and whether to add/update specs, run [`ws-spec-index`](.agents/skills/ws-spec-index/SKILL.md), [`ws-sync-spec`](.agents/skills/ws-sync-spec/SKILL.md), `/ws-spec-to-pr` / `/ws-spec-to-pr-lite`, or `/ws-fable-method`. Prefer workflows and specs/planning over immediate implementation. Layer 0 still applies every prompt. **Skip the pause** when scope is clearly trivial (single file / tiny fix) or the user gave an explicit implement/ship command or named a workflow to run. This root `AGENTS.md` is the single source of truth for the gate; do not add a separate always-on skill that duplicates it.
+3. **Autoload every prompt (delivery gate):** [`ws-senior-developer`](.agents/skills/ws-senior-developer/SKILL.md) — route named workflows first; classify scope (trivial single-file vs multi-file); load project context, `rules.*`, and `{sharedDir}/MEMORY.md`; confirm plan before multi-file free-text work (specs, [`ws-spec-index`](.agents/skills/ws-spec-index/SKILL.md), [`ws-sync-spec`](.agents/skills/ws-sync-spec/SKILL.md), `/ws-spec-to-pr` / lite, `/ws-fable-method`); implement within constraints; produce pre-ship proof before handoff. Resolved via `config.json` → `rules.seniorDeveloper`. Layer 0 still applies every prompt. **Skip ceremony** when the skill classifies scope as exempt or the user gave an explicit implement/ship command or named workflow.
 4. **Autoload after implementation / vibe-coding turns:** [`ws-sync-spec`](.agents/skills/ws-sync-spec/SKILL.md) — keep matching `.agents/specs/*.spec.md` aligned with code; propose updates and **wait for approval** before writing. If no matching spec, report and continue.
 5. **On demand (this repo):** [`cursor-server`](.agents/skills/cursor-server/SKILL.md) — local coding conventions and feature/config workflows when implementing in this codebase.
 6. Invoke orchestrators by intent: `/ws-spec-to-pr`, `/ws-spec-to-pr-lite`, `/ws-fable-method`, `/ws-configure-project`, `/ws-check-harness`, `/ws-ship-pr`, `/ws-fix-pr`, etc.
@@ -288,13 +288,13 @@ npm run scan-secrets   # before commit; husky runs this on git commit
 curl http://localhost:3000/health   # when server running
 ```
 
-Task endpoint smoke requires `CURSOR_API_KEY` and a clone under `repos/`. For **Code review proof**, resolve `rules.seniorDeveloper` per shared hub (optional local/global skill; not in the full package).
+Task endpoint smoke requires `CURSOR_API_KEY` and a clone under `repos/`. For **Code review proof**, follow autoloaded [`ws-senior-developer`](.agents/skills/ws-senior-developer/SKILL.md) §6 (resolved via `rules.seniorDeveloper`).
 
 ---
 
 ## Precedence
 
-1. User explicit instructions (this root `AGENTS.md`, direct requests) — portable across agent hosts; do not require IDE-specific rule files. Includes the § How to use **plan-first gate** for multi-file free-text work unless the user explicitly overrides.
+1. User explicit instructions (this root `AGENTS.md`, direct requests) — portable across agent hosts; do not require IDE-specific rule files. Includes autoloaded **`ws-senior-developer`** for multi-file free-text work unless the user explicitly overrides.
 2. [Shared hub](.agents/skills/shared/AGENTS.md) + invoked skills under `.agents/skills/`
 3. Default agent behavior
 

@@ -3,22 +3,23 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Register specs/features/oauth.spec.md into the workflow artifact tree.",
-      "expected_output": "register_local_spec.py mirrors to step-00-{slug}.spec.md under {plansDir}.",
+      "prompt": "Use @ws-local-spec-provider for a typical local-spec-provider task in this project.",
+      "expected_output": "Agent loads ws-local-spec-provider and follows its skill contract.",
       "assertions": [
-        "Agent loads ws-local-spec-provider",
-        "Uses detect_specs_dir.py or register_local_spec.py with python",
-        "Respects plans.specsDir from config"
+        "Agent loads ws-local-spec-provider before acting",
+        "Follows skill steps and Done when criteria",
+        "Uses path tokens from tools.md instead of hardcoded consumer paths",
+        "Output is en-us and harness-neutral"
       ]
     },
     {
       "id": 2,
-      "prompt": "where should specs live in this repo?",
-      "expected_output": "detect_specs_dir guidance; prefers existing repo-root specs/ when present.",
+      "prompt": "/local-spec-provider — edge case: missing or incomplete config.json",
+      "expected_output": "Agent stops or bootstraps via configure-project/setup, not silent guessing.",
       "assertions": [
-        "Does not invent hardcoded specs path",
-        "References config.json plans.specsDir",
-        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+        "Recognizes ws-local-spec-provider trigger from slash or @ invocation",
+        "References shared/config.json or configure-project when config missing",
+        "Does not invent project-specific metadata"
       ]
     }
   ]
