@@ -3,22 +3,23 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Fetch ADO work item 1234 to spec for slug ado-feature.",
-      "expected_output": "ado-workitem-to-spec.py output under {plansDir}/ado-feature/.",
+      "prompt": "Use @ws-azure-devops-provider for a typical azure-devops-provider task in this project.",
+      "expected_output": "Agent loads ws-azure-devops-provider and follows its skill contract.",
       "assertions": [
-        "Agent loads ws-azure-devops-provider",
-        "Reads org/project from config.json issueTrackers.azureDevOps",
-        "Uses python launcher on scripts/ado-workitem-to-spec.py"
+        "Agent loads ws-azure-devops-provider before acting",
+        "Follows skill steps and Done when criteria",
+        "Uses path tokens from tools.md instead of hardcoded consumer paths",
+        "Output is en-us and harness-neutral"
       ]
     },
     {
       "id": 2,
-      "prompt": "resolve thread 99 on ADO PR 50",
-      "expected_output": "fix_pr_azure_context.py resolve-thread with PAT from env.",
+      "prompt": "/azure-devops-provider — edge case: missing or incomplete config.json",
+      "expected_output": "Agent stops or bootstraps via configure-project/setup, not silent guessing.",
       "assertions": [
-        "Does not hardcode organization or project",
-        "UTF-8 handling noted for context.json on Windows",
-        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+        "Recognizes ws-azure-devops-provider trigger from slash or @ invocation",
+        "References shared/config.json or configure-project when config missing",
+        "Does not invent project-specific metadata"
       ]
     }
   ]

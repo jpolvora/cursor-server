@@ -3,22 +3,23 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "/ws-spec-to-pr-lite for local specs/oauth-login/step-00-oauth-login.spec.md",
-      "expected_output": "Fast sequential steps 0–5 without full FSM subagent dispatch.",
+      "prompt": "Use @ws-spec-to-pr-lite for a typical spec-to-pr-lite task in this project.",
+      "expected_output": "Agent loads ws-spec-to-pr-lite and follows its skill contract.",
       "assertions": [
-        "Agent loads ws-spec-to-pr-lite",
-        "Uses lite step numbers, not STEP-DISPATCH standard-only table",
-        "Shares config and gates with standard orch"
+        "Agent loads ws-spec-to-pr-lite before acting",
+        "Follows skill steps and Done when criteria",
+        "Uses path tokens from tools.md instead of hardcoded consumer paths",
+        "Output is en-us and harness-neutral"
       ]
     },
     {
       "id": 2,
-      "prompt": "lite delivery auto dry-run on billing-refactor spec",
-      "expected_output": "Combined flags; inline execution in main session.",
+      "prompt": "/spec-to-pr-lite — edge case: missing or incomplete config.json",
+      "expected_output": "Agent stops or bootstraps via configure-project/setup, not silent guessing.",
       "assertions": [
-        "Does not require dispatch-agent for every lite step",
-        "Sets workflowType lite in state isolation",
-        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+        "Recognizes ws-spec-to-pr-lite trigger from slash or @ invocation",
+        "References shared/config.json or configure-project when config missing",
+        "Does not invent project-specific metadata"
       ]
     }
   ]

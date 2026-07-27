@@ -4,12 +4,12 @@
     {
       "id": 1,
       "prompt": "Draft a spec for adding OAuth login with Google and GitHub. Feature slug: oauth-login.",
-      "expected_output": "A canonical step-00-oauth-login.spec.md under {plansDir}/oauth-login/ with acceptance criteria per ws-spec-format.",
+      "expected_output": "A canonical step-00-oauth-login.spec.md under {plansDir}/oauth-login/ with acceptance criteria per spec-format.",
       "assertions": [
         "Agent loads ws-write-spec or write-spec before drafting",
         "Output path uses {plansDir} or plans.dir token, not a hardcoded consumer path",
         "Spec includes testable acceptance criteria",
-        "Spec follows ws-spec-format structure (not a freeform essay)"
+        "Spec follows spec-format structure (not a freeform essay)"
       ]
     },
     {
@@ -18,17 +18,17 @@
       "expected_output": "Casual prompt still yields a structured spec with slug, scope, and acceptance criteria.",
       "assertions": [
         "Agent loads the write-spec skill despite informal phrasing",
-        "Spec sets source: local and id: null per ws-spec-format",
+        "Spec sets source: local and id: null per spec-format",
         "Slug is derived and used in the artifact filename"
       ]
     },
     {
       "id": 3,
       "prompt": "Write a spec with no acceptance criteria, just a paragraph of ideas.",
-      "expected_output": "Agent pushes back or adds acceptance criteria per ws-spec-format rather than shipping a vague paragraph-only spec.",
+      "expected_output": "Agent pushes back or adds acceptance criteria per spec-format rather than shipping a vague paragraph-only spec.",
       "assertions": [
         "Response does not treat paragraph-only text as a complete canonical spec",
-        "Agent references ws-spec-format or acceptance criteria requirements",
+        "Agent references spec-format or acceptance criteria requirements",
         "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
       ]
     }

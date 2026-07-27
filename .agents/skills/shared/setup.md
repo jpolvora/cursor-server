@@ -13,7 +13,7 @@ Resolve `config.json` `rules.*` before assuming a skill or rule file exists. Ful
 
 | Key | Role | Resolve (first match) |
 |-----|------|------------------------|
-| `rules.seniorDeveloper` | Engineering guardrails; **Code review proof** source | config path → local `senior-developer` skill → global/user skill |
+| `rules.seniorDeveloper` | Optional engineering guardrails; **Code review proof** source | configured path (set `.agents/skills/ws-senior-developer/SKILL.md` to opt in to the packaged skill) → local `senior-developer` skill → global/user skill |
 | `rules.karpathyGuidelines` | Surgical-change guidelines | config path → shipped `../ws-karpathy-guidelines/SKILL.md` → global skill |
 | `rules.stackFile` | Human-readable stack companion | config path (default `.agents/skills/shared/STACK.md`); bootstrap may create under `shared/` if missing (see 1b below) — never require repo-root files |
 | Other `rules.*` | Optional consumer rules (e.g. `efMigrations`, `viewPatterns`) | Use path from config when set; do not invent filenames |

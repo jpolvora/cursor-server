@@ -3,22 +3,23 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Scan repo for secrets before public push.",
-      "expected_output": "Leak scan using ws-secrets-leak-review skill and scanner scripts.",
+      "prompt": "Use @ws-secrets-leak-review for a typical secrets-leak-review task in this project.",
+      "expected_output": "Agent loads ws-secrets-leak-review and follows its skill contract.",
       "assertions": [
-        "Agent loads ws-secrets-leak-review",
-        "Checks for API keys, tokens, PII patterns",
-        "Uses bash/python launchers on scripts/ when running hooks"
+        "Agent loads ws-secrets-leak-review before acting",
+        "Follows skill steps and Done when criteria",
+        "Uses path tokens from tools.md instead of hardcoded consumer paths",
+        "Output is en-us and harness-neutral"
       ]
     },
     {
       "id": 2,
-      "prompt": "is it safe to commit .env with fake values?",
-      "expected_output": "Risk assessment; recommends gitignore and pre-commit hook.",
+      "prompt": "/secrets-leak-review — edge case: missing or incomplete config.json",
+      "expected_output": "Agent stops or bootstraps via configure-project/setup, not silent guessing.",
       "assertions": [
-        "Warns about committing env files even with fake values",
-        "References install-hook.sh only as optional helper",
-        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+        "Recognizes ws-secrets-leak-review trigger from slash or @ invocation",
+        "References shared/config.json or configure-project when config missing",
+        "Does not invent project-specific metadata"
       ]
     }
   ]

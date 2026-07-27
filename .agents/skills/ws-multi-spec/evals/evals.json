@@ -3,51 +3,23 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "/ws-multi-spec with no args — pick specs from default specs dir, evaluate complexity, and run them sequentially.",
-      "expected_output": "Scan specsDir, user-gate selection, create ws-multi-spec state with baseBranch, sync feature branch with baseBranch, auto-detect lite vs standard flow, dispatch sequential workers.",
+      "prompt": "Use @ws-multi-spec for a typical multi-spec task in this project.",
+      "expected_output": "Agent loads ws-multi-spec and follows its skill contract.",
       "assertions": [
-        "Scans config.plans.specsDir (default .agents/specs) for *.spec.md",
-        "Creates state under {plansDir}/ws-multi-spec/ with recorded baseBranch (e.g. develop)",
-        "Syncs feature branch with baseBranch (git merge or rebase) before dispatching worker",
-        "Auto-detects spec complexity (lite vs standard workflow selection)",
-        "Dispatches at most one ws-spec-to-pr or ws-spec-to-pr-lite worker at a time",
-        "Does not start implementing before selection gate completes"
+        "Agent loads ws-multi-spec before acting",
+        "Follows skill steps and Done when criteria",
+        "Uses path tokens from tools.md instead of hardcoded consumer paths",
+        "Output is en-us and harness-neutral"
       ]
     },
     {
       "id": 2,
-      "prompt": "/ws-multi-spec .agents/specs/13-runner-cursor-sdk.spec.md .agents/specs/14-spec-editor.spec.md",
-      "expected_output": "State created from explicit list; probe skip if already shipped; smart flow detection per spec; feature branch sync with baseBranch.",
+      "prompt": "/multi-spec — edge case: missing or incomplete config.json",
+      "expected_output": "Agent stops or bootstraps via configure-project/setup, not silent guessing.",
       "assertions": [
-        "Creates state from explicit spec list without blank-list scan",
-        "Records baseBranch in state YAML frontmatter",
-        "Runs already-implemented probe before each worker",
-        "Syncs feature branch with baseBranch before worker execution",
-        "Selects ws-spec-to-pr-lite for simple specs and ws-spec-to-pr for complex specs",
-        "Pauses with user-gate on worker failure instead of silently continuing"
-      ]
-    },
-    {
-      "id": 3,
-      "prompt": "Resume /ws-multi-spec .agents/plans/ws-multi-spec/ms-20260725T220000Z.state.md after a failure.",
-      "expected_output": "Resume from state; sync feature branch with recorded baseBranch; do not re-run shipped items; pause gate options on failed item.",
-      "assertions": [
-        "Opens existing state file rather than creating a new run",
-        "Loads baseBranch from state header",
-        "Syncs feature branch with baseBranch (git merge or rebase) before re-dispatching pending/failed item",
-        "Skips shipped and skipped rows",
-        "Offers Resume / Skip / Abort when status is failed"
-      ]
-    },
-    {
-      "id": 4,
-      "prompt": "/ws-multi-spec with specs requiring PR thread convergence — verify queue does not advance while PR is open or activeThreads > 0.",
-      "expected_output": "Worker creates PR; master enforces Phase 4b convergence (runs ws-goal-fix-pr, waits for activeThreads == 0, merges PR) before dispatching next spec.",
-      "assertions": [
-        "Blocks next spec dispatch while prior spec PR is open or unmerged",
-        "Dispatches ws-goal-fix-pr thread resolution loop until activeThreads == 0",
-        "Merges PR via SCM provider (ws-ship-pr merge step) before recording terminal shipped status",
-        "Re-enters convergence gate on resume if state row contains an unmerged PR"
+        "Recognizes ws-multi-spec trigger from slash or @ invocation",
+        "References shared/config.json or configure-project when config missing",
+        "Does not invent project-specific metadata"
       ]
     }
   ]

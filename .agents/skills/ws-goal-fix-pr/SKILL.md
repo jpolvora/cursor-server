@@ -4,9 +4,10 @@
 
 
 
+
 name: ws-goal-fix-pr
 description: Convergence loop — runs fix-pr rounds until all PR threads are resolved or the max iteration cap is reached.
-version: 0.0.96
+version: 0.0.97
 disable-model-invocation: true
 invocation_names:
   - goal-fix-pr

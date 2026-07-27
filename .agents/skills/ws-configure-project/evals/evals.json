@@ -3,22 +3,23 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Set up workflow config for a new Node + React monorepo.",
-      "expected_output": "Interview/detect fills shared/config.json from example template.",
+      "prompt": "Use @ws-configure-project for a typical configure-project task in this project.",
+      "expected_output": "Agent loads ws-configure-project and follows its skill contract.",
       "assertions": [
-        "Agent loads ws-configure-project",
-        "Writes config.json under {sharedDir}, not repo root",
-        "Does not overwrite consumer data on update semantics"
+        "Agent loads ws-configure-project before acting",
+        "Follows skill steps and Done when criteria",
+        "Uses path tokens from tools.md instead of hardcoded consumer paths",
+        "Output is en-us and harness-neutral"
       ]
     },
     {
       "id": 2,
-      "prompt": "config.json is missing — bootstrap before ws-spec-to-pr",
-      "expected_output": "Seeds from config.json.example and prompts for stack/verification.",
+      "prompt": "/configure-project — edge case: missing or incomplete config.json",
+      "expected_output": "Agent stops or bootstraps via configure-project/setup, not silent guessing.",
       "assertions": [
-        "Uses config.json.example as source",
-        "References ws-configure-project or setup.md bootstrap",
-        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+        "Recognizes ws-configure-project trigger from slash or @ invocation",
+        "References shared/config.json or configure-project when config missing",
+        "Does not invent project-specific metadata"
       ]
     }
   ]

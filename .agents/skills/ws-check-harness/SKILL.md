@@ -4,10 +4,11 @@
 
 
 
+
 name: ws-check-harness
 description: Audit harness integrity — validates AGENTS.md routing, pipeline folder/step alignment (ws-* folders == frontmatter name), retired path ids, broken links (after path-token expand), orphan skills/rules, absolute paths, redundancy, and portability. Read-only scan → correction plan → apply with approval.
 disable-model-invocation: true
-version: 0.0.96
+version: 0.0.97
 ---
 
 # Check Harness

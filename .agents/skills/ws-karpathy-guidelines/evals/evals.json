@@ -3,22 +3,23 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Refactor entire auth module while fixing one bug.",
-      "expected_output": "Surgical fix only; pushback on scope creep.",
+      "prompt": "Use @ws-karpathy-guidelines for a typical karpathy-guidelines task in this project.",
+      "expected_output": "Agent loads ws-karpathy-guidelines and follows its skill contract.",
       "assertions": [
-        "Touches only code required for the bug",
-        "Consults MEMORY before inventing approach",
-        "States assumptions explicitly"
+        "Agent loads ws-karpathy-guidelines before acting",
+        "Follows skill steps and Done when criteria",
+        "Uses path tokens from tools.md instead of hardcoded consumer paths",
+        "Output is en-us and harness-neutral"
       ]
     },
     {
       "id": 2,
-      "prompt": "Add error handling for impossible edge case we will never hit",
-      "expected_output": "Pushback on speculative error handling per simplicity first.",
+      "prompt": "/karpathy-guidelines — edge case: missing or incomplete config.json",
+      "expected_output": "Agent stops or bootstraps via configure-project/setup, not silent guessing.",
       "assertions": [
-        "Does not add handling for impossible scenarios",
-        "Explains tradeoff when declining scope",
-        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+        "Recognizes ws-karpathy-guidelines trigger from slash or @ invocation",
+        "References shared/config.json or configure-project when config missing",
+        "Does not invent project-specific metadata"
       ]
     }
   ]

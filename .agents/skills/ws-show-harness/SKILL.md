@@ -4,11 +4,12 @@
 
 
 
+
 name: ws-show-harness
 description: >
   Snapshot the harness active in this session — skills, rules, instructions, precedence,
   and can/cannot — as short bullets. Invoke anytime with /ws-show-harness or @ws-show-harness.
-version: 0.0.96
+version: 0.0.97
 disable-model-invocation: true
 invocation_names:
   - ws-show-harness

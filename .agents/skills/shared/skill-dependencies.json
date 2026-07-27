@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "packageVersion": "0.0.96",
+  "packageVersion": "0.0.97",
   "upstream": {
     "repo": "jpolvora/workflow-skills",
     "url": "https://github.com/jpolvora/workflow-skills",
@@ -56,7 +56,8 @@
         "ws-fable-domain",
         "ws-multi-spec",
         "ws-spec-index",
-        "ws-sync-spec"
+        "ws-sync-spec",
+        "ws-senior-developer"
       ],
       "ensureHub": true,
       "shortcut": "w",
@@ -171,6 +172,8 @@
     "ws-multi-spec": [
       "ws-spec-to-pr",
       "ws-spec-to-pr-lite",
+      "ws-ship-pr",
+      "ws-goal-fix-pr",
       "ws-caveman",
       "ws-gabarito",
       "ws-karpathy-guidelines"
