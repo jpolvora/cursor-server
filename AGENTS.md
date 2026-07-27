@@ -219,13 +219,14 @@ This repo consumes the **full** package. Skills live under `.agents/skills/`. Do
 
 1. Load the shared hub first for routing: [`.agents/skills/shared/AGENTS.md`](.agents/skills/shared/AGENTS.md).
 2. **Autoload every prompt (Layer 0):** `ws-caveman`, `ws-gabarito`, `ws-karpathy-guidelines` from the hub (paths under `.agents/skills/`).
-3. **Autoload after implementation / vibe-coding turns:** [`ws-sync-spec`](.agents/skills/ws-sync-spec/SKILL.md) — keep matching `.agents/specs/*.spec.md` aligned with code; propose updates and **wait for approval** before writing. If no matching spec, report and continue.
-4. **On demand (this repo):** [`cursor-server`](.agents/skills/cursor-server/SKILL.md) — local coding conventions and feature/config workflows when implementing in this codebase.
-5. Invoke orchestrators by intent: `/ws-spec-to-pr`, `/ws-spec-to-pr-lite`, `/ws-fable-method`, `/ws-configure-project`, `/ws-check-harness`, `/ws-ship-pr`, `/ws-fix-pr`, etc.
-6. Expand path tokens (`{skillsRoot}`, `{sharedDir}`, `{plansDir}`) from `config.json` per `shared/tools.md` before file ops.
-7. Never invent alternate pipeline folder ids; dispatch steps via the orchestrator (`00`–`09`, `goal-fix-pr`, `update-plan-implementation`).
-8. **Mandatory completion gate (every task ready):** `ws-sync-spec` → `self-learning` → `changelog`.
-9. **On-demand only (not every vibe turn):** [`ws-spec-index`](.agents/skills/ws-spec-index/SKILL.md) for ship/delivery (`sync`), Inbox → planned (`promote`), or index bootstrap (`init`). Use when editing `index.PRD` / README Roadmap / AGENTS Planned areas — not for AC content drift (that is `ws-sync-spec`).
+3. **Plan-first gate (default):** When a free-text task involves several files or multiple modifications, pause before coding. Confirm a short plan with the user and whether to add/update specs, run [`ws-spec-index`](.agents/skills/ws-spec-index/SKILL.md), [`ws-sync-spec`](.agents/skills/ws-sync-spec/SKILL.md), `/ws-spec-to-pr` / `/ws-spec-to-pr-lite`, or `/ws-fable-method`. Prefer workflows and specs/planning over immediate implementation. Layer 0 still applies every prompt. **Skip the pause** when scope is clearly trivial (single file / tiny fix) or the user gave an explicit implement/ship command or named a workflow to run. This root `AGENTS.md` is the single source of truth for the gate; do not add a separate always-on skill that duplicates it.
+4. **Autoload after implementation / vibe-coding turns:** [`ws-sync-spec`](.agents/skills/ws-sync-spec/SKILL.md) — keep matching `.agents/specs/*.spec.md` aligned with code; propose updates and **wait for approval** before writing. If no matching spec, report and continue.
+5. **On demand (this repo):** [`cursor-server`](.agents/skills/cursor-server/SKILL.md) — local coding conventions and feature/config workflows when implementing in this codebase.
+6. Invoke orchestrators by intent: `/ws-spec-to-pr`, `/ws-spec-to-pr-lite`, `/ws-fable-method`, `/ws-configure-project`, `/ws-check-harness`, `/ws-ship-pr`, `/ws-fix-pr`, etc.
+7. Expand path tokens (`{skillsRoot}`, `{sharedDir}`, `{plansDir}`) from `config.json` per `shared/tools.md` before file ops.
+8. Never invent alternate pipeline folder ids; dispatch steps via the orchestrator (`00`–`09`, `goal-fix-pr`, `update-plan-implementation`).
+9. **Mandatory completion gate (every task ready):** `ws-sync-spec` → `self-learning` → `changelog`.
+10. **On-demand only (not every vibe turn):** [`ws-spec-index`](.agents/skills/ws-spec-index/SKILL.md) for ship/delivery (`sync`), Inbox → planned (`promote`), or index bootstrap (`init`). Use when editing `index.PRD` / README Roadmap / AGENTS Planned areas — not for AC content drift (that is `ws-sync-spec`).
 
 ### Install / update / uninstall
 
@@ -293,7 +294,7 @@ Task endpoint smoke requires `CURSOR_API_KEY` and a clone under `repos/`. For **
 
 ## Precedence
 
-1. User explicit instructions (this root `AGENTS.md`, direct requests) — portable across agent hosts; do not require IDE-specific rule files
+1. User explicit instructions (this root `AGENTS.md`, direct requests) — portable across agent hosts; do not require IDE-specific rule files. Includes the § How to use **plan-first gate** for multi-file free-text work unless the user explicitly overrides.
 2. [Shared hub](.agents/skills/shared/AGENTS.md) + invoked skills under `.agents/skills/`
 3. Default agent behavior
 
